@@ -1,0 +1,6 @@
+Buat make proyek ini di penyimpanan lokal kamu:
+
+Pertama-tama buat dulu proyek Laravel 12 (versi yg dipakai saat proyek ini dibuat)
+Habis itu lakuan 'git clone' terhadap repositori ini
+Lakukan setup database lokal kamu (migrate dan seeder)
+Proyek siap dipakai, jalankan 'php artisan serve'
