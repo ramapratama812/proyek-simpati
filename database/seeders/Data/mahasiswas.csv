@@ -1,0 +1,11 @@
+"id","user_id","nama","nim","email","jenis_kelamin","program_studi","perguruan_tinggi","status_terakhir","foto","created_at","updated_at"
+"4",NULL,"AHMAD FAUZI","2401301065",NULL,,"Teknik Mesin","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"5",NULL,"BUDI SANTOSO","2401301067",NULL,,"Akuntansi","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"6",NULL,"DEWI LESTARI","2401301070",NULL,,"Teknologi Informasi","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"7",NULL,"FAJAR NUGROHO","2401301071",NULL,,"Teknik Mesin","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"8",NULL,"INDAH PERMATA","2401301072",NULL,,"Akuntansi","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"9",NULL,"MAKIYAH","2401301064",NULL,,"Teknologi Informasi","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"10",NULL,"NUR AISYAH","2401301068",NULL,,"Teknologi Informasi","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"11",NULL,"RIZKY PRATAMA","2401301069",NULL,,"Manajemen Informatika","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"12",NULL,"SITI RAHMA","2401301066",NULL,,"Teknik Elektro","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
+"13",NULL,"YUSUF HIDAYAT","2401301073",NULL,,"Teknik Elektro","Politeknik Negeri Tanah Laut",NULL,NULL,NULL,NULL
