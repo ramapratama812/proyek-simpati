@@ -10,7 +10,9 @@ class BibtexImporter
     public function parse(string $bibtex): array
     {
         $listener = new Listener();
-        (new Parser())->addListener($listener)->parseString($bibtex);
+        $parser = new Parser();
+        $parser->addListener($listener);
+        $parser->parseString($bibtex);
         $entries = $listener->export();
         return collect($entries)->map(function($e){
             return [

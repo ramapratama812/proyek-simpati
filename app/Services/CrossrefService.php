@@ -8,8 +8,14 @@ class CrossrefService
 {
     public function byDoi(string $doi): array
     {
-        $res = Http::acceptJson()->get("https://api.crossref.org/works/".urlencode($doi));
-        if(!$res->ok()) throw new \Exception('DOI tidak ditemukan');
+        try {
+            $res = Http::acceptJson()->get("https://api.crossref.org/works/".urlencode($doi));
+            if (!$res->ok()) {
+                throw new \Exception('DOI tidak ditemukan');
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('Terjadi kesalahan saat menghubungi Crossref: ' . $e->getMessage());
+        }
         $w = $res->json('message');
         return [
             'judul' => $w['title'][0] ?? '',
