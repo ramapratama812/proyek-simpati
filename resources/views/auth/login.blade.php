@@ -1,25 +1,71 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh">
-  <form method="POST" action="{{ route('login.post') }}" class="card p-4" style="max-width:420px; width:100%">
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #f8faff;">
+  <form method="POST" action="{{ route('login.post') }}"
+        class="card p-5 shadow-lg border-0"
+        style="max-width:520px; width:100%; border-radius: 20px;">
     @csrf
-    <h5 class="mb-3 text-center">Masuk ke SIMPATI</h5>
-    @error('login')<div class="alert alert-danger">{{ $message }}</div>@enderror
-    <div class="mb-3">
-      <label class="form-label">Username atau Email</label>
-      <input name="login" class="form-control" required value="{{ old('login') }}">
+
+    <h4 class="mb-4 text-center fw-bold" style="color:#0062ff;">Masuk ke SIMPATI</h4>
+
+    @error('login')
+      <div class="alert alert-danger">{{ $message }}</div>
+    @enderror
+
+    {{-- Username --}}
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Username atau Email</label>
+      <input name="login" class="form-control form-control-lg rounded-3 shadow-sm border-0"
+             style="background-color:#f4f7fc;" required value="{{ old('login') }}">
     </div>
-    <div class="mb-3">
-      <label class="form-label">Password</label>
-      <input type="password" name="password" class="form-control" required>
+
+    {{-- Password --}}
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Password</label>
+      <div class="position-relative">
+        <input type="password" name="password" id="password"
+               class="form-control form-control-lg rounded-3 pe-5 shadow-sm border-0"
+               style="background-color:#f4f7fc;" required>
+        <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+              style="cursor:pointer;" onclick="togglePassword()">
+          <i class="bi bi-eye-slash text-secondary" id="toggleIcon" style="font-size:1.2rem;"></i>
+        </span>
+      </div>
     </div>
+
+    {{-- Remember Me --}}
     <div class="mb-3 form-check">
       <input type="checkbox" name="remember" class="form-check-input" id="remember">
       <label class="form-check-label" for="remember">Ingat saya</label>
     </div>
-    <button class="btn btn-primary w-100">Masuk</button>
-    <p class="mt-3 text-center">Belum punya akun? <a href="{{ route('register') }}">Daftar</a></p>
+
+    {{-- Button --}}
+    <button class="btn w-100 py-2 fs-6 fw-semibold text-white"
+            style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">
+      Masuk
+    </button>
+
+    {{-- Register Link --}}
+    <p class="mt-4 text-center text-secondary">
+      Belum punya akun?
+      <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-none">Daftar</a>
+    </p>
   </form>
 </div>
+
+{{-- Script toggle password --}}
+<script>
+function togglePassword() {
+  const password = document.getElementById('password');
+  const icon = document.getElementById('toggleIcon');
+  if (password.type === 'password') {
+    password.type = 'text';
+    icon.classList.replace('bi-eye-slash', 'bi-eye');
+  } else {
+    password.type = 'password';
+    icon.classList.replace('bi-eye', 'bi-eye-slash');
+  }
+}
+</script>
 @endsection
