@@ -2,15 +2,15 @@
 
 @section('content')
 <div class="container">
-  {{-- Header judul + tahun --}}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">{{ $pub->judul }}</h4>
-    @if($pub->tahun)
-      <span class="badge text-bg-light">{{ $pub->tahun }}</span>
-    @endif
+  {{-- Header judul --}}
+  <div class="mb-3">
+    <h4 class="mb-3">{{ $pub->judul }}</h4>
   </div>
 
-  {{-- Hak edit/hapus hanya untuk owner (atau admin jika diizinkan) --}}
+  {{-- Kontainer Flexbox untuk Tombol Edit/Hapus (Kiri) dan DOI (Kanan) --}}
+  <div class="mb-3 d-flex justify-content-between align-items-center">
+
+    {{-- Kiri: Hak edit/hapus hanya untuk owner --}}
     @php
     $user = auth()->user();
     $isAdmin = strtolower($user->role ?? '') === 'admin';
@@ -19,28 +19,64 @@
         : $isAdmin;
     @endphp
 
-    @if($canManage)
-    <div class="mb-3 d-flex gap-2">
+    <div class="d-flex gap-2">
+      @if($canManage)
         <a href="{{ route('publications.edit', $pub) }}" class="btn btn-warning">Edit</a>
         <form method="POST" action="{{ route('publications.destroy', $pub) }}"
             onsubmit="return confirm('Hapus publikasi ini? Tindakan tidak bisa dibatalkan.');">
         @csrf @method('DELETE')
         <button class="btn btn-danger">Hapus</button>
         </form>
+      @endif
     </div>
-    @endif
 
-  {{-- Rincian publikasi --}}
+    {{-- Kanan: DOI (Diposisikan di pojok kanan, sejajar dengan tombol) --}}
+    <div class="text-end">
+      @if ($pub->doi)
+        <a href="https://doi.org/{{ $pub->doi }}" target="_blank" class="text-decoration-none">
+            <strong style="color: #007bff;">DOI: {{ $pub->doi }}</strong>
+        </a>
+      @else
+        <span class="d-block text-muted" style="font-size: 0.85rem;"><i class="fas fa-info-circle me-1"></i> DOI: —</span>
+      @endif
+    </div>
+  </div>
+
+  {{-- Rincian publikasi (Card) --}}
   <div class="card">
     <div class="card-body">
-      <div class="mb-2"><strong>Jurnal:</strong> {{ $pub->jurnal ?? '—' }}</div>
+      <div class="mb-2">
+        <h5>
+            @php
+            $info = [];
+            if($pub->volume) $info[] = "Vol {$pub->volume}";
+            if($pub->nomor) $info[] = "No {$pub->nomor}";
+            if($pub->tahun) $info[] = "({$pub->tahun})";
+            $display = implode(' ', $info);
+            @endphp
+
+            <strong>{{ $pub->jurnal ?? '—' }}:
+                @if($display)
+                    <span class="text-muted">{{ $display }}</span>
+                @endif
+            </strong>
+
+        </h5>
+      </div>
+
+      {{-- Bagian informasi lainnya --}}
       <div class="mb-2"><strong>Jenis:</strong> {{ $pub->jenis ?? '—' }}</div>
-      <div class="mb-2"><strong>DOI:</strong> {{ $pub->doi ?? '—' }}</div>
+      <div class="mb-2"><strong>Jumlah Halaman:</strong> {{ $pub->jumlah_halaman ?? '—' }}</div>
 
       @if(isset($pub->penulis) && is_array($pub->penulis))
-        <div class="mb-2"><strong>Penulis:</strong> {{ implode(', ', $pub->penulis) }}</div>
+      <div class="mb-2"><strong>Penulis:</strong> {{ implode(', ', $pub->penulis) }}</div>
       @else
         <div class="mb-2"><strong>Penulis:</strong> —</div>
+      @endif
+      <div class="mb-2"><strong>Pengunggah:</strong> {{ $pub->owner->name ?? '—' }}</div>
+
+      @if($pub->abstrak)
+      <div class="mb-2"><strong>Abstrak:</strong> <p>{{ $pub->abstrak }}</p></div>
       @endif
     </div>
   </div>

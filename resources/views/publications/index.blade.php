@@ -9,6 +9,8 @@
 
   <div class="card mb-3">
     <div class="card-body">
+      <div><h6>Impor Publikasi Cepat</h6></div>
+      <hr>
       <form class="row g-2" method="POST" action="{{ route('import.crossref') }}">
         @csrf
         <div class="col-md-8">
@@ -50,6 +52,7 @@
     {{-- Chart --}}
     <div class="card mb-3">
         <div class="card-body">
+          <p>Grafik jumlah publikasi (per-tahun)</p>
           <canvas id="chartPublikasi" height="80"></canvas>
         </div>
     </div>
@@ -116,20 +119,30 @@
   </script>
   @endpush
 
-  <div class="list-group">
-    @forelse($pubs as $r)
-      <a class="list-group-item list-group-item-action" href="{{ route('publications.show',$r) }}">
-        <div class="d-flex justify-content-between">
-          <div>
-            <div class="fw-semibold">{{ $r->judul }}</div>
-            <small class="text-muted">{{ $r->jurnal ?? '—' }}</small>
-          </div>
-          <span class="badge text-bg-light">{{ $r->tahun ?? '—' }}</span>
-        </div>
-      </a>
-    @empty
-      <div class="list-group-item">Belum ada data.</div>
-    @endforelse
+  <div>
+    <div class="card">
+        <div class="card-header">Daftar Artikel</div>
+            <div class="list-group list-group-flush">
+                @forelse($pubs as $r)
+                <a class="list-group-item list-group-item-action" href="{{ route('publications.show',$r) }}">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="fw-bold">{{ $r->judul }}</div>
+                            <i class="text-bg-light">{{ $r->jurnal ?? '—' }}</i>
+                            <div>
+                              @if(isset($r->penulis) && is_array($r->penulis))
+                                <small>{{ implode(', ', $r->penulis) }}</small>
+                              @endif
+                            </div>
+                        </div>
+                        <span class="badge text-dark d-flex align-items-center justify-content-center">{{ $r->tahun ?? '—' }}</span>
+                    </div>
+                </a>
+                @empty
+                <div class="list-group-item">Belum ada data.</div>
+                @endforelse
+            </div>
+      </div>
   </div>
 
   <div class="mt-3">{{ $pubs->withQueryString()->links() }}</div>

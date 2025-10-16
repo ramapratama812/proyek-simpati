@@ -25,15 +25,39 @@
 
       <div class="col-md-6">
         <label class="form-label">Jurnal/Prosiding</label>
-        <input name="jurnal" class="form-control" value="{{ old('jurnal_prosiding') }}">
+        <input name="jurnal" class="form-control" value="{{ old('jurnal') }}">
       </div>
       <div class="col-md-3">
         <label class="form-label">Tahun</label>
-        <input name="tahun" type="number" class="form-control" value="{{ old('tahun') }}">
+        <input name="tahun" type="number" min="1980" class="form-control" value="{{ old('tahun') }}">
       </div>
       <div class="col-md-3">
         <label class="form-label">DOI</label>
         <input name="doi" id="doiField" class="form-control" value="{{ old('doi') }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Volume</label>
+        <input type="number" name="volume" class="form-control" min="1" value="{{ old('volume') }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Nomor (issue)</label>
+        <input type="number" name="nomor" class="form-control" min="1" value="{{ old('nomor') }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Jumlah Halaman</label>
+        <input name="jumlah_halaman" type="number" class="form-control" value="{{ old('jumlah_halaman') }}">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Penulis</label>
+        <textarea name="penulis" class="form-control" rows="3" placeholder="Masukkan nama penulis, pisahkan dengan koma atau baris baru untuk menambahkan lebih dari satu">{{ old('penulis') }}</textarea>
+        <div class="form-text">Contoh: John Doe, Jane Smith</div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Abstrak</label>
+        <textarea name="abstrak" class="form-control" rows="4">{{ old('abstrak') }}</textarea>
       </div>
     </div>
 
@@ -58,6 +82,7 @@
 </div>
 @endsection
 
+{{-- Buat integrasi crossref (impor DOI) --}}
 @push('scripts')
 <script>
 (function(){
@@ -92,8 +117,27 @@
         document.querySelector('[name=jurnal]').value =
           (m['container-title'] && m['container-title'][0]) || (m.publisher || '');
         document.querySelector('[name=tahun]').value = pickYear(m);
+        document.querySelector('[name=volume]').value = m.volume || '';
+        document.querySelector('[name=nomor]').value = m.issue || '';
+        document.querySelector('[name=abstrak]').value = m.abstract || '';
+        document.querySelector('[name=jumlah_halaman]').value = calculatePageCount(m.page);
         document.querySelector('[name=doi]').value = m.DOI || doi;
         document.querySelector('[name=jenis]').value = (m.type || '').replace(/_/g,' ');
+
+        // Populate authors
+        if (m.author && Array.isArray(m.author)) {
+          const authors = m.author.map(a => `${a.given || ''} ${a.family || ''}`.trim()).join(', ');
+          document.querySelector('[name=penulis]').value = authors;
+        }
+
+        function calculatePageCount(page) {
+          if (!page) return '';
+          const match = page.match(/(\d+)-(\d+)/);
+          if (match) {
+            return parseInt(match[2]) - parseInt(match[1]) + 1;
+          }
+          return '';
+        }
 
         alert('Data berhasil diimpor dari Crossref. Silakan periksa kembali sebelum menyimpan.');
       }catch(e){
