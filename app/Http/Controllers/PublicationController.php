@@ -74,13 +74,26 @@ class PublicationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'judul'      => 'required|string|max:255',
-            'jenis'      => 'nullable|string|max:100',
-            'jurnal'     => 'nullable|string|max:255',
-            'tahun'      => 'nullable|integer',
-            'doi'        => 'nullable|string|max:255',
-            'project_id' => 'nullable|integer|exists:research_projects,id',
+            'judul'           => 'required|string|max:255',
+            'jenis'           => 'nullable|string|max:100',
+            'jurnal'          => 'nullable|string|max:255',
+            'tahun'           => 'nullable|integer',
+            'volume'          => 'nullable|string|max:100',
+            'nomor'           => 'nullable|string|max:100',
+            'abstrak'         => 'nullable|string',
+            'jumlah_halaman'  => 'nullable|integer',
+            'penulis'         => 'nullable|string',
+            'doi'             => 'nullable|string|max:255',
+            'project_id'      => 'nullable|integer|exists:research_projects,id',
         ]);
+
+        // Process penulis into array
+        if (isset($validated['penulis']) && $validated['penulis']) {
+            $validated['penulis'] = array_map('trim', preg_split('/[,;\n]/', $validated['penulis']));
+            $validated['penulis'] = array_filter($validated['penulis'], fn($p) => !empty($p));
+        } else {
+            $validated['penulis'] = [];
+        }
 
         // set pemilik
         if (Schema::hasColumn('publications', 'owner_id')) {
@@ -131,7 +144,6 @@ class PublicationController extends Controller
         abort_unless($isAdmin || $isKetua || $isCreator, 403);
     }
 
-
     /** CRUD Publikasi. */
     public function show(Publication $publication)
     {
@@ -149,12 +161,25 @@ class PublicationController extends Controller
         $this->authorizeManage($publication);
 
         $validated = $request->validate([
-            'judul'  => 'required|string|max:255',
-            'jenis'  => 'nullable|string|max:100',
-            'jurnal' => 'nullable|string|max:255',
-            'tahun'  => 'nullable|integer',
-            'doi'    => 'nullable|string|max:255',
+            'judul'          => 'required|string|max:255',
+            'jenis'          => 'nullable|string|max:100',
+            'jurnal'         => 'nullable|string|max:255',
+            'tahun'          => 'nullable|integer',
+            'volume'         => 'nullable|string|max:100',
+            'nomor'          => 'nullable|string|max:100',
+            'abstrak'        => 'nullable|string',
+            'jumlah_halaman' => 'nullable|integer',
+            'penulis'        => 'nullable|string',
+            'doi'            => 'nullable|string|max:255',
         ]);
+
+        // Process penulis into array
+        if (isset($validated['penulis']) && $validated['penulis']) {
+            $validated['penulis'] = array_map('trim', preg_split('/[,;\n]/', $validated['penulis']));
+            $validated['penulis'] = array_filter($validated['penulis'], fn($p) => !empty($p));
+        } else {
+            $validated['penulis'] = [];
+        }
 
         $publication->update($validated);
 
@@ -175,55 +200,4 @@ class PublicationController extends Controller
         return redirect()->to(url('/publications'))
             ->with('ok', 'Publikasi telah dihapus.');
     }
-
-    // Backupan metode diatas
-    // public function show(Publication $publication)
-    // {
-    //     // View saat ini memakai variabel $pub
-    //     return view('publications.show', ['pub' => $publication]);
-    // }
-
-    // /** Form edit. */
-    // public function edit(Publication $publication)
-    // {
-    //     $this->authorizeManage($publication);
-    //     return view('publications.edit', compact('publication'));
-    // }
-
-    // /** Update publikasi. */
-    // public function update(Request $request, Publication $publication)
-    // {
-    //     $this->authorizeManage($publication);
-
-    //     $validated = $request->validate([
-    //         'judul'  => 'required|string|max:255',
-    //         'jenis'  => 'nullable|string|max:100',
-    //         'jurnal' => 'nullable|string|max:255',
-    //         'tahun'  => 'nullable|integer',
-    //         'doi'    => 'nullable|string|max:255',
-    //     ]);
-
-    //     $publication->update($validated);
-
-    //     return redirect()
-    //         ->route('publications.show', $publication)
-    //         ->with('ok', 'Publikasi berhasil diperbarui.');
-    // }
-
-    // /** Hapus publikasi. */
-    // public function destroy(Publication $publication)
-    // {
-    //     $this->authorizeManage($publication);
-
-    //     // Putuskan relasi ke project (kalau ada)
-    //     if (method_exists($publication, 'projects')) {
-    //         $publication->projects()->detach();
-    //     }
-
-    //     $publication->delete();
-
-    //     return redirect()->to(url('/publications'))
-    //         ->with('ok', 'Publikasi telah dihapus.');
-    // }
-
 }

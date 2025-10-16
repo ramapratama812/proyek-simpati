@@ -19,13 +19,12 @@ class DashboardController extends Controller
         $u = auth()->user();
         $isAdmin = strtolower($u->role ?? '') === 'admin';
 
+        // Always filter for logged-in user
         $owned = ResearchProject::with('ketua')->latest('id');
-        if (!$isAdmin) {
-            if (Schema::hasColumn('research_projects','created_by')) {
-                $owned->where('created_by', $u->id);
-            } else {
-                $owned->where('ketua_id', $u->id);
-            }
+        if (Schema::hasColumn('research_projects','created_by')) {
+            $owned->where('created_by', $u->id);
+        } else {
+            $owned->where('ketua_id', $u->id);
         }
         $projects = $owned->take(5)->get();
 
@@ -34,29 +33,48 @@ class DashboardController extends Controller
             ->latest('id')->take(5)->get();
 
         $pubs = Publication::query()->latest('id');
-        if (!$isAdmin && Schema::hasColumn('publications','owner_id')) {
+        if (Schema::hasColumn('publications','owner_id')) {
             $pubs->where('owner_id', $u->id);
         }
         $pubs = $pubs->take(5)->get();
 
-        $projectCount = $isAdmin
-            ? ResearchProject::count()
-            : (Schema::hasColumn('research_projects','created_by')
-                ? ResearchProject::where('created_by',$u->id)->count()
-                : ResearchProject::where('ketua_id',$u->id)->count());
+        $projectCount = Schema::hasColumn('research_projects','created_by')
+            ? ResearchProject::where('created_by',$u->id)->count()
+            : ResearchProject::where('ketua_id',$u->id)->count();
 
-        $publicationCount = $isAdmin
-            ? Publication::count()
-            : (Schema::hasColumn('publications','owner_id')
-                ? Publication::where('owner_id',$u->id)->count()
-                : Publication::count());
+        $publicationCount = Schema::hasColumn('publications','owner_id')
+            ? Publication::where('owner_id',$u->id)->count()
+            : Publication::count(); // Fallback, but should have owner_id
+
+        // Data for charts: count per year
+        $projectCountsByYear = ResearchProject::selectRaw('YEAR(mulai) as year, COUNT(*) as count')
+            ->where(function($q) use ($u) {
+                if (Schema::hasColumn('research_projects','created_by')) {
+                    $q->where('created_by', $u->id);
+                } else {
+                    $q->where('ketua_id', $u->id);
+                }
+            })
+            ->whereNotNull('mulai')
+            ->groupBy('year')
+            ->orderBy('year')
+            ->get()
+            ->pluck('count', 'year');
+
+        $publicationCountsByYear = Publication::selectRaw('tahun as year, COUNT(*) as count')
+            ->where('owner_id', $u->id)
+            ->whereNotNull('tahun')
+            ->groupBy('tahun')
+            ->orderBy('tahun')
+            ->get()
+            ->pluck('count', 'year');
 
         $notifications = UserNotification::where('user_id',$u->id)->where('is_shown',false)->orderBy('created_at')->get();
         if ($notifications->count()) {
             UserNotification::whereIn('id',$notifications->pluck('id'))->update(['is_shown'=>true]);
         }
 
-        return view('dashboard.index', compact('projects','memberProjects','pubs','projectCount','publicationCount','isAdmin','notifications'));
+        return view('dashboard.index', compact('projects','memberProjects','pubs','projectCount','publicationCount','isAdmin','notifications','projectCountsByYear','publicationCountsByYear'));
     }
 
     public function lecturers()

@@ -51,9 +51,9 @@ class ResearchProjectController extends Controller
         switch ($sort) {
             case 'year_desc': $projects->orderByRaw("$yearExpr DESC"); break;
             case 'year_asc' : $projects->orderByRaw("$yearExpr ASC");  break;
-            case 'name'     : $projects->orderBy('judul');             break;
+            case 'name'     : $projects->orderBy('judul');          break;
             case 'latest'   :
-            default         : $projects->latest('created_at');         break;
+            default         : $projects->latest('created_at');      break;
         }
 
         $projects = $projects->paginate(12)->withQueryString();
@@ -61,7 +61,7 @@ class ResearchProjectController extends Controller
         // --- Data chart ---
         $chartRows = DB::table('research_projects')
             ->selectRaw("$yearExpr AS y, COUNT(*) AS c")
-            ->whereRaw("$yearExpr IS NOT NULL")               // ✅ pakai ekspresi, bukan alias
+            ->whereRaw("$yearExpr IS NOT NULL")
             ->groupBy('y')
             ->orderBy('y')
             ->get();
@@ -69,7 +69,7 @@ class ResearchProjectController extends Controller
         // --- Daftar tahun untuk <select> ---
         $years = DB::table('research_projects')
             ->selectRaw("DISTINCT $yearExpr AS y")
-            ->whereRaw("$yearExpr IS NOT NULL")               // ✅ hindari WHERE y IS NOT NULL
+            ->whereRaw("$yearExpr IS NOT NULL")
             ->orderBy('y', 'desc')
             ->pluck('y');
 
@@ -104,6 +104,7 @@ class ResearchProjectController extends Controller
             'sumber_dana' => 'nullable|string|max:255',
             'biaya' => 'nullable|numeric|min:0',
             'abstrak' => 'nullable|string',
+            'surat_proposal' => 'required|file|mimes:pdf|max:10240',
             'ketua_user_id' => 'nullable|exists:users,id',
             'anggota_user_ids' => 'nullable|array',
             'anggota_user_ids.*' => 'exists:users,id',
@@ -115,7 +116,6 @@ class ResearchProjectController extends Controller
             'lokasi' => 'nullable|string|max:255',
             'nomor_kontrak' => 'nullable|string|max:255',
             'tanggal_kontrak' => 'nullable|date',
-            'lama_kegiatan_bulan' => 'nullable|integer|min:1|max:60',
             'target_luaran' => 'nullable|array',
             'target_luaran.*' => 'string',
             'keywords' => 'nullable|string|max:255',
@@ -126,6 +126,12 @@ class ResearchProjectController extends Controller
 
         return DB::transaction(function () use ($request, $data) {
             $project = new ResearchProject();
+            // Handle file upload for surat_proposal
+            $suratProposalPath = null;
+            if ($request->hasFile('surat_proposal')) {
+                $suratProposalPath = $request->file('surat_proposal')->store('proposals', 'public');
+            }
+
             $project->fill([
                 'jenis' => $data['jenis'],
                 'judul' => $data['judul'],
@@ -133,6 +139,7 @@ class ResearchProjectController extends Controller
                 'bidang_ilmu' => $data['bidang_ilmu'] ?? null,
                 'skema' => $data['skema'] ?? null,
                 'abstrak' => $data['abstrak'] ?? null,
+                'surat_proposal' => $suratProposalPath,
                 'mulai' => $data['mulai'] ?? null,
                 'selesai' => $data['selesai'] ?? null,
                 'sumber_dana' => $data['sumber_dana'] ?? null,
@@ -146,7 +153,6 @@ class ResearchProjectController extends Controller
                 'lokasi' => $data['lokasi'] ?? null,
                 'nomor_kontrak' => $data['nomor_kontrak'] ?? null,
                 'tanggal_kontrak' => $data['tanggal_kontrak'] ?? null,
-                'lama_kegiatan_bulan' => $data['lama_kegiatan_bulan'] ?? null,
                 'target_luaran' => $data['target_luaran'] ?? null,
                 'keywords' => $data['keywords'] ?? null,
                 'tautan' => $data['tautan'] ?? null,
@@ -194,9 +200,22 @@ class ResearchProjectController extends Controller
         return redirect()->route('projects.show',$project)->with('ok','Gambar berhasil diunggah.');
     }
 
+    public function destroyImage(ResearchProject $project, $imageId)
+    {
+        if (!$this->isParticipant($project)) {
+            abort(403);
+        }
+
+        $image = $project->images()->where('id', $imageId)->firstOrFail();
+        \Storage::disk('public')->delete($image->path);
+        $image->delete();
+
+        return redirect()->route('projects.show',$project)->with('ok','Gambar berhasil dihapus.');
+    }
+
     public function show(ResearchProject $project)
     {
-        $project->load(['members','ketua']);
+        $project->load(['members','ketua','images']);
         return view('projects.show', compact('project'));
     }
 
@@ -224,6 +243,7 @@ class ResearchProjectController extends Controller
             'sumber_dana' => 'nullable|string|max:255',
             'biaya' => 'nullable|numeric|min:0',
             'abstrak' => 'nullable|string',
+            'surat_proposal' => 'required|file|mimes:pdf|max:10240',
             'ketua_user_id' => 'nullable|exists:users,id',
             'anggota_user_ids' => 'nullable|array',
             'anggota_user_ids.*' => 'exists:users,id',
@@ -235,12 +255,22 @@ class ResearchProjectController extends Controller
             'lokasi' => 'nullable|string|max:255',
             'nomor_kontrak' => 'nullable|string|max:255',
             'tanggal_kontrak' => 'nullable|date',
-            'lama_kegiatan_bulan' => 'nullable|integer|min:1|max:60',
             'target_luaran' => 'nullable|array',
             'target_luaran.*' => 'string',
             'keywords' => 'nullable|string|max:255',
             'tautan' => 'nullable|url',
         ]);
+
+        // Handle file upload for surat_proposal if provided
+        if ($request->hasFile('surat_proposal')) {
+            // Delete old file if exists
+            if ($project->surat_proposal) {
+                \Storage::disk('public')->delete($project->surat_proposal);
+            }
+            $suratProposalPath = $request->file('surat_proposal')->store('proposals', 'public');
+        } else {
+            $suratProposalPath = $project->surat_proposal;
+        }
 
         $project->update([
             'jenis' => $data['jenis'],
@@ -249,6 +279,7 @@ class ResearchProjectController extends Controller
             'bidang_ilmu' => $data['bidang_ilmu'] ?? null,
             'skema' => $data['skema'] ?? null,
             'abstrak' => $data['abstrak'] ?? null,
+            'surat_proposal' => $suratProposalPath,
             'mulai' => $data['mulai'] ?? null,
             'selesai' => $data['selesai'] ?? null,
             'sumber_dana' => $data['sumber_dana'] ?? null,
@@ -262,11 +293,10 @@ class ResearchProjectController extends Controller
             'lokasi' => $data['lokasi'] ?? null,
             'nomor_kontrak' => $data['nomor_kontrak'] ?? null,
             'tanggal_kontrak' => $data['tanggal_kontrak'] ?? null,
-            'lama_kegiatan_bulan' => $data['lama_kegiatan_bulan'] ?? null,
             'target_luaran' => $data['target_luaran'] ?? null,
             'keywords' => $data['keywords'] ?? null,
             'tautan' => $data['tautan'] ?? null,
-        ]);
+    ]);
 
         // sync full members set: ketua + anggota
         $sync = [];

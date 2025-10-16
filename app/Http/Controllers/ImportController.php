@@ -21,6 +21,10 @@ class ImportController extends Controller
             'judul'=>$meta['judul'],
             'jurnal'=>$meta['jurnal'] ?? null,
             'tahun'=>$meta['tahun'] ?? null,
+            'volume'=>$meta['volume'] ?? null,
+            'nomor'=>$meta['nomor'] ?? null,
+            'abstrak'=>$meta['abstrak'] ?? null,
+            'jumlah_halaman'=>$meta['jumlah_halaman'] ?? null,
             'doi'=>$meta['doi'] ?? null,
             'penulis'=>$meta['penulis'] ?? [],
             'sumber'=>$meta['sumber'] ?? [],
@@ -63,8 +67,10 @@ class ImportController extends Controller
         });
 
         foreach ($rows as $e) {
+            if (empty($e['judul'])) continue;
+            $tahun = is_numeric($e['tahun']) && $e['tahun'] > 0 ? (int)$e['tahun'] : null;
             Publication::firstOrCreate(
-                ['owner_id'=>auth()->id(), 'judul'=>$e['judul'], 'tahun'=>$e['tahun']],
+                ['owner_id'=>auth()->id(), 'judul'=>$e['judul'], 'tahun'=>$tahun],
                 ['penulis'=>$e['penulis'], 'sumber'=>$e['sumber']]
             );
         }
