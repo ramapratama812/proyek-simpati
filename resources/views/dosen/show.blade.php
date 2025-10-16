@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-5">
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 1200px; margin: 0 auto;">
-        
+
         {{-- Header --}}
         <div class="card-header text-center text-white py-4"
             style="background-color: #001F4D;">

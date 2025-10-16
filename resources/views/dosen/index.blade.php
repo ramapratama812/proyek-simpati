@@ -9,17 +9,17 @@
     </div>
 
     {{-- 🔹 Search & Filter (lebih membulat) --}}
-    <form action="{{ route('dosen.index') }}" method="GET" 
+    <form action="{{ route('dosen.index') }}" method="GET"
           class="d-flex align-items-center gap-3 mb-4"
           style="margin-left: 0; background: none; box-shadow: none;">
 
         {{-- Search Bar --}}
         <div style="max-width: 400px; flex-shrink: 0;">
             <div class="input-group rounded-pill overflow-hidden shadow-sm">
-                <input 
-                    type="text" 
-                    name="search" 
-                    value="{{ $search ?? '' }}" 
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ $search ?? '' }}"
                     class="form-control ps-3 border-0"
                     placeholder="Cari nama atau NIDN/NIP dosen...">
                 <button class="btn btn-primary rounded-end-pill px-4" type="submit">
