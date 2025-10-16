@@ -36,9 +36,6 @@ return new class extends Migration {
                 if (!Schema::hasColumn('research_projects','tanggal_kontrak')) {
                     $t->date('tanggal_kontrak')->nullable()->after('nomor_kontrak');
                 }
-                if (!Schema::hasColumn('research_projects','lama_kegiatan_bulan')) {
-                    $t->unsignedInteger('lama_kegiatan_bulan')->nullable()->after('tanggal_kontrak');
-                }
                 if (!Schema::hasColumn('research_projects','target_luaran')) {
                     $t->json('target_luaran')->nullable()->after('lama_kegiatan_bulan');
                 }
