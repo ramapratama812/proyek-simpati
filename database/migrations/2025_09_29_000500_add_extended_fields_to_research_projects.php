@@ -37,7 +37,7 @@ return new class extends Migration {
                     $t->date('tanggal_kontrak')->nullable()->after('nomor_kontrak');
                 }
                 if (!Schema::hasColumn('research_projects','target_luaran')) {
-                    $t->json('target_luaran')->nullable()->after('lama_kegiatan_bulan');
+                    $t->json('target_luaran')->nullable();
                 }
                 if (!Schema::hasColumn('research_projects','keywords')) {
                     $t->string('keywords')->nullable()->after('target_luaran');
@@ -64,7 +64,7 @@ return new class extends Migration {
     {
         if (Schema::hasTable('research_projects')) {
             Schema::table('research_projects', function (Blueprint $t) {
-                foreach (['tautan','keywords','target_luaran','lama_kegiatan_bulan','tanggal_kontrak','nomor_kontrak','lokasi','mitra_nama','tkt','status','tahun_pelaksanaan','tahun_usulan','ketua_id'] as $col) {
+                foreach (['tautan','keywords','target_luaran','tanggal_kontrak','nomor_kontrak','lokasi','mitra_nama','tkt','status','tahun_pelaksanaan','tahun_usulan','ketua_id'] as $col) {
                     if (Schema::hasColumn('research_projects',$col)) {
                         $t->dropColumn($col);
                     }
