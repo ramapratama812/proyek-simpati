@@ -52,7 +52,6 @@ class RegisterController extends Controller
                 'jenis_kelamin' => null,
                 'program_studi' => null,
                 'pendidikan_terakhir' => null,
-                'status_aktivitas' => null,
                 'foto' => null,
             ]);
         }
