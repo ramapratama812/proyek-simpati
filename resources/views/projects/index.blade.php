@@ -7,10 +7,11 @@
     <a class="btn btn-primary" href="{{ route('projects.create') }}">Tambah</a>
   </div>
 
-      {{-- Chart --}}
-      <div class="card mb-3">
+    {{-- Chart --}}
+    <div class="card mb-3">
         <div class="card-body">
-        <canvas id="chartKegiatan" height="80"></canvas>
+            <p>Grafik jumlah kegiatan (per-tahun)</p>
+            <canvas id="chartKegiatan" height="80"></canvas>
         </div>
     </div>
 
@@ -97,10 +98,13 @@
       <a class="list-group-item list-group-item-action" href="{{ route('projects.show',$r) }}">
         <div class="d-flex justify-content-between">
           <div>
-            <div class="fw-semibold">{{ $r->judul }}</div>
-            <small class="text-muted">{{ ucfirst($r->jenis) }} · {{ $r->skema ?? '—' }}</small>
+              <div class="fw-semibold">{{ $r->judul }}</div>
+              <small class="text-muted">
+                <span class="badge text-bg-secondary">Ketua: {{ $r->ketua->name }}</span>
+                · {{ ucfirst($r->jenis) }} · {{ $r->skema ?? '—' }}
+              </small>
           </div>
-          <span class="badge text-bg-secondary">{{ $r->mulai?->format('Y') ?? '—' }}</span>
+          <span class="badge text-dark d-flex align-items-center justify-content-center">{{ $r->mulai?->format('Y') ?? '—' }}</span>
         </div>
       </a>
     @empty

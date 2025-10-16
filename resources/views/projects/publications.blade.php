@@ -26,7 +26,11 @@
     {{-- Bagian untuk mengelola publikasi dengan margin untuk spasi --}}
 
     {{-- Form hanya tampil untuk ketua/admin yang bisa mengelola --}}
-    @if($canManage)
+    @if(
+        // Batasi tombol edit/hapus hanya untuk ketua atau pembuat (opsional)
+        // auth()->id() && (auth()->id() == $project->created_by ||
+        auth()->id() == $project->ketua_id
+      )
         <div class="row g-4">
             <h5>Kelola Publikasi</h5>
             {{-- Opsi 1: Unggah publikasi baru --}}

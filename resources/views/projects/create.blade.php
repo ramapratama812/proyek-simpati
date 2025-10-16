@@ -6,6 +6,8 @@
   <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="card p-4">
     @csrf
     <div class="row g-3">
+      <label class="form-label fw-semibold">Data Akademik</label>
+
       <div class="col-md-4">
         <label class="form-label">Jenis Kegiatan</label>
         <select name="jenis" class="form-select" required>
@@ -13,6 +15,7 @@
           <option value="pengabdian">Pengabdian</option>
         </select>
       </div>
+
       <div class="col-md-8">
         <label class="form-label">Judul</label>
         <input type="text" name="judul" class="form-control" required>
@@ -20,64 +23,85 @@
 
       <div class="col-md-4">
         <label class="form-label">Kategori Kegiatan</label>
-        <input type="text" name="kategori_kegiatan" class="form-control">
+        <input type="text" name="kategori_kegiatan" class="form-control" required>
       </div>
       <div class="col-md-4">
         <label class="form-label">Bidang Ilmu</label>
-        <input type="text" name="bidang_ilmu" class="form-control">
+        <input type="text" name="bidang_ilmu" class="form-control" required>
       </div>
       <div class="col-md-4">
         <label class="form-label">Skema</label>
-        <input type="text" name="skema" class="form-control">
+        <input type="text" name="skema" class="form-control" required>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Tanggal Mulai</label>
-        <input type="date" name="mulai" class="form-control">
+        <input type="date" name="mulai" class="form-control" required>
       </div>
       <div class="col-md-6">
         <label class="form-label">Tanggal Selesai</label>
-        <input type="date" name="selesai" class="form-control">
+        <input type="date" name="selesai" class="form-control" required>
       </div>
 
       <div class="col-md-6">
         <label class="form-label">Sumber Dana</label>
-        <input type="text" name="sumber_dana" class="form-control">
+        <select name="sumber_dana" class="form-select" required>
+            <option value="" disabled selected>Pilih sumber dana kegiatan</option>
+            <option value="Mandiri">Mandiri</option>
+            <option value="Hibah">Hibah</option>
+        </select>
       </div>
+
       <div class="col-md-6">
-        <label class="form-label">Biaya (Rp)</label>
-        <input type="number" name="biaya" class="form-control" min="0" step="100000">
+        <label for="biaya_display" class="form-label">Biaya (Rp)</label>
+        <input type="text" id="biaya_display" class="form-control" placeholder="Contoh: 500.000" required>
+        <input type="hidden" name="biaya" id="biaya_real">
       </div>
+
+      {{-- Script buat tampilan "Biaya" biar ada titik2nya --}}
+      <script>
+        // Ambil elemen input berdasarkan ID
+        const biayaDisplay = document.getElementById('biaya_display');
+        const biayaReal = document.getElementById('biaya_real');
+
+        // Tambahkan event listener saat pengguna mengetik
+        biayaDisplay.addEventListener('input', function(e) {
+            // 1. Ambil nilai dari input yang terlihat
+            let value = e.target.value;
+
+            // 2. Hapus semua karakter kecuali angka (menghilangkan titik atau huruf)
+            let cleanValue = value.replace(/[^0-9]/g, '');
+
+            // 3. Simpan nilai angka murni ke input yang tersembunyi
+            biayaReal.value = cleanValue;
+
+            // 4. Format nilai dengan titik sebagai pemisah ribuan
+            //    dan tampilkan kembali di input yang terlihat.
+            //    Jika input kosong, jangan format apa-apa.
+            if (cleanValue) {
+                let formattedValue = parseInt(cleanValue, 10).toLocaleString('id-ID');
+                e.target.value = formattedValue;
+            }
+        });
+      </script>
 
       <div class="col-12">
         <label class="form-label">Abstrak</label>
-        <textarea name="abstrak" rows="4" class="form-control"></textarea>
+        <textarea name="abstrak" rows="4" class="form-control"></textarea required>
       </div>
 
-      <div class="col-12"><hr></div>
-      {{-- <div class="col-md-6">
-          <label class="form-label">Ketua</label>
-          <div class="form-text">Pilih dosen yang memimpin kegiatan.</div>
-
-        <select name="ketua_user_id" class="form-select">
-          <option value="">— Pilih Ketua —</option>
-          @isset($lecturers)
-          <optgroup label="Dosen">
-            @foreach($lecturers as $l)
-              <option value="{{ $l->id }}">{{ $l->name }}</option>
-            @endforeach
-          </optgroup>
-          @endisset
-        </select>
-      </div> --}}
-
+      <div class="col-12">
+        <hr>
+        <label class="form-label fw-semibold">Keanggotaan</label>
+      </div>
+        {{-- Pilihan Ketua dan Anggota Tim --}}
         <div class="col-md-6">
-            <label for="ketua-select" class="form-label fw-semibold">Ketua Proyek</label>
+            <label for="ketua-select" class="form-label">Ketua Proyek</label>
             <p class="form-text mt-0 mb-3">Pilih dosen yang akan memimpin kegiatan ini.</p>
 
             {{-- Tom-Select akan mengubah <select> ini menjadi dropdown yang bisa dicari --}}
             <div class="position-relative">
-                <select id="ketua-select" name="ketua_user_id" placeholder="Ketik untuk mencari nama dosen..." autocomplete="off">
+                <select id="ketua-select" name="ketua_user_id" placeholder="Ketik untuk mencari nama dosen..." autocomplete="off" required>
                     <option value="">— Pilih Ketua —</option>
                     @isset($lecturers)
                         @foreach($lecturers as $l)
@@ -90,6 +114,13 @@
                 </select>
             </div>
             <div class="form-text mt-1">Hanya satu ketua yang bisa dipilih.</div>
+            <div class="form-text mt-1">Ketua dapat mengelola data-data kegiatan.</div>
+
+            {{-- Bagian buat uplod surat proposal --}}
+            <hr>
+            <label class="form-label">Surat Proposal<span class="required-asterisk">*</span></label>
+            <input type="file" name="surat_proposal" accept="application/pdf" class="form-control" required>
+            <div class="form-text">Upload file proposal dalam format PDF. Wajib diisi.</div>
         </div>
 
         {{-- Skrip untuk inisialisasi Tom-Select pada elemen #ketua-select --}}
@@ -112,8 +143,9 @@
             });
         </script>
 
+
         <div class="col-md-6">
-            <label class="form-label fw-semibold">Pilih Anggota Tim</label>
+            <label class="form-label">Pilih Anggota Tim</label>
             <p class="form-text mt-0 mb-3">Pilih dosen/mahasiswa yang ikut serta dalam kegiatan.</p>
 
             {{-- Kontrol Pencarian dan Filter --}}
@@ -235,11 +267,11 @@
 
       <div class="col-md-3">
         <label class="form-label">Tahun Usulan</label>
-        <input type="number" name="tahun_usulan" class="form-control" min="2000" max="{{ date('Y')+1 }}">
+        <input type="number" name="tahun_usulan" class="form-control" min="2010" max="{{ date('Y')+1 }}">
       </div>
       <div class="col-md-3">
         <label class="form-label">Tahun Pelaksanaan</label>
-        <input type="number" name="tahun_pelaksanaan" class="form-control" min="2000" max="{{ date('Y')+2 }}">
+        <input type="number" name="tahun_pelaksanaan" class="form-control" min="2010" max="{{ date('Y')+2 }}">
       </div>
       <div class="col-md-3">
         <label class="form-label">Status</label>
@@ -264,17 +296,13 @@
         <input type="text" name="lokasi" class="form-control" placeholder="Kota/Kabupaten, Provinsi">
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label">Nomor Kontrak/SPK</label>
         <input type="text" name="nomor_kontrak" class="form-control">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label">Tanggal Kontrak</label>
         <input type="date" name="tanggal_kontrak" class="form-control">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Lama Kegiatan (bulan)</label>
-        <input type="number" name="lama_kegiatan_bulan" class="form-control" min="1" max="60">
       </div>
 
       <div class="col-md-6">
@@ -308,7 +336,12 @@
         <input type="file" name="images[]" accept="image/*" class="form-control" multiple>
       </div>
     </div>
-    <div class="mt-3 text-end">
+    <div class="mt-3 d-flex justify-content-between">
+      <a href="{{ url()->previous() ?: route('projects.index',$project) }}"
+        class="btn btn-outline-secondary"
+        onclick="return confirm('Batalkan perubahan dan kembali? Perubahan yang belum disimpan akan hilang.');">
+        Batal
+      </a>
       <button class="btn btn-primary">Simpan</button>
     </div>
   </form>
