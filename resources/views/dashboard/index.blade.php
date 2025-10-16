@@ -2,6 +2,9 @@
 
 @section('content')
 <div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Dasbor Utama</h4>
+  </div>
 
   {{-- Notifikasi sekali tampil --}}
   @if(isset($notifications) && $notifications->count())
@@ -17,19 +20,40 @@
   @endif
 
   <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <div class="h6 text-muted">Total Kegiatan (Penelitian + Pengabdian)</div>
-          <div class="display-6">{{ $projectCount }}</div>
+
+            <div class="h6 text-muted">Total Kegiatan (Penelitian + Pengabdian)</div>
+            <div class="display-6">{{ $projectCount }}</div>
+
+            <hr>
+            <div class="card">
+                <div class="card-header">Grafik Kegiatan per Tahun</div>
+                <div class="card-body">
+                    <canvas id="projectsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <div class="h6 text-muted">Total Publikasi</div>
-          <div class="display-6">{{ $pubCount ?? $publicationCount ?? 0 }}</div>
+
+            <div class="h6 text-muted">Total Publikasi</div>
+            <div class="display-6">{{ $publicationCount }}</div>
+
+            <hr>
+            <div class="card">
+                <div class="card-header">Grafik Publikasi per Tahun</div>
+                <div class="card-body">
+                    <canvas id="publicationsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
         </div>
       </div>
     </div>
@@ -37,24 +61,24 @@
 
     <div class="row g-3 mt-3">
         <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Daftar Kegiatan</div>
-            <ul class="list-group list-group-flush">
-            @forelse($projects as $project)
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                <a href="{{ route('projects.show', $project) }}" class="fw-semibold">{{ $project->judul }}</a>
-                <span class="badge text-bg-light ms-2">{{ ucfirst($project->jenis) }}</span>
-                @if($isAdmin && $project->ketua)
-                <span class="badge bg-secondary ms-2">Ketua: {{ $project->ketua->name }}</span>
-                @endif
-                </div>
-            </li>
-            @empty
-            <li class="list-group-item">Belum ada data.</li>
-            @endforelse
-            </ul>
-        </div>
+            <div class="card">
+                <div class="card-header">Daftar Kegiatan</div>
+                <ul class="list-group list-group-flush">
+                @forelse($projects as $project)
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                    <a href="{{ route('projects.show', $project) }}" class="fw-semibold">{{ $project->judul }}</a>
+                    <span class="badge text-bg-light ms-2">{{ ucfirst($project->jenis) }}</span>
+                    @if($isAdmin && $project->ketua)
+                        <span class="badge bg-secondary ms-2">Ketua: {{ $project->ketua->name }}</span>
+                    @endif
+                    </div>
+                </li>
+                @empty
+                <li class="list-group-item">Belum ada data.</li>
+                @endforelse
+                </ul>
+            </div>
         </div>
     <div class="col-md-6">
 
@@ -107,4 +131,63 @@
   </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data for projects chart
+    const projectYears = @json($projectCountsByYear->keys());
+    const projectCounts = @json($projectCountsByYear->values());
+
+    const ctxProjects = document.getElementById('projectsChart').getContext('2d');
+    new Chart(ctxProjects, {
+        type: 'bar',
+        data: {
+            labels: projectYears,
+            datasets: [{
+                label: 'Jumlah Kegiatan',
+                data: projectCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Data for publications chart
+    const pubYears = @json($publicationCountsByYear->keys());
+    const pubCounts = @json($publicationCountsByYear->values());
+
+    const ctxPubs = document.getElementById('publicationsChart').getContext('2d');
+    new Chart(ctxPubs, {
+        type: 'bar',
+        data: {
+            labels: pubYears,
+            datasets: [{
+                label: 'Jumlah Publikasi',
+                data: pubCounts,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
 @endsection
