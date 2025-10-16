@@ -9,15 +9,6 @@ class Dosen extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel yang digunakan oleh model
-     * (opsional, tapi disarankan untuk kejelasan)
-     */
-    protected $table = 'dosens';
-
-    /**
-     * Kolom yang dapat diisi massal
-     */
     protected $fillable = [
         'user_id',
         'nama',
@@ -33,11 +24,12 @@ class Dosen extends Model
     ];
 
     /**
-     * Relasi ke tabel users
-     * Setiap dosen dimiliki oleh satu user.
+     * Relasi ke tabel users (jika ingin dihubungkan)
+     * Asumsi: user.email = dosen.email
      */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+
     }
 }

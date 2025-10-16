@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'role',
         'nidn',
+        'nip',
         'nim',
         'pddikti_id',
         'sinta_id',

@@ -11,9 +11,10 @@ class ResearchProject extends Model
     use HasFactory;
 
     protected $fillable = [
-        'jenis','judul','kategori_kegiatan','bidang_ilmu','skema','abstrak',
-        'mulai','selesai','sumber_dana','biaya','ketua_id','is_public','external_refs'
-        ,'created_by'
+        'jenis','judul','kategori_kegiatan','bidang_ilmu','skema','abstrak','surat_proposal',
+        'mulai','selesai','sumber_dana','biaya','ketua_id','is_public','external_refs',
+        'created_by','tahun_usulan','tahun_pelaksanaan','status','tkt','mitra_nama','lokasi',
+        'nomor_kontrak','tanggal_kontrak','target_luaran','keywords','tautan'
     ];
 
     protected $casts = [
@@ -21,6 +22,8 @@ class ResearchProject extends Model
         'is_public'=>'boolean',
         'mulai'=>'date',
         'selesai'=>'date',
+        'tanggal_kontrak'=>'date',
+        'target_luaran'=>'array',
         'created_by'
     ];
 
