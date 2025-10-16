@@ -53,7 +53,7 @@
                         </a>
 
                         <div class="d-flex gap-2">
-                            <button id="editBtn" type="button" class="btn btn-warning rounded-pill px-4 text-white fw-semibold">
+                            <button href="{{ route('profile.edit') }}" id="editBtn" type="button" class="btn btn-warning rounded-pill px-4 text-white fw-semibold">
                                 <i class="bi bi-pencil-square"></i> Edit Profil
                             </button>
 

@@ -49,7 +49,7 @@
                         </div>
 
                         {{-- Perguruan Tinggi --}}
-                        
+
                     </div>
                 </div>
 
@@ -98,7 +98,7 @@
                         </div>
 
                         {{-- Program Studi --}}
-                    
+
                     </div>
                 </div>
             </div>
