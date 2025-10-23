@@ -67,7 +67,6 @@ Route::middleware(['auth'])->group(function () {
     // ==================================================
     Route::post('/import/crossref', [ImportController::class, 'crossrefByDoi'])->name('import.crossref');
     Route::post('/import/bibtex', [ImportController::class, 'bibtexUpload'])->name('import.bibtex');
-    Route::post('/import/oai', [ImportController::class, 'oaiHarvest'])->name('import.oai');
 
     // ==================================================
     // 🔹 Sinkronisasi PDDIKTI (Belum aktif)
