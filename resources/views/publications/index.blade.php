@@ -31,21 +31,6 @@
         </div>
       </form>
       <hr>
-      <form class="row g-2" method="POST" action="{{ route('import.oai') }}">
-        @csrf
-        <div class="col-md-5">
-          <input name="base_url" class="form-control" placeholder="OAI Base URL (mis. https://journal.xxx/oai)" required>
-        </div>
-        <div class="col-md-3">
-          <input name="set" class="form-control" placeholder="Set (opsional)">
-        </div>
-        <div class="col-md-2">
-          <input name="author_like" class="form-control" placeholder="Filter penulis (ops)">
-        </div>
-        <div class="col-md-2">
-          <button class="btn btn-outline-success w-100">Harvest OAI</button>
-        </div>
-      </form>
     </div>
   </div>
 
