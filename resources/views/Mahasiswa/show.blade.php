@@ -28,12 +28,9 @@
                         <p><strong>Nama</strong><br>{{ $mahasiswa->nama ?? $user->name ?? '-' }}</p>
                         <p><strong>Email</strong><br>{{ $user->email ?? '-' }}</p>
                         <p><strong>NIM</strong><br>{{ $mahasiswa->nim ?? '-' }}</p>
-                        <p><strong>Perguruan Tinggi</strong><br>{{ $mahasiswa->perguruan_tinggi ?? '-' }}</p>
-                        <p><strong>Program Studi</strong><br>{{ $mahasiswa->program_studi ?? '-' }}</p>
                     </div>
 
                     <div class="col-md-6">
-                        <p><strong>Jenjang Pendidikan</strong><br>{{ $mahasiswa->jenjang_pendidikan ?? 'D4' }}</p>
                         <p><strong>Jenis Kelamin</strong><br>{{ $mahasiswa->jenis_kelamin ?? '-' }}</p>
                         <p><strong>Semester</strong><br>{{ $mahasiswa->semester ?? '-' }}</p>
                         <p><strong>Status Aktivitas</strong><br>
@@ -48,7 +45,7 @@
 
                 {{-- Tombol kembali saja --}}
                 <div class="text-center">
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-primary rounded-pill px-4">
+                    <a href="{{ route('mahasiswa.index') }}" class="btn btn-outline-primary rounded-pill px-4">
                         ← Kembali
                     </a>
                 </div>
