@@ -32,7 +32,7 @@
     /* ===== Sidebar ===== */
     .sidebar {
       width: 270px;
-      background-color: #66ff0e; /* 🔹 Biru tua solid */
+      background-color: #001F4D; /* 🔹 Biru tua solid */
       padding: 35px 24px;
       color: #fff;
       display: flex;
@@ -165,7 +165,7 @@
       <div class="sidebar">
         <div class="logo">
           <i class="bi bi-mortarboard-fill"></i>
-          <span>SIMPA NGERTIIII</span>
+          <span>SIMPATI</span>
         </div>
 
         @auth
