@@ -169,6 +169,48 @@
         </div>
 
         @auth
+            @if(auth()->user()->role === 'admin')
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-tasks"></i> Validasi
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.validations.dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard Validasi
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.validations.pending') }}">
+                                <i class="fas fa-clock"></i> Usulan Pending
+                                @php
+                                    $pendingCount = \App\Models\ResearchProject::where('validation_status', 'submitted')->count();
+                                @endphp
+                                @if($pendingCount > 0)
+                                    <span class="badge bg-danger">{{ $pendingCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.validations.criteria') }}">
+                                <i class="fas fa-clipboard-check"></i> Kriteria Validasi
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.validations.templates') }}">
+                                <i class="fas fa-file-alt"></i> Template Surat
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.validations.statistics') }}">
+                                <i class="fas fa-chart-bar"></i> Statistik
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
+
           <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
             <i class="bi bi-house-door-fill"></i> Dasbor Utama
           </a>

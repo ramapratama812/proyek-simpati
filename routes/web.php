@@ -11,6 +11,7 @@ Route::get('/', function () {
 });
 
 require __DIR__.'/simpati_web.php';
+require __DIR__.'/admin_validation_routes.php';
 
 // Resource routes untuk ResearchProject
 Route::resource('projects', ResearchProjectController::class);

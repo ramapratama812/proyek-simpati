@@ -14,7 +14,7 @@ use App\Http\Controllers\DosenController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\ProfileController;
 
-
+require __DIR__.'/admin_validation_routes.php';
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
