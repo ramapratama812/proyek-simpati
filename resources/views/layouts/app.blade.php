@@ -1,4 +1,4 @@
-{{-- Layout baru pakai navigasi sidebar plus styling CSS --}}
+{{-- Layout utama dengan sidebar + navbar profil --}}
 
 <!doctype html>
 <html lang="id">
@@ -6,16 +6,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SIMPATI</title>
+
+  {{-- ===== Import CSS Bootstrap, Icon, Font ===== --}}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" >
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.css" rel="stylesheet">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -29,10 +28,10 @@
       height: 100vh;
     }
 
-    /* ===== Sidebar ===== */
+    /* ===== Sidebar kiri ===== */
     .sidebar {
       width: 270px;
-      background-color: #001F4D; /* 🔹 Biru tua solid */
+      background-color: #001F4D; /* 🔹 Warna biru tua */
       padding: 35px 24px;
       color: #fff;
       display: flex;
@@ -63,6 +62,7 @@
       color: #ffffff;
     }
 
+    /* ===== Link menu sidebar ===== */
     .sidebar a {
       display: flex;
       align-items: center;
@@ -78,7 +78,7 @@
       transition: all 0.25s ease;
     }
 
-    /* Neon bar kiri menu aktif */
+    /* 🔹 Garis indikator menu aktif */
     .sidebar a.active::before {
       content: "";
       position: absolute;
@@ -102,7 +102,7 @@
       font-weight: 600;
     }
 
-    /* ===== Konten ===== */
+    /* ===== Konten utama ===== */
     .content {
       flex: 1;
       display: flex;
@@ -110,6 +110,7 @@
       background-color: #f8f9fa;
     }
 
+    /* ===== Navbar atas ===== */
     nav.navbar {
       border-bottom: 1px solid #e5e5e5;
       background-color: #ffffff;
@@ -133,7 +134,7 @@
         color: red;
     }
 
-    /* ===== Responsif ===== */
+    /* ===== Responsif untuk HP ===== */
     @media (max-width: 992px) {
       .sidebar {
         width: 100%;
@@ -143,11 +144,7 @@
         border-radius: 0;
         box-shadow: none;
       }
-
-      .sidebar .logo {
-        display: none;
-      }
-
+      .sidebar .logo { display: none; }
       .sidebar a {
         flex-direction: column;
         font-size: 0.85rem;
@@ -160,17 +157,19 @@
 
 <body>
   <div class="wrapper">
-    <!-- Sidebar -->
+
+    {{-- ===== Sidebar ===== --}}
     @if (!in_array(Route::currentRouteName(), ['login', 'register']))
       <div class="sidebar">
         <div class="logo">
-          <i class="bi bi-mortarboard-fill"></i>
+          <i class="bi bi-mortarboard-fill"></i> {{-- 🔹 Ikon logo --}}
           <span>SIMPATI</span>
         </div>
 
         @auth
+          {{-- 🔹 Menu navigasi sidebar --}}
           <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-house-door-fill"></i> Dasbor Utama
+            <i class="bi bi-house-door-fill"></i> Dashboard 
           </a>
           <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
             <i class="bi bi-list-task"></i> Kegiatan
@@ -188,25 +187,44 @@
       </div>
     @endif
 
-    <!-- Konten Utama -->
+    {{-- ===== Konten utama ===== --}}
     <div class="content">
+
+      {{-- ===== Navbar atas ===== --}}
       @if (!in_array(Route::currentRouteName(), ['login', 'register']))
         <nav class="navbar navbar-expand-lg sticky-top">
           <div class="container-fluid d-flex justify-content-end">
+
             @auth
               <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" id="navbarDropdown"
-                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ Auth::user()->name }}
+
+                  {{-- 🔹 Foto profil bulat di navbar kanan atas --}}
+                  <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark"
+                     href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                    {{-- FOTO PROFIL --}}
+                    {{-- Ambil dari Auth::user()->foto, jika kosong pakai default --}}
+                    <img src="{{ asset(Auth::user()->foto ?? 'images/profile/default.jpg') }}" 
+                         alt="Profile" 
+                         class="rounded-circle me-2"
+                         width="38" height="38"
+                         style="object-fit: cover;"> {{-- supaya tidak gepeng --}}
                   </a>
+
+                  {{-- 🔹 Dropdown menu: Lihat Profil & Logout --}}
                   <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0" aria-labelledby="navbarDropdown">
+
+                    {{-- Tombol Lihat Profil --}}
                     <li>
                       <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
                         <i class="bi bi-person-circle me-2"></i> Lihat Profil
                       </a>
                     </li>
+
                     <li><hr class="dropdown-divider"></li>
+
+                    {{-- Tombol Logout --}}
                     <li>
                       <form action="{{ route('logout') }}" method="POST" class="m-0">
                         @csrf
@@ -223,17 +241,17 @@
         </nav>
       @endif
 
+      {{-- ===== Area konten halaman ===== --}}
       <main>
         @yield('content')
       </main>
 
-      {{-- Buat masukin script --}}
+      {{-- ===== Script JS Bootstrap & tambahan ===== --}}
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-      @stack('scripts')
-
-      @yield('scripts')
       <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
+      @stack('scripts')
+      @yield('scripts')
     </div>
   </div>
 </body>
