@@ -7,6 +7,7 @@ use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\File;
 
 class ProfileController extends Controller
 {
@@ -72,12 +73,13 @@ class ProfileController extends Controller
         $user = Auth::user();
         $role = strtolower($user->role ?? '');
 
-        // 🔹 Validasi umum untuk semua role
+        // 🔹 Validasi umum
         $request->validate([
             'name' => 'required|string|max:255',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // update data user (tabel users)
+        // Update tabel users
         $user->update(['name' => $request->input('name')]);
 
         /**
@@ -86,13 +88,26 @@ class ProfileController extends Controller
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email, true);
 
-            // 🔹 Pastikan semua kolom yang sesuai dengan tabel dosens saja
+            // 🔸 Upload foto baru
+            if ($request->hasFile('foto')) {
+                // hapus foto lama
+                if ($dosen->foto && File::exists(public_path('foto_dosen/' . $dosen->foto))) {
+                    File::delete(public_path('foto_dosen/' . $dosen->foto));
+                }
+
+                $file = $request->file('foto');
+                $namaFile = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('foto_dosen'), $namaFile);
+                $dosen->foto = $namaFile;
+            }
+
+            // isi kolom lain
             $this->safeFill($dosen, [
                 'nama' => $request->name,
                 'nidn' => $request->nidn,
                 'pendidikan_terakhir' => $request->pendidikan_terakhir,
                 'status_ikatan_kerja' => $request->status_ikatan_kerja,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum: Aktif / Tidak Aktif / Cuti
+                'status_aktivitas' => $request->status_aktivitas,
                 'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
                 'jenis_kelamin' => $request->jenis_kelamin,
             ]);
@@ -112,12 +127,26 @@ class ProfileController extends Controller
          */
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
+
+            // 🔸 Upload foto baru
+            if ($request->hasFile('foto')) {
+                if ($mahasiswa->foto && File::exists(public_path('foto_mahasiswa/' . $mahasiswa->foto))) {
+                    File::delete(public_path('foto_mahasiswa/' . $mahasiswa->foto));
+                }
+
+                $file = $request->file('foto');
+                $namaFile = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('foto_mahasiswa'), $namaFile);
+                $mahasiswa->foto = $namaFile;
+            }
+
+            // isi kolom lain
             $this->safeFill($mahasiswa, [
                 'nama' => $request->name,
                 'nim' => $request->nim,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'semester' => $request->semester,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum sama
+                'status_aktivitas' => $request->status_aktivitas,
                 'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
             ]);
 
@@ -144,12 +173,22 @@ class ProfileController extends Controller
 
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
-            if ($dosen) $dosen->delete();
+            if ($dosen) {
+                if ($dosen->foto && File::exists(public_path('foto_dosen/' . $dosen->foto))) {
+                    File::delete(public_path('foto_dosen/' . $dosen->foto));
+                }
+                $dosen->delete();
+            }
         }
 
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
-            if ($mahasiswa) $mahasiswa->delete();
+            if ($mahasiswa) {
+                if ($mahasiswa->foto && File::exists(public_path('foto_mahasiswa/' . $mahasiswa->foto))) {
+                    File::delete(public_path('foto_mahasiswa/' . $mahasiswa->foto));
+                }
+                $mahasiswa->delete();
+            }
         }
 
         Auth::logout();

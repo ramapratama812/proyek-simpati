@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Dosen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class DosenController extends Controller
 {
@@ -84,19 +85,20 @@ class DosenController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'pendidikan_terakhir' => 'nullable|string|max:50',
             'status_aktivitas' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // 🔸 Pastikan kolom status_aktivitas tidak null
         if (empty($validated['status_aktivitas'])) {
             $validated['status_aktivitas'] = 'Aktif';
         }
 
-        // 🔸 Filter hanya kolom yang ada di tabel
-        $columns = Schema::getColumnListing('dosens');
-        $data = array_filter($validated, fn($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
+        // Upload foto jika ada
+        if ($request->hasFile('photo')) {
+            $validated['photo'] = $request->file('photo')->store('foto_dosen', 'public');
+        }
 
-        // 🔹 Simpan ke database
-        Dosen::create($data);
+        // Simpan data ke database
+        Dosen::create($validated);
 
         return redirect()->route('dosen.index')->with('success', 'Data dosen berhasil ditambahkan.');
     }
@@ -126,17 +128,24 @@ class DosenController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'pendidikan_terakhir' => 'nullable|string|max:50',
             'status_aktivitas' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Default kalau tidak diisi
         if (empty($validated['status_aktivitas'])) {
             $validated['status_aktivitas'] = $dosen->status_aktivitas ?? 'Aktif';
         }
 
-        $columns = Schema::getColumnListing('dosens');
-        $data = array_filter($validated, fn($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
+        // Ganti foto jika ada upload baru
+        if ($request->hasFile('photo')) {
+            // hapus foto lama (kalau ada)
+            if ($dosen->photo && Storage::disk('public')->exists($dosen->photo)) {
+                Storage::disk('public')->delete($dosen->photo);
+            }
 
-        $dosen->update($data);
+            $validated['photo'] = $request->file('photo')->store('foto_dosen', 'public');
+        }
+
+        $dosen->update($validated);
 
         return redirect()->route('dosen.index')->with('success', 'Data dosen berhasil diperbarui.');
     }
@@ -147,6 +156,12 @@ class DosenController extends Controller
     public function destroy($id)
     {
         $dosen = Dosen::findOrFail($id);
+
+        // hapus foto dari storage kalau ada
+        if ($dosen->photo && Storage::disk('public')->exists($dosen->photo)) {
+            Storage::disk('public')->delete($dosen->photo);
+        }
+
         $dosen->delete();
 
         return redirect()->route('dosen.index')->with('success', 'Data dosen berhasil dihapus.');

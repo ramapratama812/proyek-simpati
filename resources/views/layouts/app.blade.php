@@ -199,17 +199,24 @@
               <ul class="navbar-nav">
                 <li class="nav-item dropdown">
 
-                  {{-- 🔹 Foto profil bulat di navbar kanan atas --}}
+                  {{-- 🔹 FOTO PROFIL DI NAVBAR --}}
+                  @php
+                      $fotoFile = Auth::user()->foto ?? null;
+                      $fotoPath = 'images/profile/default.jpg'; // default
+
+                      if ($fotoFile && file_exists(public_path('foto_dosen/' . $fotoFile))) {
+                          $fotoPath = 'foto_dosen/' . $fotoFile;
+                      }
+                  @endphp
+
                   <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark"
                      href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 
-                    {{-- FOTO PROFIL --}}
-                    {{-- Ambil dari Auth::user()->foto, jika kosong pakai default --}}
-                    <img src="{{ asset(Auth::user()->foto ?? 'images/profile/default.jpg') }}" 
-                         alt="Profile" 
-                         class="rounded-circle me-2"
-                         width="38" height="38"
-                         style="object-fit: cover;"> {{-- supaya tidak gepeng --}}
+                     <img src="{{ asset($fotoPath) }}"
+                          alt="Profile"
+                          class="rounded-circle me-2 border shadow-sm"
+                          width="38" height="38"
+                          style="object-fit: cover;">
                   </a>
 
                   {{-- 🔹 Dropdown menu: Lihat Profil & Logout --}}
