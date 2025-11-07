@@ -62,7 +62,7 @@
     <div class="row g-3 mt-3">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header">Daftar Kegiatan</div>
+                <div class="card-header">Daftar Kegiatan yang Saya Ketuai</div>
                 <ul class="list-group list-group-flush">
                 @forelse($projects as $project)
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -84,7 +84,7 @@
 
     <div class="col-md-12">
       <div class="card">
-        <div class="card-header">Daftar Publikasi</div>
+        <div class="card-header">Daftar Publikasi yang Saya Unggah</div>
         <ul class="list-group list-group-flush">
           @forelse($pubs as $x)
             <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -115,7 +115,7 @@
 <div>
   <div class="col-12">
     <div class="card">
-      <div class="card-header">Kegiatan yang Saya Ikuti</div>
+      <div class="card-header">Kegiatan Yang Saya Ikuti Sebagai Anggota</div>
       <ul class="list-group list-group-flush">
         @forelse($memberProjects as $x)
           <li class="list-group-item">
@@ -130,6 +130,55 @@
     </div>
   </div>
 </div>
+
+@if($isAdmin)
+    <div class="col-md-12 mb-4">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-check"></i> Validasi Usulan
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3>{{ \App\Models\ResearchProject::where('validation_status', 'submitted')->count() }}</h3>
+                            <p>Menunggu Review</p>
+                            <a href="{{ route('admin.validations.index', ['status' => 'submitted']) }}"
+                               class="btn btn-sm btn-warning">Lihat</a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3>{{ \App\Models\ResearchProject::where('validation_status', 'under_review')->count() }}</h3>
+                            <p>Sedang Review</p>
+                            <a href="{{ route('admin.validations.index', ['status' => 'under_review']) }}"
+                               class="btn btn-sm btn-info">Lihat</a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3>{{ \App\Models\ResearchProject::where('validation_status', 'revision_requested')->count() }}</h3>
+                            <p>Perlu Revisi</p>
+                            <a href="{{ route('admin.validations.index', ['status' => 'revision_requested']) }}"
+                               class="btn btn-sm btn-danger">Lihat</a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3>{{ \App\Models\ResearchProject::where('validation_status', 'approved')
+                                ->whereMonth('approved_at', now()->month)->count() }}</h3>
+                            <p>Disetujui (Bulan Ini)</p>
+                            <a href="{{ route('admin.validations.index', ['status' => 'approved']) }}"
+                               class="btn btn-sm btn-success">Lihat</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
 @endsection
 

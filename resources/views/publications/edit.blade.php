@@ -59,7 +59,7 @@
 
     <div class="mt-4 d-flex justify-content-between">
       <a href="{{ route('publications.show', $publication) }}" class="btn btn-outline-secondary">Batal</a>
-      <button class="btn btn-primary">Usulkan Perubahan</button>
+      <button class="btn btn-primary">Simpan Perubahan</button>
     </div>
   </form>
 </div>
