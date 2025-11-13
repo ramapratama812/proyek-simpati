@@ -40,13 +40,28 @@
       <label class="form-check-label" for="remember">Ingat saya</label>
     </div>
 
-    {{-- Button --}}
+    {{-- Tombol Login --}}
     <button class="btn w-100 py-2 fs-6 fw-semibold text-white"
             style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">
       Masuk
     </button>
 
-    {{-- Register Link --}}
+    {{-- Garis pemisah --}}
+    <div class="d-flex align-items-center my-3">
+      <hr class="flex-grow-1">
+      <span class="px-2 text-muted">atau</span>
+      <hr class="flex-grow-1">
+    </div>
+
+    {{-- Tombol Login dengan Google --}}
+    <a href="{{ route('auth.google.redirect') }}"
+       class="btn w-100 py-2 fw-semibold d-flex align-items-center justify-content-center border"
+       style="background-color:white; border-radius:10px; border-color:#ddd;">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" width="22" class="me-2">
+      <span class="text-secondary">Masuk dengan Google</span>
+    </a>
+
+    {{-- Link Daftar --}}
     <p class="mt-4 text-center text-secondary">
       Belum punya akun?
       <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-none">Daftar</a>

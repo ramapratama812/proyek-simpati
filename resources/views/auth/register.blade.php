@@ -49,34 +49,6 @@
                style="background-color:#f4f7fc;" required>
       </div>
     </div>
-
-    {{-- Role --}}
-    <div class="mb-4">
-      <label class="form-label fw-semibold">Daftar Sebagai</label>
-      <select name="role" id="roleSelect" class="form-select rounded-3 shadow-sm border-0"
-              style="background-color:#f4f7fc;" required>
-        <option value="">-- Pilih Role --</option>
-        <option value="mahasiswa" {{ old('role')==='mahasiswa'?'selected':'' }}>Mahasiswa</option>
-        <option value="dosen" {{ old('role')==='dosen'?'selected':'' }}>Dosen</option>
-      </select>
-      @error('role')<small class="text-danger">{{ $message }}</small>@enderror
-    </div>
-
-    {{-- NIM / NIDN --}}
-    <div class="mb-3 d-none" id="nimField">
-      <label class="form-label fw-semibold">NIM</label>
-      <input name="nim" class="form-control rounded-3 shadow-sm border-0"
-             style="background-color:#f4f7fc;" value="{{ old('nim') }}">
-      @error('nim')<small class="text-danger">{{ $message }}</small>@enderror
-    </div>
-
-    <div class="mb-3 d-none" id="nidnField">
-      <label class="form-label fw-semibold">NIDN/NIP</label>
-      <input name="nidn" class="form-control rounded-3 shadow-sm border-0"
-             style="background-color:#f4f7fc;" value="{{ old('nidn') }}">
-      @error('nidn')<small class="text-danger">{{ $message }}</small>@enderror
-    </div>
-
     {{-- Tombol --}}
     <button class="btn w-100 py-2 fw-semibold text-white"
             style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">

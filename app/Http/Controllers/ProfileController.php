@@ -7,12 +7,12 @@ use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
     /**
-     * Tampilkan profil berdasarkan role user yang login.
+     * 🔹 Tampilkan profil berdasarkan role user yang login.
      */
     public function show()
     {
@@ -37,7 +37,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Form edit profil berdasarkan role.
+     * 🔹 Form edit profil berdasarkan role.
      */
     public function edit()
     {
@@ -66,14 +66,14 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update profil berdasarkan role.
+     * 🔹 Update profil berdasarkan role.
      */
     public function update(Request $request)
     {
         $user = Auth::user();
         $role = strtolower($user->role ?? '');
 
-        // 🔹 Validasi umum
+        // ✅ Validasi umum
         $request->validate([
             'name' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -88,16 +88,17 @@ class ProfileController extends Controller
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email, true);
 
-            // 🔸 Upload foto baru
+            // ✅ Upload foto baru
             if ($request->hasFile('foto')) {
-                // hapus foto lama
-                if ($dosen->foto && File::exists(public_path('foto_dosen/' . $dosen->foto))) {
-                    File::delete(public_path('foto_dosen/' . $dosen->foto));
+                // hapus foto lama (kalau ada)
+                if ($dosen->foto && Storage::disk('public')->exists('foto_dosen/' . $dosen->foto)) {
+                    Storage::disk('public')->delete('foto_dosen/' . $dosen->foto);
                 }
 
+                // simpan foto baru ke storage
                 $file = $request->file('foto');
                 $namaFile = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('foto_dosen'), $namaFile);
+                $file->storeAs('foto_dosen', $namaFile, 'public');
                 $dosen->foto = $namaFile;
             }
 
@@ -128,19 +129,17 @@ class ProfileController extends Controller
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
 
-            // 🔸 Upload foto baru
             if ($request->hasFile('foto')) {
-                if ($mahasiswa->foto && File::exists(public_path('foto_mahasiswa/' . $mahasiswa->foto))) {
-                    File::delete(public_path('foto_mahasiswa/' . $mahasiswa->foto));
+                if ($mahasiswa->foto && Storage::disk('public')->exists('foto_mahasiswa/' . $mahasiswa->foto)) {
+                    Storage::disk('public')->delete('foto_mahasiswa/' . $mahasiswa->foto);
                 }
 
                 $file = $request->file('foto');
                 $namaFile = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('foto_mahasiswa'), $namaFile);
+                $file->storeAs('foto_mahasiswa', $namaFile, 'public');
                 $mahasiswa->foto = $namaFile;
             }
 
-            // isi kolom lain
             $this->safeFill($mahasiswa, [
                 'nama' => $request->name,
                 'nim' => $request->nim,
@@ -164,7 +163,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Hapus akun user & relasi.
+     * 🔹 Hapus akun user & relasi.
      */
     public function destroy()
     {
@@ -174,8 +173,8 @@ class ProfileController extends Controller
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
             if ($dosen) {
-                if ($dosen->foto && File::exists(public_path('foto_dosen/' . $dosen->foto))) {
-                    File::delete(public_path('foto_dosen/' . $dosen->foto));
+                if ($dosen->foto && Storage::disk('public')->exists('foto_dosen/' . $dosen->foto)) {
+                    Storage::disk('public')->delete('foto_dosen/' . $dosen->foto);
                 }
                 $dosen->delete();
             }
@@ -184,8 +183,8 @@ class ProfileController extends Controller
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
             if ($mahasiswa) {
-                if ($mahasiswa->foto && File::exists(public_path('foto_mahasiswa/' . $mahasiswa->foto))) {
-                    File::delete(public_path('foto_mahasiswa/' . $mahasiswa->foto));
+                if ($mahasiswa->foto && Storage::disk('public')->exists('foto_mahasiswa/' . $mahasiswa->foto)) {
+                    Storage::disk('public')->delete('foto_mahasiswa/' . $mahasiswa->foto);
                 }
                 $mahasiswa->delete();
             }
@@ -204,8 +203,12 @@ class ProfileController extends Controller
         $table = (new Dosen)->getTable();
         $q = Dosen::query();
 
-        if (Schema::hasColumn($table, 'user_id')) $q->where('user_id', $userId);
-        if (Schema::hasColumn($table, 'email')) $q->orWhere('email', $email);
+        // ✅ pastikan hanya ambil data dosen milik user login
+        if (Schema::hasColumn($table, 'user_id')) {
+            $q->where('user_id', $userId);
+        } elseif (Schema::hasColumn($table, 'email')) {
+            $q->where('email', $email);
+        }
 
         $row = $q->first();
         if (!$row && $createIfMissing) {
@@ -222,8 +225,11 @@ class ProfileController extends Controller
         $table = (new Mahasiswa)->getTable();
         $q = Mahasiswa::query();
 
-        if (Schema::hasColumn($table, 'user_id')) $q->where('user_id', $userId);
-        if (Schema::hasColumn($table, 'email')) $q->orWhere('email', $email);
+        if (Schema::hasColumn($table, 'user_id')) {
+            $q->where('user_id', $userId);
+        } elseif (Schema::hasColumn($table, 'email')) {
+            $q->where('email', $email);
+        }
 
         $row = $q->first();
         if (!$row && $createIfMissing) {
