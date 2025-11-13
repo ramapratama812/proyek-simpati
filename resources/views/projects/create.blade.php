@@ -9,7 +9,7 @@
       <label class="form-label fw-semibold">Data Akademik</label>
 
       <div class="col-md-4">
-        <label class="form-label">Jenis Kegiatan</label>
+        <label class="form-label">Jenis Kegiatan<span class="required-asterisk">*</span></label>
         <select name="jenis" class="form-select" required>
           <option value="penelitian">Penelitian</option>
           <option value="pengabdian">Pengabdian</option>
@@ -17,34 +17,34 @@
       </div>
 
       <div class="col-md-8">
-        <label class="form-label">Judul</label>
+        <label class="form-label">Judul<span class="required-asterisk">*</span></label>
         <input type="text" name="judul" class="form-control" required>
       </div>
 
       <div class="col-md-4">
-        <label class="form-label">Kategori Kegiatan</label>
+        <label class="form-label">Kategori Kegiatan<span class="required-asterisk">*</span></label>
         <input type="text" name="kategori_kegiatan" class="form-control" required>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Bidang Ilmu</label>
+        <label class="form-label">Bidang Ilmu<span class="required-asterisk">*</span></label>
         <input type="text" name="bidang_ilmu" class="form-control" required>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Skema</label>
+        <label class="form-label">Skema<span class="required-asterisk">*</span></label>
         <input type="text" name="skema" class="form-control" required>
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Tanggal Mulai</label>
+        <label class="form-label">Tanggal Mulai<span class="required-asterisk">*</span></label>
         <input type="date" name="mulai" class="form-control" required>
       </div>
       <div class="col-md-6">
-        <label class="form-label">Tanggal Selesai</label>
+        <label class="form-label">Tanggal Selesai<span class="required-asterisk">*</span></label>
         <input type="date" name="selesai" class="form-control" required>
       </div>
 
       <div class="col-md-6">
-        <label class="form-label">Sumber Dana</label>
+        <label class="form-label">Sumber Dana<span class="required-asterisk">*</span></label>
         <select name="sumber_dana" class="form-select" required>
             <option value="" disabled selected>Pilih sumber dana kegiatan</option>
             <option value="Mandiri">Mandiri</option>
@@ -53,7 +53,7 @@
       </div>
 
       <div class="col-md-6">
-        <label for="biaya_display" class="form-label">Biaya (Rp)</label>
+        <label for="biaya_display" class="form-label">Biaya (Rp)<span class="required-asterisk">*</span></label>
         <input type="text" id="biaya_display" class="form-control" placeholder="Contoh: 500.000" required>
         <input type="hidden" name="biaya" id="biaya_real">
       </div>
@@ -86,7 +86,7 @@
       </script>
 
       <div class="col-12">
-        <label class="form-label">Abstrak</label>
+        <label class="form-label">Abstrak<span class="required-asterisk">*</span></label>
         <textarea name="abstrak" rows="4" class="form-control"></textarea required>
       </div>
 
@@ -96,7 +96,7 @@
       </div>
         {{-- Pilihan Ketua dan Anggota Tim --}}
         <div class="col-md-6">
-            <label for="ketua-select" class="form-label">Ketua Proyek</label>
+            <label for="ketua-select" class="form-label">Ketua Proyek<span class="required-asterisk">*</span></label>
             <p class="form-text mt-0 mb-3">Pilih dosen yang akan memimpin kegiatan ini.</p>
 
             {{-- Tom-Select akan mengubah <select> ini menjadi dropdown yang bisa dicari --}}
@@ -145,7 +145,7 @@
 
 
         <div class="col-md-6">
-            <label class="form-label">Pilih Anggota Tim</label>
+            <label class="form-label">Pilih Anggota Tim<span class="required-asterisk">*</span></label>
             <p class="form-text mt-0 mb-3">Pilih dosen/mahasiswa yang ikut serta dalam kegiatan.</p>
 
             {{-- Kontrol Pencarian dan Filter --}}
@@ -292,8 +292,8 @@
         <input type="text" name="mitra_nama" class="form-control" placeholder="Nama mitra/instansi">
       </div>
       <div class="col-md-6">
-        <label class="form-label">Lokasi</label>
-        <input type="text" name="lokasi" class="form-control" placeholder="Kota/Kabupaten, Provinsi">
+        <label class="form-label">Lokasi<span class="required-asterisk">*</span></label>
+        <input type="text" name="lokasi" class="form-control" placeholder="Kota/Kabupaten, Provinsi" required>
       </div>
 
       <div class="col-md-6">
