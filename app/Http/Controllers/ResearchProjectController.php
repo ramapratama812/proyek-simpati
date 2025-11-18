@@ -8,6 +8,7 @@ use App\Models\ResearchProject;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Publication;
+use Illuminate\Support\Facades\Schema;
 
 class ResearchProjectController extends Controller
 {
@@ -32,6 +33,25 @@ class ResearchProjectController extends Controller
         $sort  = $request->get('sort', 'latest');
 
         $projects = ResearchProject::query();
+
+        $user = auth()->user();
+        $isAdmin = strtolower($user->role ?? '') === 'admin';
+
+        // Jika kolom validation_status sudah ada dan user bukan admin,
+        // hanya tampilkan:
+        // - kegiatan yang sudah disetujui, atau
+        // - kegiatan yang melibatkan user (ketua/creator/anggota)
+        if (Schema::hasColumn('research_projects','validation_status') && !$isAdmin) {
+            $projects->where(function ($q2) use ($user) {
+                $q2->where('validation_status', 'approved')
+                   ->orWhere('ketua_id', $user->id)
+                   ->orWhere('created_by', $user->id)
+                   ->orWhereHas('members', function ($qq) use ($user) {
+                        $qq->where('users.id', $user->id);
+                   });
+            });
+        }
+
 
         if ($q !== '') {
             $projects->where(function ($w) use ($q) {
@@ -133,31 +153,34 @@ class ResearchProjectController extends Controller
             }
 
             $project->fill([
-                'jenis' => $data['jenis'],
-                'judul' => $data['judul'],
+                'jenis'             => $data['jenis'],
+                'judul'             => $data['judul'],
                 'kategori_kegiatan' => $data['kategori_kegiatan'] ?? null,
-                'bidang_ilmu' => $data['bidang_ilmu'] ?? null,
-                'skema' => $data['skema'] ?? null,
-                'abstrak' => $data['abstrak'] ?? null,
-                'surat_proposal' => $suratProposalPath,
-                'mulai' => $data['mulai'] ?? null,
-                'selesai' => $data['selesai'] ?? null,
-                'sumber_dana' => $data['sumber_dana'] ?? null,
-                'biaya' => $data['biaya'] ?? null,
-                'ketua_id' => $data['ketua_user_id'] ?? null,
-                'tahun_usulan' => $data['tahun_usulan'] ?? null,
+                'bidang_ilmu'       => $data['bidang_ilmu'] ?? null,
+                'skema'             => $data['skema'] ?? null,
+                'abstrak'           => $data['abstrak'] ?? null,
+                'surat_proposal'    => $suratProposalPath,
+                'mulai'             => $data['mulai'] ?? null,
+                'selesai'           => $data['selesai'] ?? null,
+                'sumber_dana'       => $data['sumber_dana'] ?? null,
+                'biaya'             => $data['biaya'] ?? null,
+                'ketua_id'          => $data['ketua_user_id'] ?? null,
+                'tahun_usulan'      => $data['tahun_usulan'] ?? null,
                 'tahun_pelaksanaan' => $data['tahun_pelaksanaan'] ?? null,
-                'status' => $data['status'] ?? 'usulan',
-                'tkt' => $data['tkt'] ?? null,
-                'mitra_nama' => $data['mitra_nama'] ?? null,
-                'lokasi' => $data['lokasi'] ?? null,
-                'nomor_kontrak' => $data['nomor_kontrak'] ?? null,
-                'tanggal_kontrak' => $data['tanggal_kontrak'] ?? null,
-                'target_luaran' => $data['target_luaran'] ?? null,
-                'keywords' => $data['keywords'] ?? null,
-                'tautan' => $data['tautan'] ?? null,
-                'created_by' => auth()->id(),
+                'status'            => $data['status'] ?? 'usulan',
+                'tkt'               => $data['tkt'] ?? null,
+                'mitra_nama'        => $data['mitra_nama'] ?? null,
+                'lokasi'            => $data['lokasi'] ?? null,
+                'nomor_kontrak'     => $data['nomor_kontrak'] ?? null,
+                'tanggal_kontrak'   => $data['tanggal_kontrak'] ?? null,
+                'target_luaran'     => $data['target_luaran'] ?? null,
+                'keywords'          => $data['keywords'] ?? null,
+                'tautan'            => $data['tautan'] ?? null,
+                'created_by'        => auth()->id(),
+
+                'validation_status' => 'draft',   // BARU
             ]);
+
             $project->save();
 
             $members = $data['anggota_user_ids'] ?? [];
@@ -324,6 +347,39 @@ class ResearchProjectController extends Controller
         return redirect()->route('projects.show',$project)->with('ok','Kegiatan berhasil diperbarui.');
     }
 
+    // method untuk mengajukan validasi ke admin (untuk dosen)
+    public function submitValidation(ResearchProject $project)
+    {
+        // pastikan hanya ketua/pembuat yang boleh ajukan
+        $uid = auth()->id();
+        if (!$uid || ($project->ketua_id != $uid && $project->created_by != $uid)) {
+            abort(403);
+        }
+
+        if ($project->validation_status === 'approved') {
+            return back()->with('ok', 'Kegiatan sudah divalidasi, tidak perlu diajukan lagi.');
+        }
+
+        $project->validation_status = 'pending';
+        $project->validation_note   = null;
+        $project->validated_by      = null;
+        $project->validated_at      = null;
+        $project->save();
+
+        // kirim notifikasi ke semua admin
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            UserNotification::create([
+                'user_id'    => $admin->id,
+                'project_id' => $project->id,
+                'type'       => 'validation_submitted',
+                'message'    => 'Usulan kegiatan baru menunggu validasi: ' . $project->judul,
+            ]);
+        }
+
+        return back()->with('ok', 'Kegiatan berhasil diajukan untuk validasi admin.');
+    }
+
     public function destroy(ResearchProject $project)
     {
         $this->authorizeProject($project);
@@ -333,16 +389,178 @@ class ResearchProjectController extends Controller
 
     protected function authorizeProject(ResearchProject $project): void
     {
-        $uid = auth()->id();
+        $uid  = auth()->id();
+        $role = strtolower(auth()->user()->role ?? '');
+        $isAdmin = $role === 'admin';
+
+        // admin selalu boleh
+        if ($isAdmin) {
+            return;
+        }
+
+        // jika sudah disetujui admin, dosen tidak boleh ubah/hapus
+        if ($project->validation_status === 'approved') {
+            abort(403, 'Kegiatan sudah divalidasi dan tidak dapat diubah. Hubungi admin jika perlu revisi.');
+        }
+
         if ($project->created_by && $project->created_by === $uid) return;
         if ($project->ketua_id && $project->ketua_id === $uid) return;
+
         abort(403);
+    }
+
+    // method untuk memastikan user adalah admin
+    protected function ensureAdmin(): void
+    {
+        $role = strtolower(auth()->user()->role ?? '');
+        abort_unless($role === 'admin', 403);
+    }
+
+    // method untuk mengirim notifikasi ke dosen terkait validasi
+    protected function notifyLecturersForValidation(ResearchProject $project, string $type, string $message): void
+    {
+        $userIds = [];
+
+        if ($project->created_by) {
+            $userIds[] = (int) $project->created_by;
+        }
+        if ($project->ketua_id) {
+            $userIds[] = (int) $project->ketua_id;
+        }
+
+        $userIds = array_unique(array_filter($userIds));
+
+        foreach ($userIds as $uid) {
+            UserNotification::create([
+                'user_id'    => $uid,
+                'project_id' => $project->id,
+                'type'       => $type,
+                'message'    => $message,
+            ]);
+        }
     }
 
     public function publications()
     {
         return $this->belongsToMany(Publication::class, 'project_publications', 'project_id', 'publication_id')
                     ->withTimestamps();
+    }
+
+    // selanjutnya: field method untuk validasi oleh admin
+    public function validationIndex(Request $request)
+    {
+        $this->ensureAdmin();
+
+        $status = $request->get('status', 'pending');
+
+        $query = ResearchProject::with('ketua')
+            ->orderByDesc('created_at');
+
+        if (in_array($status, ['draft','pending','approved','revision_requested','rejected'], true)) {
+            $query->where('validation_status', $status);
+        }
+
+        $projects = $query->paginate(20)->withQueryString();
+
+        return view('projects.validation_admin_index', [
+            'projects' => $projects,
+            'status'   => $status,
+        ]);
+    }
+
+    public function validationShow(ResearchProject $project)
+    {
+        $this->ensureAdmin();
+        $project->load([
+            'ketua',
+            'members',
+            'images',
+            'publications',
+        ]);
+
+        return view('projects.validation_admin_show', compact('project'));
+    }
+
+    public function approveValidation(Request $request, ResearchProject $project)
+    {
+        $this->ensureAdmin();
+
+        $data = $request->validate([
+            'note'              => 'nullable|string',
+            'surat_persetujuan' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        // upload surat persetujuan
+        if ($request->hasFile('surat_persetujuan')) {
+            // hapus file lama jika ada
+            if ($project->surat_persetujuan) {
+                \Storage::disk('public')->delete($project->surat_persetujuan);
+            }
+            $path = $request->file('surat_persetujuan')->store('surat_persetujuan', 'public');
+            $project->surat_persetujuan = $path;
+        }
+
+        $project->validation_status = 'approved';
+        $project->validation_note   = $data['note'] ?? null;
+        $project->validated_by      = auth()->id();
+        $project->validated_at      = now();
+        $project->save();
+
+        $this->notifyLecturersForValidation(
+            $project,
+            'validation_approved',
+            'Usulan kegiatan Anda telah disetujui: ' . $project->judul
+        );
+
+        return redirect()->route('projects.validation.index')
+            ->with('ok', 'Kegiatan berhasil disetujui.');
+    }
+
+    public function requestRevision(Request $request, ResearchProject $project)
+    {
+        $this->ensureAdmin();
+
+        $data = $request->validate([
+            'note' => 'required|string',
+        ]);
+
+        $project->validation_status = 'revision_requested';
+        $project->validation_note   = $data['note'];
+        $project->validated_by      = auth()->id();
+        $project->validated_at      = now();
+        $project->save();
+
+        $this->notifyLecturersForValidation(
+            $project,
+            'validation_revision',
+            'Usulan kegiatan Anda memerlukan revisi: ' . $project->judul
+        );
+
+        return back()->with('ok', 'Permintaan revisi telah dikirim ke dosen.');
+    }
+
+    public function rejectValidation(Request $request, ResearchProject $project)
+    {
+        $this->ensureAdmin();
+
+        $data = $request->validate([
+            'note' => 'required|string',
+        ]);
+
+        $project->validation_status = 'rejected';
+        $project->validation_note   = $data['note'];
+        $project->validated_by      = auth()->id();
+        $project->validated_at      = now();
+        $project->save();
+
+        $this->notifyLecturersForValidation(
+            $project,
+            'validation_rejected',
+            'Usulan kegiatan Anda ditolak: ' . $project->judul
+        );
+
+        return redirect()->route('projects.validation.index')
+            ->with('ok', 'Usulan kegiatan ditolak.');
     }
 
 }

@@ -57,6 +57,30 @@ Route::middleware(['auth'])->group(function () {
     // ==================================================
     Route::resource('projects', ResearchProjectController::class);
 
+    // Ajukan validasi kegiatan oleh ketua/pembuat
+    Route::post('/projects/{project}/ajukan-validasi', [ResearchProjectController::class, 'submitValidation'])
+        ->name('projects.submitValidation');
+
+    // ==================================================
+    // 🔹 Validasi Kegiatan oleh Admin
+    // ==================================================
+    Route::prefix('admin')->name('projects.validation.')->group(function () {
+        Route::get('/kegiatan/validasi', [ResearchProjectController::class, 'validationIndex'])
+            ->name('index');  // admin.projects.validation.index secara efektif: route('projects.validation.index')
+
+        Route::get('/kegiatan/validasi/{project}', [ResearchProjectController::class, 'validationShow'])
+            ->name('show');
+
+        Route::post('/kegiatan/validasi/{project}/approve', [ResearchProjectController::class, 'approveValidation'])
+            ->name('approve');
+
+        Route::post('/kegiatan/validasi/{project}/revision', [ResearchProjectController::class, 'requestRevision'])
+            ->name('revision');
+
+        Route::post('/kegiatan/validasi/{project}/reject', [ResearchProjectController::class, 'rejectValidation'])
+            ->name('reject');
+    });
+
     // ==================================================
     // 🔹 Publikasi
     // ==================================================
