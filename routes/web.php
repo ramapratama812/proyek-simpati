@@ -29,6 +29,10 @@ Route::get('projects/{project}/publications', [ProjectPublicationController::cla
 Route::post('projects/{project}/publications/attach', [ProjectPublicationController::class, 'attach'])
     ->name('projects.publications.attach');
 
+Route::delete('/projects/{project}/publications/{publication}',
+    [ProjectPublicationController::class, 'destroy']
+)->name('projects.publications.destroy');
+
 Route::middleware('auth')->group(function () {
     Route::get('/publications/create', [PublicationController::class, 'create'])->name('publications.create');
     Route::post('/publications', [PublicationController::class, 'store'])->name('publications.store');

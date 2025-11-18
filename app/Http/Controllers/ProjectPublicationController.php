@@ -66,16 +66,18 @@ class ProjectPublicationController extends Controller
         );
     }
 
-    public function detach(ResearchProject $project, Publication $publication)
+    public function destroy(ResearchProject $project, Publication $publication)
     {
-        abort_unless($this->canManage($project), 403);
+        if (!$this->canDetach($project)) {
+            return back()->with('err',
+                'Publikasi hanya bisa dilepas oleh ketua sebelum kegiatan diajukan untuk validasi.');
+        }
 
         $project->publications()->detach($publication->id);
 
-        return back()->with('ok', 'Publikasi berhasil dilepas.');
+        return back()->with('ok', 'Publikasi berhasil dilepas dari kegiatan.');
     }
 
-    // Cek apakah user boleh mengelola (ketua/creator atau admin)
     // Cek apakah user boleh mengelola (ketua/creator atau admin)
     protected function canManage(ResearchProject $project): bool
     {
@@ -91,4 +93,42 @@ class ProjectPublicationController extends Controller
 
         return $isAdmin || $isKetua || $isMaker;
     }
+
+        /**
+     * Hanya admin + ketua/pembuat yang boleh melepas publikasi,
+     * dan itu pun hanya jika kegiatan belum diajukan untuk validasi.
+     */
+    protected function canDetach(ResearchProject $project): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        $role     = strtolower($user->role ?? '');
+        $isAdmin  = $role === 'admin';
+        $isKetua  = (int) $project->ketua_id === (int) $user->id;
+        $isMaker  = (int) ($project->created_by ?? 0) === (int) $user->id;
+
+        // Admin selalu boleh
+        if ($isAdmin) {
+            return true;
+        }
+
+        // Kalau bukan ketua / pembuat, nggak boleh
+        if (!($isKetua || $isMaker)) {
+            return false;
+        }
+
+        // Ketua/pembuat hanya boleh melepas publikasi jika
+        // kegiatan BELUM diajukan untuk validasi admin
+        // (bukan 'pending' dan bukan 'approved')
+        return in_array($project->validation_status, [
+            null,
+            'draft',
+            'revision_requested',
+            'rejected',
+        ], true);
+    }
+
 }
