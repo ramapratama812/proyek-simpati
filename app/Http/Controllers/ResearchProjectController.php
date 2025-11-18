@@ -563,4 +563,67 @@ class ResearchProjectController extends Controller
             ->with('ok', 'Usulan kegiatan ditolak.');
     }
 
+    // method buat kelola kegiatan saya (untuk dosen)
+    public function myProjects(Request $request)
+    {
+        $user = auth()->user();
+
+        $q      = trim($request->get('q', ''));
+        $jenis  = $request->get('jenis');   // penelitian / pengabdian
+        $status = $request->get('status');  // validation_status
+        $tahun  = $request->get('tahun');   // tahun usulan/pelaksanaan
+
+        $projects = ResearchProject::with(['ketua','members'])
+            ->where(function ($query) use ($user) {
+                $query->where('ketua_id', $user->id)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('members', function ($q2) use ($user) {
+                          $q2->where('users.id', $user->id);
+                      });
+            });
+
+        if ($q !== '') {
+            $projects->where(function ($qq) use ($q) {
+                $qq->where('judul', 'like', "%{$q}%")
+                   ->orWhere('skema', 'like', "%{$q}%")
+                   ->orWhere('bidang_ilmu', 'like', "%{$q}%");
+            });
+        }
+
+        if ($jenis) {
+            $projects->where('jenis', $jenis);
+        }
+
+        if ($status) {
+            $projects->where('validation_status', $status);
+        }
+
+        if ($tahun) {
+            $projects->where(function ($qq) use ($tahun) {
+                $qq->where('tahun_usulan', $tahun)
+                   ->orWhere('tahun_pelaksanaan', $tahun);
+            });
+        }
+
+        $projects = $projects
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        $tahunOptions = ResearchProject::select('tahun_usulan')
+            ->whereNotNull('tahun_usulan')
+            ->distinct()
+            ->orderBy('tahun_usulan', 'desc')
+            ->pluck('tahun_usulan');
+
+        return view('projects.my_index', [
+            'projects'      => $projects,
+            'tahunOptions'  => $tahunOptions,
+            'filterQ'       => $q,
+            'filterJenis'   => $jenis,
+            'filterStatus'  => $status,
+            'filterTahun'   => $tahun,
+        ]);
+    }
+
 }

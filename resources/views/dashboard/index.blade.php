@@ -2,192 +2,190 @@
 
 @section('content')
 <div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Dasbor Utama</h4>
-  </div>
+  <h4 class="mb-3">Dasbor Utama</h4>
 
-  {{-- Notifikasi sekali tampil --}}
-  @if(isset($notifications) && $notifications->count())
-    @foreach($notifications as $n)
-        <div class="alert alert-info alert-dismissible fade show mt-2" role="alert">
-        {{ $n->message }}
-        @if($n->project_id)
-            <a href="{{ route('projects.show', $n->project_id) }}" class="ms-2">Lihat</a>
+  @if($pendingValidation > 0 || $needRevision > 0)
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+      <div>
+        @if($pendingValidation > 0)
+          Anda memiliki <strong>{{ $pendingValidation }}</strong> kegiatan yang
+          <strong>menunggu validasi</strong> admin.
         @endif
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endforeach
+        @if($needRevision > 0)
+          @if($pendingValidation > 0)<br>@endif
+          Ada <strong>{{ $needRevision }}</strong> kegiatan yang
+          <strong>memerlukan revisi</strong>.
+        @endif
+      </div>
+      <div>
+        <a href="{{ route('projects.my', ['status' => 'pending']) }}"
+           class="btn btn-sm btn-outline-dark">
+          Lihat Kegiatan
+        </a>
+      </div>
+    </div>
   @endif
 
-  <div class="row g-3">
+  <div class="row mb-3">
     <div class="col-md-6">
-      <div class="card">
+      <div class="card h-100">
         <div class="card-body">
-
-            <div class="h6 text-muted">Total Kegiatan (Penelitian + Pengabdian)</div>
-            <div class="display-6">{{ $projectCount }}</div>
-
-            <hr>
-            <div class="card">
-                <div class="card-header">Grafik Kegiatan per Tahun</div>
-                <div class="card-body">
-                    <canvas id="projectsChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-
+          <h6 class="text-muted">Total Kegiatan (Penelitian + Pengabdian)</h6>
+          <div class="display-5 fw-bold">{{ $totalKegiatan }}</div>
+          <canvas id="chartKegiatan"></canvas>
         </div>
       </div>
     </div>
-
     <div class="col-md-6">
-      <div class="card">
+      <div class="card h-100">
         <div class="card-body">
-
-            <div class="h6 text-muted">Total Publikasi</div>
-            <div class="display-6">{{ $publicationCount }}</div>
-
-            <hr>
-            <div class="card">
-                <div class="card-header">Grafik Publikasi per Tahun</div>
-                <div class="card-body">
-                    <canvas id="publicationsChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-
+          <h6 class="text-muted">Total Publikasi</h6>
+          <div class="display-5 fw-bold">{{ $totalPublikasi }}</div>
+          <canvas id="chartPublikasi"></canvas>
         </div>
       </div>
     </div>
   </div>
 
-    <div class="row g-3 mt-3">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Daftar Kegiatan yang Saya Ketuai</div>
-                <ul class="list-group list-group-flush">
-                @forelse($projects as $project)
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Daftar Kegiatan yang Saya Ketua</span>
+          <a href="{{ route('projects.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
+        </div>
+        <div class="card-body">
+          @if($kegiatanSayaKetua->isEmpty())
+            <p class="text-muted mb-0">Belum ada data.</p>
+          @else
+            <ul class="list-group">
+              @foreach($kegiatanSayaKetua as $p)
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                    <a href="{{ route('projects.show', $project) }}" class="fw-semibold">{{ $project->judul }}</a>
-                    <span class="badge text-bg-light ms-2">{{ ucfirst($project->jenis) }}</span>
-                    @if($isAdmin && $project->ketua)
-                        <span class="badge bg-secondary ms-2">Ketua: {{ $project->ketua->name }}</span>
-                    @endif
+                  <div>
+                    <a href="{{ route('projects.show', $p) }}">{{ $p->judul }}</a>
+                    <div class="small text-muted">
+                      {{ ucfirst($p->jenis) }} • Tahun {{ $p->tahun_pelaksanaan ?? $p->tahun_usulan ?? '-' }}
                     </div>
+                  </div>
+                  @include('projects._validation_badge', ['project' => $p])
                 </li>
-                @empty
-                <li class="list-group-item">Belum ada data.</li>
-                @endforelse
-                </ul>
-            </div>
+              @endforeach
+            </ul>
+          @endif
         </div>
-    <div class="col-md-6">
-
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">Daftar Publikasi yang Saya Unggah</div>
-        <ul class="list-group list-group-flush">
-          @forelse($pubs as $x)
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <a href="{{ route('publications.show',$x) }}" class="fw-semibold">{{ $x->judul }}</a>
-                @if($isAdmin && isset($x->owner))
-                  <span class="badge bg-secondary ms-2">Oleh: {{ $x->owner->name }}</span>
-                @endif
-              </div>
-              @if($x->tahun)
-                <span class="badge text-bg-light">{{ $x->tahun }}</span>
-              @endif
-            </li>
-          @empty
-            <li class="list-group-item">Belum ada data.</li>
-          @endforelse
-        </ul>
       </div>
     </div>
 
-</div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Daftar Publikasi yang Saya Unggah</span>
+          <a href="{{ route('publications.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
+        </div>
+        <div class="card-body">
+          @if($publikasiSaya->isEmpty())
+            <p class="text-muted mb-0">Belum ada data.</p>
+          @else
+            <ul class="list-group">
+              @foreach($publikasiSaya as $pub)
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <a href="{{ route('publications.show', $pub) }}">{{ $pub->judul }}</a>
+                    <div class="small text-muted">
+                      {{ $pub->jenis ?? '-' }} • {{ $pub->tahun ?? '-' }}
+                    </div>
+                  </div>
+                </li>
+              @endforeach
+            </ul>
+          @endif
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div>
-    <hr>
-</div>
+  <div class="row mb-3">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">Kegiatan Yang Saya Ikuti Sebagai Anggota</div>
+        <div class="card-body">
+          @if($kegiatanSebagaiAnggota->isEmpty())
+            <p class="text-muted mb-0">Belum ada data.</p>
+          @else
+            <ul class="list-group">
+              @foreach($kegiatanSebagaiAnggota as $p)
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <a href="{{ route('projects.show', $p) }}">{{ $p->judul }}</a>
+                    <div class="small text-muted">
+                      Ketua: {{ optional($p->ketua)->name }} • {{ ucfirst($p->jenis) }}
+                    </div>
+                  </div>
+                  @include('projects._validation_badge', ['project' => $p])
+                </li>
+              @endforeach
+            </ul>
+          @endif
+        </div>
+      </div>
+    </div>
 
-{{-- Kegiatan yang saya ikuti sebagai anggota --}}
-<div>
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header">Kegiatan Yang Saya Ikuti Sebagai Anggota</div>
-      <ul class="list-group list-group-flush">
-        @forelse($memberProjects as $x)
-          <li class="list-group-item">
-            <a href="{{ route('projects.show',$x) }}" class="fw-semibold">{{ $x->judul }}</a>
-            @if($x->ketua)<span class="badge text-bg-light ms-2">Ketua: {{ $x->ketua->name }}</span>@endif
-            <span class="badge bg-secondary ms-2 text-capitalize">{{ $x->jenis }}</span>
-          </li>
-        @empty
-          <li class="list-group-item">Belum ada data.</li>
-        @endforelse
-      </ul>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Notifikasi Terbaru</span>
+        </div>
+        <div class="card-body">
+          @if($notifications->isEmpty())
+            <p class="text-muted mb-0">Tidak ada notifikasi.</p>
+          @else
+            <ul class="list-group list-group-flush">
+              @foreach($notifications as $notif)
+                <li class="list-group-item px-0">
+                  <div class="small">{{ $notif->message }}</div>
+                  <div class="text-muted small">
+                    {{ $notif->created_at?->format('d M Y H:i') }}
+                  </div>
+                </li>
+              @endforeach
+            </ul>
+          @endif
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
 @endsection
 
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Data for projects chart
-    const projectYears = @json($projectCountsByYear->keys());
-    const projectCounts = @json($projectCountsByYear->values());
+  const kegiatan = @json($activityByYear);
+  const publikasi = @json($publicationByYear);
 
-    const ctxProjects = document.getElementById('projectsChart').getContext('2d');
-    new Chart(ctxProjects, {
-        type: 'bar',
-        data: {
-            labels: projectYears,
-            datasets: [{
-                label: 'Jumlah Kegiatan',
-                data: projectCounts,
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+  const labelsKegiatan = kegiatan.map(x => x.tahun);
+  const dataKegiatan   = kegiatan.map(x => x.total);
+
+  const labelsPublikasi = publikasi.map(x => x.tahun);
+  const dataPublikasi   = publikasi.map(x => x.total);
+
+  if (document.getElementById('chartKegiatan')) {
+    new Chart(document.getElementById('chartKegiatan').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labelsKegiatan,
+        datasets: [{ label: 'Jumlah Kegiatan', data: dataKegiatan }]
+      }
     });
+  }
 
-    // Data for publications chart
-    const pubYears = @json($publicationCountsByYear->keys());
-    const pubCounts = @json($publicationCountsByYear->values());
-
-    const ctxPubs = document.getElementById('publicationsChart').getContext('2d');
-    new Chart(ctxPubs, {
-        type: 'bar',
-        data: {
-            labels: pubYears,
-            datasets: [{
-                label: 'Jumlah Publikasi',
-                data: pubCounts,
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+  if (document.getElementById('chartPublikasi')) {
+    new Chart(document.getElementById('chartPublikasi').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labelsPublikasi,
+        datasets: [{ label: 'Jumlah Publikasi', data: dataPublikasi }]
+      }
     });
-});
+  }
 </script>
-@endsection
+@endpush

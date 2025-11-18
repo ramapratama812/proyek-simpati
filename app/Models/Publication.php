@@ -9,7 +9,22 @@ use App\Models\ResearchProject;
 class Publication extends Model
 {
     use HasFactory;
-    protected $fillable = ['owner_id','project_id','judul','jenis','jurnal','tahun','volume','nomor','abstrak','jumlah_halaman','doi','issn','penulis','sumber'];
+    protected $fillable = [
+        'owner_id',
+        'project_id',
+        'judul',
+        'jenis',
+        'jurnal',
+        'tahun',
+        'volume',
+        'nomor',
+        'abstrak',
+        'jumlah_halaman',
+        'doi',
+        'issn',
+        'penulis',
+        'sumber',
+    ];
     protected $casts = ['penulis'=>'array','sumber'=>'array'];
 
     public function owner()

@@ -200,4 +200,53 @@ class PublicationController extends Controller
         return redirect()->to(url('/publications'))
             ->with('ok', 'Publikasi telah dihapus.');
     }
+
+    // method buat kelola publikasi saya (untuk dosen)
+    public function myPublications(Request $request)
+    {
+        $user = auth()->user();
+
+        $q      = trim($request->get('q', ''));
+        $jenis  = $request->get('jenis');
+        $tahun  = $request->get('tahun');
+
+        $pubs = Publication::where('owner_id', $user->id);
+
+        if ($q !== '') {
+            $pubs->where(function ($qq) use ($q) {
+                $qq->where('judul', 'like', "%{$q}%")
+                   ->orWhere('jurnal', 'like', "%{$q}%")
+                   ->orWhere('penerbit', 'like', "%{$q}%");
+            });
+        }
+
+        if ($jenis) {
+            $pubs->where('jenis', $jenis);
+        }
+
+        if ($tahun) {
+            $pubs->where('tahun', $tahun);
+        }
+
+        $pubs = $pubs
+            ->orderByDesc('tahun')
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        $tahunOptions = Publication::select('tahun')
+            ->whereNotNull('tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        return view('publications.my_index', [
+            'publications'  => $pubs,
+            'filterQ'       => $q,
+            'filterJenis'   => $jenis,
+            'filterTahun'   => $tahun,
+            'tahunOptions'  => $tahunOptions,
+        ]);
+    }
+
 }

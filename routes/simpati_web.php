@@ -33,6 +33,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', fn() => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Halaman khusus dosen: Kelola Kegiatan Saya
+    Route::get('/kegiatan/kelola', [ResearchProjectController::class, 'myProjects'])
+        ->name('projects.my');
+
+    // Halaman khusus dosen: Kelola Publikasi Saya
+    Route::get('/publikasi/kelola', [PublicationController::class, 'myPublications'])
+        ->name('publications.my');
+
     // ==================================================
     // 🔹 Dosen
     // ==================================================
@@ -110,4 +118,5 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/', 'update')->name('update');   // Simpan perubahan
             Route::delete('/', 'destroy')->name('destroy'); // Hapus akun
     });
+
 });
