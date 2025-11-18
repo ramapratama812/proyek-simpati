@@ -76,18 +76,12 @@ class ProjectPublicationController extends Controller
     }
 
     // Cek apakah user boleh mengelola (ketua/creator atau admin)
-    // Cek apakah user boleh mengelola (ketua/creator atau admin)
     protected function canManage(ResearchProject $project): bool
     {
         $u = auth()->user();
         $isAdmin  = strtolower($u->role ?? '') === 'admin';
         $isKetua  = (int) $project->ketua_id === (int) ($u->id ?? 0);
         $isMaker  = (int) ($project->created_by ?? 0) === (int) ($u->id ?? 0);
-
-        // setelah divalidasi, hanya admin yang boleh ubah publikasi
-        if ($project->validation_status === 'approved' && !$isAdmin) {
-            return false;
-        }
 
         return $isAdmin || $isKetua || $isMaker;
     }

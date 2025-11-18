@@ -169,35 +169,21 @@
         </div>
 
         @auth
-
-            @php
-                $role = strtolower(auth()->user()->role ?? '');
-            @endphp
-
-            @if($role === 'admin')
-                <li class="nav-item">
-                    <a href="{{ route('projects.validation.index') }}" class="nav-link">
-                        <i class="bi bi-check2-square"></i>
-                        <span>Validasi Kegiatan</span>
-                    </a>
-                </li>
-            @endif
-
-            <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                <i class="bi bi-house-door-fill"></i> Dasbor Utama
-            </a>
-            <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
-                <i class="bi bi-list-task"></i> Kegiatan
-            </a>
-            <a href="{{ route('publications.index') }}" class="{{ request()->is('publications*') ? 'active' : '' }}">
-                <i class="bi bi-journal-text"></i> Publikasi
-            </a>
-            <a href="{{ route('dosen.index') }}" class="{{ request()->is('dosen*') ? 'active' : '' }}">
-                <i class="bi bi-person-lines-fill"></i> Dosen
-            </a>
-            <a href="{{ route('mahasiswa.index') }}" class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
-                <i class="bi bi-people-fill"></i> Mahasiswa
-            </a>
+          <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+            <i class="bi bi-house-door-fill"></i> Dasbor Utama
+          </a>
+          <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
+            <i class="bi bi-list-task"></i> Kegiatan
+          </a>
+          <a href="{{ route('publications.index') }}" class="{{ request()->is('publications*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i> Publikasi
+          </a>
+          <a href="{{ route('dosen.index') }}" class="{{ request()->is('dosen*') ? 'active' : '' }}">
+            <i class="bi bi-person-lines-fill"></i> Dosen
+          </a>
+          <a href="{{ route('mahasiswa.index') }}" class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
+            <i class="bi bi-people-fill"></i> Mahasiswa
+          </a>
         @endauth
       </div>
     @endif

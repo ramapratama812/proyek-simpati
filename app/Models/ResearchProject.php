@@ -11,51 +11,20 @@ class ResearchProject extends Model
     use HasFactory;
 
     protected $fillable = [
-        'jenis',
-        'judul',
-        'kategori_kegiatan',
-        'bidang_ilmu',
-        'skema',
-        'abstrak',
-        'surat_proposal',
-        'surat_persetujuan',       // BARU
-
-        'mulai',
-        'selesai',
-        'sumber_dana',
-        'biaya',
-        'ketua_id',
-        'is_public',
-        'external_refs',
-
-        'created_by',
-        'tahun_usulan',
-        'tahun_pelaksanaan',
-        'status',
-
-        'validation_status',       // BARU
-        'validation_note',         // BARU
-        'validated_by',            // BARU
-        'validated_at',            // BARU
-
-        'tkt',
-        'mitra_nama',
-        'lokasi',
-        'nomor_kontrak',
-        'tanggal_kontrak',
-        'target_luaran',
-        'keywords',
-        'tautan',
+        'jenis','judul','kategori_kegiatan','bidang_ilmu','skema','abstrak','surat_proposal',
+        'mulai','selesai','sumber_dana','biaya','ketua_id','is_public','external_refs',
+        'created_by','tahun_usulan','tahun_pelaksanaan','status','tkt','mitra_nama','lokasi',
+        'nomor_kontrak','tanggal_kontrak','target_luaran','keywords','tautan'
     ];
 
     protected $casts = [
-        'external_refs'   => 'array',
-        'is_public'       => 'boolean',
-        'mulai'           => 'date',
-        'selesai'         => 'date',
-        'tanggal_kontrak' => 'date',
-        'target_luaran'   => 'array',
-        'validated_at'    => 'datetime', // BARU
+        'external_refs'=>'array',
+        'is_public'=>'boolean',
+        'mulai'=>'date',
+        'selesai'=>'date',
+        'tanggal_kontrak'=>'date',
+        'target_luaran'=>'array',
+        'created_by'
     ];
 
     public function ketua()
@@ -84,23 +53,6 @@ class ResearchProject extends Model
         return $this->belongsToMany(User::class, 'project_members', 'project_id', 'user_id')
                     ->withPivot('peran')
                     ->withTimestamps();
-    }
-
-    // method untuk relasi admin yang memvalidasi
-    public function validator()
-    {
-        return $this->belongsTo(User::class, 'validated_by');
-    }
-
-    public function isApproved(): bool
-    {
-        return $this->validation_status === 'approved';
-    }
-
-    public function isLockedForLecturer(): bool
-    {
-        // aturan: setelah disetujui admin, ketua/pembuat tidak boleh edit/hapus atau tambah publikasi
-        return $this->isApproved();
     }
 
 }

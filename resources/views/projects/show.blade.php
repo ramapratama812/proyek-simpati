@@ -12,28 +12,6 @@
             <span class="badge bg-secondary text-capitalize">{{ $project->jenis }}</span>
         </div>
 
-        {{-- Status validasi --}}
-        <p class="mt-2 mb-1">
-          <strong>Status Validasi:</strong>
-          @include('projects._validation_badge', ['project' => $project])
-        </p>
-
-        @if ($project->validation_note)
-          <div class="alert alert-info mt-2">
-            <strong>Catatan Admin:</strong><br>
-            {{ $project->validation_note }}
-          </div>
-        @endif
-
-        @if ($project->surat_persetujuan)
-          <p class="mt-2">
-            <strong>Surat Persetujuan P3M:</strong>
-            <a href="{{ asset('storage/' . $project->surat_persetujuan) }}" target="_blank">
-              Lihat Surat Persetujuan
-            </a>
-          </p>
-        @endif
-
         <hr>
         <p><strong>Skema:</strong> {{ $project->skema }}</p>
         <p><strong>Kategori:</strong> {{ $project->kategori_kegiatan }}</p>
@@ -130,55 +108,33 @@
       </div>
     </div>
 
-    {{-- Update blok kartu aksi --}}
     <div class="col-md-4">
       <div class="card">
         <div class="card-body">
 
           <h6 class="mb-2">Aksi</h6>
 
-          <div class="d-grid gap-1 mb-2">
+          <div class="d-grid gap-1">
             <a href="{{ route('projects.publications.index', $project) }}" class="btn btn-primary">
-              Lihat Publikasi
+                Lihat Publikasi
             </a>
             <a href="{{ asset('storage/' . $project->surat_proposal) }}" target="_blank" class="btn btn-secondary">
-              Lihat PDF Surat Proposal
+                Lihat PDF Surat Proposal
             </a>
           </div>
 
-          @php
-            $userId          = auth()->id();
-            $isKetuaOrCreator = $userId && ($userId == $project->ketua_id || $userId == $project->created_by);
-          @endphp
-
-          {{-- Tombol Ajukan Validasi (hanya ketua/pembuat, dan hanya saat draft / revisi) --}}
-          @if($isKetuaOrCreator && in_array($project->validation_status, ['draft','revision_requested']))
-            <form method="POST"
-                  action="{{ route('projects.submitValidation', $project) }}"
-                  class="mb-2"
-                  onsubmit="return confirm('Ajukan kegiatan ini untuk divalidasi admin?');">
-              @csrf
-              <button type="submit" class="btn btn-success w-100">
-                Ajukan Validasi Kegiatan
-              </button>
-            </form>
-          @endif
-
-          {{-- Tombol Edit/Hapus (tidak muncul lagi jika sudah approved) --}}
-          @if($isKetuaOrCreator && $project->validation_status !== 'approved')
-            <hr>
-            <div class="d-grid gap-1 mb-2">
-              <a href="{{ route('projects.edit', $project) }}" class="btn btn-outline-warning">
-                Edit
-              </a>
-              <form method="POST"
-                    action="{{ route('projects.destroy', $project) }}"
-                    onsubmit="return confirm('Hapus kegiatan ini? Tindakan tidak bisa dibatalkan.');">
+          @if(
+            // Batasi tombol edit/hapus hanya untuk ketua atau pembuat (opsional)
+            // auth()->id() && (auth()->id() == $project->created_by ||
+            auth()->id() == $project->ketua_id
+          )
+          <hr>
+            <div class="d-grid gap-1">
+              <a href="{{ route('projects.edit', $project) }}" class="btn btn-outline-warning">Edit</a>
+              <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('Hapus kegiatan ini? Tindakan tidak bisa dibatalkan.');">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger w-100">
-                  Hapus
-                </button>
+                <button type="submit" class="btn btn-outline-danger w-100">Hapus</button>
               </form>
             </div>
           @endif
@@ -186,35 +142,32 @@
           <hr>
 
           <div class="d-grid gap-2">
-            <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">
-              Kembali
-            </a>
+              <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">Kembali</a>
           </div>
 
         </div>
       </div>
 
-      @php
-          $userId = auth()->id();
-          $isParticipant = $userId && ($userId == $project->ketua_id || $project->members->contains('id', $userId));
-      @endphp
+        @php
+            $userId = auth()->id();
+            $isParticipant = $userId && ($userId == $project->ketua_id || $project->members->contains('id', $userId));
+        @endphp
 
-      @if($isParticipant)
+        @if($isParticipant)
         <div class="card p-3 mt-3">
-          <h6 class="mb-2">Tambah Dokumentasi</h6>
-          <form method="POST" action="{{ route('projects.images.store', $project) }}"
-                enctype="multipart/form-data">
-            @csrf
-            <div class="mb-2">
-              <input type="file" name="images[]" class="form-control" multiple accept="image/*" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Unggah Gambar</button>
-          </form>
+            <h6 class="mb-2">Tambah Dokumentasi</h6>
+            <form method="POST" action="{{ route('projects.images.store', $project) }}"
+            enctype="multipart/form-data"
+            onsubmit="return confirm('Unggah gambar sebagai dokumentasi kegiatan?');">
+                @csrf
+                <input type="file" name="images[]" class="form-control" multiple accept="image/*" required>
+                <div class="form-text">Maks 10MB per gambar. Anda bisa memilih lebih dari satu file.</div>
+                <button class="btn btn-primary mt-2">Unggah</button>
+            </form>
+
         </div>
-      @endif
-
+        @endif
     </div>
-
 
   </div>
 </div>
