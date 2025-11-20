@@ -19,58 +19,97 @@ class DashboardController extends Controller
         $user = auth()->user();
         $role = strtolower($user->role ?? '');
 
-        // Fokus: tampilan dosen
-        $totalKegiatan = ResearchProject::where(function ($q) use ($user) {
-                $q->where('ketua_id', $user->id)
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('members', function ($qq) use ($user) {
-                      $qq->where('users.id', $user->id);
-                  });
-            })->count();
+        // Inisialisasi default supaya aman dipakai di view,
+        // terutama untuk role mahasiswa (biar nggak undefined variable).
+        $totalKegiatan         = 0;
+        $totalPublikasi        = 0;
+        $pendingValidation     = 0;
+        $needRevision          = 0;
+        $activityByYear        = collect();
+        $publicationByYear     = collect();
+        $kegiatanSayaKetua     = collect();
+        $kegiatanSebagaiAnggota = collect();
+        $publikasiSaya         = collect();
 
-        $totalPublikasi = Publication::where('owner_id', $user->id)->count();
+        // =========================
+        // ROLE MAHASISWA
+        // =========================
+        if ($role === 'mahasiswa') {
 
-        $pendingValidation = ResearchProject::where('ketua_id', $user->id)
-            ->where('validation_status', 'pending')
-            ->count();
+            // Mahasiswa HANYA boleh melihat kegiatan yang diikuti sebagai anggota
+            $kegiatanSebagaiAnggota = ResearchProject::whereHas('members', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
 
-        $needRevision = ResearchProject::where('ketua_id', $user->id)
-            ->where('validation_status', 'revision_requested')
-            ->count();
+            // Catatan:
+            // - totalKegiatan, totalPublikasi, pendingValidation, needRevision, dst
+            //   sengaja dibiarkan 0/kosong karena di dashboard nanti tidak akan ditampilkan
+            //   untuk role mahasiswa.
+        }
+        // =========================
+        // ROLE SELAIN MAHASISWA (DOSEN/ADMIN)
+        // =========================
+        else {
 
-        $activityByYear = ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, COUNT(*) as total')
-            ->where(function ($q) use ($user) {
-                $q->where('ketua_id', $user->id)
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('members', function ($qq) use ($user) {
-                      $qq->where('users.id', $user->id);
-                  });
-            })
-            ->whereNotNull('tahun_usulan')
-            ->groupBy('tahun')
-            ->orderBy('tahun')
-            ->get();
+            // Fokus: tampilan dosen/admin (logika asli kamu dipertahankan)
+            $totalKegiatan = ResearchProject::where(function ($q) use ($user) {
+                    $q->where('ketua_id', $user->id)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('members', function ($qq) use ($user) {
+                          $qq->where('users.id', $user->id);
+                      });
+                })->count();
 
-        $publicationByYear = Publication::selectRaw('tahun, COUNT(*) as total')
-            ->where('owner_id', $user->id)
-            ->whereNotNull('tahun')
-            ->groupBy('tahun')
-            ->orderBy('tahun')
-            ->get();
+            $totalPublikasi = Publication::where('owner_id', $user->id)->count();
 
-        $kegiatanSayaKetua = ResearchProject::where('ketua_id', $user->id)
-            ->latest()->take(5)->get();
+            $pendingValidation = ResearchProject::where('ketua_id', $user->id)
+                ->where('validation_status', 'pending')
+                ->count();
 
-        $kegiatanSebagaiAnggota = ResearchProject::whereHas('members', function ($q) use ($user) {
-                $q->where('users.id', $user->id);
-            })
-            ->latest()->take(5)->get();
+            $needRevision = ResearchProject::where('ketua_id', $user->id)
+                ->where('validation_status', 'revision_requested')
+                ->count();
 
-        $publikasiSaya = Publication::where('owner_id', $user->id)
-            ->latest()->take(5)->get();
+            $activityByYear = ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, COUNT(*) as total')
+                ->where(function ($q) use ($user) {
+                    $q->where('ketua_id', $user->id)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('members', function ($qq) use ($user) {
+                          $qq->where('users.id', $user->id);
+                      });
+                })
+                ->whereNotNull('tahun_usulan')
+                ->groupBy('tahun')
+                ->orderBy('tahun')
+                ->get();
 
+            $publicationByYear = Publication::selectRaw('tahun, COUNT(*) as total')
+                ->where('owner_id', $user->id)
+                ->whereNotNull('tahun')
+                ->groupBy('tahun')
+                ->orderBy('tahun')
+                ->get();
+
+            $kegiatanSayaKetua = ResearchProject::where('ketua_id', $user->id)
+                ->latest()->take(5)->get();
+
+            $kegiatanSebagaiAnggota = ResearchProject::whereHas('members', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                })
+                ->latest()->take(5)->get();
+
+            $publikasiSaya = Publication::where('owner_id', $user->id)
+                ->latest()->take(5)->get();
+        }
+
+        // NOTIFIKASI → tetap dipakai semua role
         $notifications = UserNotification::where('user_id', $user->id)
-            ->latest()->take(10)->get();
+            ->latest()
+            ->take(10)
+            ->get();
 
         return view('dashboard.index', compact(
             'totalKegiatan',

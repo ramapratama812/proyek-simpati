@@ -26,83 +26,87 @@
     </div>
   @endif
 
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h6 class="text-muted">Total Kegiatan (Penelitian + Pengabdian)</h6>
-          <div class="display-5 fw-bold">{{ $totalKegiatan }}</div>
-          <canvas id="chartKegiatan"></canvas>
+  @if(strtolower(auth()->user()->role ?? '') !== 'mahasiswa')
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Kegiatan (Penelitian + Pengabdian)</h6>
+                    <div class="display-5 fw-bold">{{ $totalKegiatan }}</div>
+                    <canvas id="chartKegiatan"></canvas>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h6 class="text-muted">Total Publikasi</h6>
-          <div class="display-5 fw-bold">{{ $totalPublikasi }}</div>
-          <canvas id="chartPublikasi"></canvas>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Publikasi</h6>
+                    <div class="display-5 fw-bold">{{ $totalPublikasi }}</div>
+                    <canvas id="chartPublikasi"></canvas>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+  @endif
 
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Daftar Kegiatan yang Saya Ketua</span>
-          <a href="{{ route('projects.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
-        </div>
-        <div class="card-body">
-          @if($kegiatanSayaKetua->isEmpty())
-            <p class="text-muted mb-0">Belum ada data.</p>
-          @else
-            <ul class="list-group">
-              @foreach($kegiatanSayaKetua as $p)
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <a href="{{ route('projects.show', $p) }}">{{ $p->judul }}</a>
-                    <div class="small text-muted">
-                      {{ ucfirst($p->jenis) }} • Tahun {{ $p->tahun_pelaksanaan ?? $p->tahun_usulan ?? '-' }}
+  @if(strtolower(auth()->user()->role ?? '') !== 'mahasiswa')
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Daftar Kegiatan yang Saya Ketua</span>
+            <a href="{{ route('projects.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
+            </div>
+            <div class="card-body">
+            @if($kegiatanSayaKetua->isEmpty())
+                <p class="text-muted mb-0">Belum ada data.</p>
+            @else
+                <ul class="list-group">
+                @foreach($kegiatanSayaKetua as $p)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{{ route('projects.show', $p) }}">{{ $p->judul }}</a>
+                        <div class="small text-muted">
+                        {{ ucfirst($p->jenis) }} • Tahun {{ $p->tahun_pelaksanaan ?? $p->tahun_usulan ?? '-' }}
+                        </div>
                     </div>
-                  </div>
-                  @include('projects._validation_badge', ['project' => $p])
-                </li>
-              @endforeach
-            </ul>
-          @endif
+                    @include('projects._validation_badge', ['project' => $p])
+                    </li>
+                @endforeach
+                </ul>
+            @endif
+            </div>
         </div>
-      </div>
-    </div>
+        </div>
 
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Daftar Publikasi yang Saya Unggah</span>
-          <a href="{{ route('publications.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
-        </div>
-        <div class="card-body">
-          @if($publikasiSaya->isEmpty())
-            <p class="text-muted mb-0">Belum ada data.</p>
-          @else
-            <ul class="list-group">
-              @foreach($publikasiSaya as $pub)
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <a href="{{ route('publications.show', $pub) }}">{{ $pub->judul }}</a>
-                    <div class="small text-muted">
-                      {{ $pub->jenis ?? '-' }} • {{ $pub->tahun ?? '-' }}
+        <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Daftar Publikasi yang Saya Unggah</span>
+            <a href="{{ route('publications.my') }}" class="btn btn-sm btn-outline-secondary">Kelola</a>
+            </div>
+            <div class="card-body">
+            @if($publikasiSaya->isEmpty())
+                <p class="text-muted mb-0">Belum ada data.</p>
+            @else
+                <ul class="list-group">
+                @foreach($publikasiSaya as $pub)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{{ route('publications.show', $pub) }}">{{ $pub->judul }}</a>
+                        <div class="small text-muted">
+                        {{ $pub->jenis ?? '-' }} • {{ $pub->tahun ?? '-' }}
+                        </div>
                     </div>
-                  </div>
-                </li>
-              @endforeach
-            </ul>
-          @endif
+                    </li>
+                @endforeach
+                </ul>
+            @endif
+            </div>
         </div>
-      </div>
+        </div>
     </div>
-  </div>
+  @endif
 
   <div class="row mb-3">
     <div class="col-md-8">

@@ -4,34 +4,38 @@
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4>Publikasi</h4>
-    <a class="btn btn-primary" href="{{ route('publications.create') }}">Tambah</a>
+    @if(strtolower(auth()->user()->role ?? '') !== 'mahasiswa')
+        <a class="btn btn-primary" href="{{ route('publications.create') }}">Tambah</a>
+    @endif
   </div>
 
-  <div class="card mb-3">
-    <div class="card-body">
-      <div><h6>Impor Publikasi Cepat</h6></div>
-      <hr>
-      <form class="row g-2" method="POST" action="{{ route('import.crossref') }}">
-        @csrf
-        <div class="col-md-8">
-          <input name="doi" class="form-control" placeholder="Masukkan DOI untuk impor dari Crossref" required>
+  @if(strtolower(auth()->user()->role ?? '') !== 'mahasiswa')
+    <div class="card mb-3">
+        <div class="card-body">
+            <div><h6>Impor Publikasi Cepat</h6></div>
+            <hr>
+            <form class="row g-2" method="POST" action="{{ route('import.crossref') }}">
+                @csrf
+                <div class="col-md-8">
+                <input name="doi" class="form-control" placeholder="Masukkan DOI untuk impor dari Crossref" required>
+                </div>
+                <div class="col-md-4">
+                <button class="btn btn-outline-primary w-100">Impor DOI</button>
+                </div>
+            </form>
+            <hr>
+            <form class="row g-2" method="POST" action="{{ route('import.bibtex') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="col-md-8">
+                <input type="file" name="file" class="form-control" accept=".bib,.txt" required>
+                </div>
+                <div class="col-md-4">
+                <button class="btn btn-outline-secondary w-100">Impor BibTeX</button>
+                </div>
+            </form>
         </div>
-        <div class="col-md-4">
-          <button class="btn btn-outline-primary w-100">Impor DOI</button>
-        </div>
-      </form>
-      <hr>
-      <form class="row g-2" method="POST" action="{{ route('import.bibtex') }}" enctype="multipart/form-data">
-        @csrf
-        <div class="col-md-8">
-          <input type="file" name="file" class="form-control" accept=".bib,.txt" required>
-        </div>
-        <div class="col-md-4">
-          <button class="btn btn-outline-secondary w-100">Impor BibTeX</button>
-        </div>
-      </form>
     </div>
-  </div>
+  @endif
 
     {{-- Chart --}}
     <div class="card mb-3">

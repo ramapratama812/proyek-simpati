@@ -2,10 +2,12 @@
 
 @section('content')
 <div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Daftar Kegiatan</h4>
-    <a class="btn btn-primary" href="{{ route('projects.create') }}">Tambah</a>
-  </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Daftar Kegiatan</h4>
+        @if(strtolower(auth()->user()->role ?? '') !== 'mahasiswa')
+            <a class="btn btn-primary" href="{{ route('projects.create') }}">Tambah Kegiatan</a>
+        @endif
+    </div>
 
     {{-- Chart --}}
     <div class="card mb-3">

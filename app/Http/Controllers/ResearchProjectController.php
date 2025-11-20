@@ -106,6 +106,10 @@ class ResearchProjectController extends Controller
 
     public function create()
     {
+        if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
         $lecturers = User::where('role','dosen')->orderBy('name')->get(['id','name']);
         $students  = User::where('role','mahasiswa')->orderBy('name')->get(['id','name']);
         return view('projects.create', compact('lecturers','students'));
@@ -113,6 +117,10 @@ class ResearchProjectController extends Controller
 
     public function store(Request $request)
     {
+        if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
         $data = $request->validate([
             'jenis' => 'required|in:penelitian,pengabdian',
             'judul' => 'required|string|max:255',
@@ -244,6 +252,10 @@ class ResearchProjectController extends Controller
 
     public function edit(ResearchProject $project)
     {
+        if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
         $this->authorizeProject($project);
         $lecturers = User::where('role','dosen')->orderBy('name')->get(['id','name']);
         $students  = User::where('role','mahasiswa')->orderBy('name')->get(['id','name']);
@@ -253,6 +265,10 @@ class ResearchProjectController extends Controller
 
     public function update(Request $request, ResearchProject $project)
     {
+        if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
         $this->authorizeProject($project);
 
         $data = $request->validate([
@@ -382,6 +398,10 @@ class ResearchProjectController extends Controller
 
     public function destroy(ResearchProject $project)
     {
+        if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
         $this->authorizeProject($project);
         $project->delete();
         return redirect()->route('projects.index')->with('ok','Kegiatan berhasil dihapus.');
