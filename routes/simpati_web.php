@@ -11,6 +11,12 @@ use App\Http\Controllers\PddiktiController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PortofolioController;
+
+// ======================================================
+// 🔹 PUBLIC PAGE (TANPA LOGIN) → HALAMAN PORTOFOLIO
+// ======================================================
+Route::get('/', [PortofolioController::class, 'index'])->name('portfolio');
 
 // ======================================================
 // 🔹 ROUTE AUTHENTICATION
@@ -34,7 +40,6 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/', fn() => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Dosen
