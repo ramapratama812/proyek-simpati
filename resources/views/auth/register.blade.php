@@ -49,6 +49,27 @@
                style="background-color:#f4f7fc;" required>
       </div>
     </div>
+
+    {{-- Role --}}
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Daftar Sebagai</label>
+      <select name="role" id="roleSelect" class="form-select rounded-3 shadow-sm border-0"
+              style="background-color:#f4f7fc;" required>
+        <option value="">-- Pilih Role --</option>
+        <option value="mahasiswa" {{ old('role')==='mahasiswa'?'selected':'' }}>Mahasiswa</option>
+        <option value="dosen" {{ old('role')==='dosen'?'selected':'' }}>Dosen</option>
+      </select>
+      @error('role')<small class="text-danger">{{ $message }}</small>@enderror
+    </div>
+
+    {{-- NIM (khusus mahasiswa) --}}
+    <div class="mb-4 d-none" id="nimField">
+      <label class="form-label fw-semibold">NIM</label>
+      <input name="nim" class="form-control rounded-3 shadow-sm border-0"
+             style="background-color:#f4f7fc;" value="{{ old('nim') }}">
+      @error('nim')<small class="text-danger">{{ $message }}</small>@enderror
+    </div>
+
     {{-- Tombol --}}
     <button class="btn w-100 py-2 fw-semibold text-white"
             style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">
@@ -62,20 +83,16 @@
   </form>
 </div>
 
-{{-- Script untuk menampilkan field sesuai role --}}
+{{-- Script: tampilkan NIM hanya untuk mahasiswa --}}
 <script>
 document.getElementById('roleSelect').addEventListener('change', function() {
   const role = this.value;
   const nimField = document.getElementById('nimField');
-  const nidnField = document.getElementById('nidnField');
 
   nimField.classList.add('d-none');
-  nidnField.classList.add('d-none');
 
   if (role === 'mahasiswa') {
     nimField.classList.remove('d-none');
-  } else if (role === 'dosen') {
-    nidnField.classList.remove('d-none');
   }
 });
 </script>

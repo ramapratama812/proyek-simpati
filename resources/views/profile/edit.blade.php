@@ -10,45 +10,10 @@
             Perbarui informasi pribadi dan akademik Anda.
         </p>
 
-        {{-- ✅ Foto Profil di Tengah --}}
-        <div class="text-center mb-5">
-            <label for="foto" class="form-label fw-semibold d-block mb-3">Foto Profil</label>
-
-            @php
-                $fotoPath = null;
-                if (!empty($dosen->foto)) {
-                    if (file_exists(public_path('foto_dosen/' . $dosen->foto))) {
-                        $fotoPath = asset('foto_dosen/' . $dosen->foto);
-                    } elseif (file_exists(public_path('uploads/dosen/' . $dosen->foto))) {
-                        $fotoPath = asset('uploads/dosen/' . $dosen->foto);
-                    } elseif (file_exists(public_path('storage/foto_dosen/' . $dosen->foto))) {
-                        $fotoPath = asset('storage/foto_dosen/' . $dosen->foto);
-                    }
-                }
-            @endphp
-
-            @if($fotoPath)
-                <img src="{{ $fotoPath }}"
-                     alt="Foto Dosen"
-                     class="rounded-circle shadow-sm mb-3 border"
-                     style="width: 140px; height: 140px; object-fit: cover;">
-            @else
-                <img src="{{ asset('images/default.png') }}"
-                     alt="Default Foto"
-                     class="rounded-circle shadow-sm mb-3 border"
-                     style="width: 140px; height: 140px; object-fit: cover;">
-            @endif
-
-            <div class="d-flex justify-content-center">
-                <input type="file" id="foto" name="foto" class="form-control w-auto shadow-sm mt-2">
-            </div>
-            <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
-                Format: JPG, PNG, Max 2MB
-            </small>
-        </div>
+        {{-- ❌ Bagian FOTO dihapus total --}}
 
         {{-- ✅ Form --}}
-        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('profile.update') }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -63,7 +28,7 @@
                                    value="{{ old('name', $user->name) }}" required>
                         </div>
 
-                        {{-- Email (non-editable) --}}
+                        {{-- Email --}}
                         <div class="mb-3">
                             <label for="email" class="form-label fw-semibold">Email</label>
                             <input type="email" id="email" class="form-control shadow-sm bg-light"
