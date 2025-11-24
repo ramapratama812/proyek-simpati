@@ -20,22 +20,7 @@
                 </div>
             @endif
 
-            {{-- FOTO PROFIL --}}
-            <div class="text-center mb-5">
-                @if (!empty($dosen->foto))
-                    {{-- ✅ Foto dari database --}}
-                    <img src="{{ asset('foto_dosen/' . $dosen->foto) }}"
-                         alt="Foto Dosen"
-                         class="rounded-circle border shadow-sm"
-                         style="width: 140px; height: 140px; object-fit: cover;">
-                @else
-                    {{-- Default jika tidak ada foto --}}
-                    <img src="{{ asset('images/default.jpg') }}"
-                         alt="Foto Dosen"
-                         class="rounded-circle border shadow-sm"
-                         style="width: 140px; height: 140px; object-fit: cover;">
-                @endif
-            </div>
+            {{-- ❌ FOTO PROFIL DIHAPUS --}}
 
             {{-- Data dosen --}}
             <div class="row">
@@ -122,11 +107,12 @@
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-{{-- STYLE TAMBAHAN --}}
+{{-- STYLE --}}
 <style>
     body { background-color: #f5f6fa; }
     label { font-size: 0.9rem; font-weight: 600; color: #6c757d; }

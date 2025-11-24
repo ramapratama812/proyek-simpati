@@ -1,4 +1,4 @@
-{{-- Layout utama dengan sidebar + navbar profil --}}
+{{-- Layout utama dengan sidebar + navbar nama profil --}}
 
 <!doctype html>
 <html lang="id">
@@ -28,10 +28,10 @@
       height: 100vh;
     }
 
-    /* ===== Sidebar kiri ===== */
+    /* ===== Sidebar ===== */
     .sidebar {
       width: 270px;
-      background-color: #001F4D; /* 🔹 Warna biru tua */
+      background-color: #001F4D;
       padding: 35px 24px;
       color: #fff;
       display: flex;
@@ -62,7 +62,6 @@
       color: #ffffff;
     }
 
-    /* ===== Link menu sidebar ===== */
     .sidebar a {
       display: flex;
       align-items: center;
@@ -78,7 +77,6 @@
       transition: all 0.25s ease;
     }
 
-    /* 🔹 Garis indikator menu aktif */
     .sidebar a.active::before {
       content: "";
       position: absolute;
@@ -110,7 +108,7 @@
       background-color: #f8f9fa;
     }
 
-    /* ===== Navbar atas ===== */
+    /* ===== Navbar ===== */
     nav.navbar {
       border-bottom: 1px solid #e5e5e5;
       background-color: #ffffff;
@@ -131,10 +129,10 @@
     }
 
     .required-asterisk {
-        color: red;
+      color: red;
     }
 
-    /* ===== Responsif untuk HP ===== */
+    /* ===== Responsif ===== */
     @media (max-width: 992px) {
       .sidebar {
         width: 100%;
@@ -162,12 +160,11 @@
     @if (!in_array(Route::currentRouteName(), ['login', 'register']))
       <div class="sidebar">
         <div class="logo">
-          <i class="bi bi-mortarboard-fill"></i> {{-- 🔹 Ikon logo --}}
+          <i class="bi bi-mortarboard-fill"></i>
           <span>SIMPATI</span>
         </div>
 
         @auth
-          {{-- 🔹 Menu navigasi sidebar --}}
           <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
             <i class="bi bi-house-door-fill"></i> Dashboard 
           </a>
@@ -190,48 +187,27 @@
     {{-- ===== Konten utama ===== --}}
     <div class="content">
 
-      {{-- ===== Navbar atas ===== --}}
+      {{-- ===== Navbar ===== --}}
       @if (!in_array(Route::currentRouteName(), ['login', 'register']))
         <nav class="navbar navbar-expand-lg sticky-top">
           <div class="container-fluid d-flex justify-content-end">
-
             @auth
               <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-
-                  {{-- 🔹 FOTO PROFIL DI NAVBAR --}}
-                  @php
-                      $fotoFile = Auth::user()->foto ?? null;
-                      $fotoPath = 'images/profile/default.jpg'; // default
-
-                      if ($fotoFile && file_exists(public_path('foto_dosen/' . $fotoFile))) {
-                          $fotoPath = 'foto_dosen/' . $fotoFile;
-                      }
-                  @endphp
-
-                  <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold text-dark"
+                  {{-- 🔹 Nama pengguna di navbar --}}
+                  <a class="nav-link dropdown-toggle fw-semibold text-dark"
                      href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-
-                     <img src="{{ asset($fotoPath) }}"
-                          alt="Profile"
-                          class="rounded-circle me-2 border shadow-sm"
-                          width="38" height="38"
-                          style="object-fit: cover;">
+                    <i class="bi bi-person-circle me-2"></i> {{ Auth::user()->name }}
                   </a>
 
-                  {{-- 🔹 Dropdown menu: Lihat Profil & Logout --}}
+                  {{-- 🔹 Dropdown menu --}}
                   <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0" aria-labelledby="navbarDropdown">
-
-                    {{-- Tombol Lihat Profil --}}
                     <li>
                       <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
-                        <i class="bi bi-person-circle me-2"></i> Lihat Profil
+                        <i class="bi bi-person-lines-fill me-2"></i> Lihat Profil
                       </a>
                     </li>
-
                     <li><hr class="dropdown-divider"></li>
-
-                    {{-- Tombol Logout --}}
                     <li>
                       <form action="{{ route('logout') }}" method="POST" class="m-0">
                         @csrf
@@ -248,12 +224,12 @@
         </nav>
       @endif
 
-      {{-- ===== Area konten halaman ===== --}}
+      {{-- ===== Area konten ===== --}}
       <main>
         @yield('content')
       </main>
 
-      {{-- ===== Script JS Bootstrap & tambahan ===== --}}
+      {{-- ===== Script ===== --}}
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
