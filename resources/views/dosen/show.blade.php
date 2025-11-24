@@ -13,22 +13,6 @@
         {{-- Isi --}}
         <div class="card-body px-5 py-5" style="background-color: #fbfbff;">
             <div class="row align-items-center">
-                
-                {{-- Kolom kiri (foto + info dasar) --}}
-                <div class="col-md-4 text-center mb-4 mb-md-0">
-                    {{-- Foto Profil --}}
-                    @if(!empty($dosen->foto))
-                        <img src="{{ asset('foto_dosen/' . $dosen->foto) }}" 
-                             alt="Foto Dosen"
-                             class="rounded-circle shadow-sm border border-3 border-light"
-                             style="width: 160px; height: 160px; object-fit: cover;">
-                    @else
-                        <img src="{{ asset('images/default-user.png') }}" 
-                             alt="Default Foto"
-                             class="rounded-circle shadow-sm border border-3 border-light"
-                             style="width: 160px; height: 160px; object-fit: cover;">
-                    @endif
-
                     <h5 class="mt-3 fw-bold">{{ $dosen->nama }}</h5>
                     <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $dosen->email }}</p>
                 </div>
