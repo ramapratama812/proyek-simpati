@@ -28,11 +28,6 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-semibold">Perguruan Tinggi</label>
-                <input type="text" name="perguruan_tinggi" value="{{ old('perguruan_tinggi', $mahasiswa->perguruan_tinggi) }}" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label fw-semibold">NIM</label>
                 <input type="text" name="nim" value="{{ old('nim', $mahasiswa->nim) }}" class="form-control" required>
             </div>

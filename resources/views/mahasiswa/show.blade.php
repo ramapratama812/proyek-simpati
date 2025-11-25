@@ -21,9 +21,9 @@
                         <p class="text-dark fw-semibold mb-0">{{ $mahasiswa->nama ?? $user->name ?? '-' }}</p>
                     </div>
 
-                    <div class="mb-3">
+                   <div class="mb-3">
                         <p class="text-muted mb-1">Email</p>
-                        <p class="text-dark mb-0">{{ $user->email ?? '-' }}</p>
+                        <p class="text-dark mb-0">{{ $mahasiswa->email ?? '-' }}</p> 
                     </div>
 
                     <div class="mb-3">
