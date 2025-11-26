@@ -12,5 +12,10 @@ class RegistrationRequest extends Model
         'role',
         'status',
         'note',
+        'username',
+        'identity',
+        'password',
+        'google_id',
+
     ];
 }

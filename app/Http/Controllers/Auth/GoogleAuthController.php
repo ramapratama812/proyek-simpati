@@ -51,86 +51,63 @@ class GoogleAuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-        } catch (Exception $e) {
-            // Kalau gagal, balik ke halaman login dengan pesan error
-            return redirect()->route('login')
-                ->with('error', 'Gagal login dengan Google: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Gagal login dengan Google.');
         }
 
-        $email = strtolower($googleUser->getEmail());
-        $name  = $googleUser->getName() ?: $googleUser->getNickname();
+        $email = $googleUser->getEmail();
+        $name  = $googleUser->getName();
+        $googleId = $googleUser->getId();
 
-        // Ambil role yang sebelumnya tersimpan di session
-        $role = session('google_register_role', 'mahasiswa');
+        $user = User::where('email', $email)->first();
 
-        // Tentukan domain yang seharusnya
-        $expectedDomain = $role === 'dosen'
-            ? 'politala.ac.id'
-            : 'mhs.politala.ac.id';
-
-        $domain = Str::after($email, '@');
-
-        $allowTest = filter_var(env('GOOGLE_ALLOW_TEST', false), FILTER_VALIDATE_BOOL);
-        $testEmail = strtolower(env('GOOGLE_TEST_EMAIL', ''));
-
-        $isTestEmail = $allowTest && $email === $testEmail;
-
-        // Validasi domain: harus sesuai, kecuali email test
-        if ($domain !== $expectedDomain && ! $isTestEmail) {
-            return redirect()->route('login')
-                ->with('error', 'Alamat email tidak sesuai domain untuk role yang dipilih.');
-        }
-
-        // Cek apakah user sudah pernah ada (berdasarkan google_id atau email)
-        $user = User::where('google_id', $googleUser->getId())->first();
-
-        if (! $user) {
-            $user = User::where('email', $email)->first();
-        }
-
+        // Jika user sudah ada, langsung login
         if ($user) {
-            // Update google_id kalau belum diisi
-            if (! $user->google_id) {
-                $user->google_id = $googleUser->getId();
-            }
+            Auth::login($user);
 
-            // Optional: sync role kalau kosong
-            if (! $user->role) {
-                $user->role = $role;
-            }
-
-            // Kalau kolom username kosong, isi otomatis dari email
-            if (empty($user->username)) {
-                $user->username = Str::before($email, '@');
-            }
-
-            $user->save();
-        } else {
-            // Ambil username dari bagian sebelum '@' di email,
-            // misalnya: 240130155.muhammad.ramadhani1@mhs.politala.ac.id
-            // => username = '240130155.muhammad.ramadhani1'
-            $username = \Illuminate\Support\Str::before($email, '@');
-
-            // Buat user baru
-            $user = User::create([
-                'name'      => $name,
-                'username'  => $username, // <-- WAJIB diisi supaya DB gak error
-                'email'     => $email,
-                'password'  => bcrypt(Str::random(32)), // password random, user login pakai Google
-                'role'      => $role,
-                'google_id' => $googleUser->getId(),
-                'status'    => 'active', // atau 'pending' kalau mau disetujui admin dulu
-            ]);
+            return $this->redirectByRole($user);
         }
 
-        // Kalau pakai status approval di user, kamu bisa tambahkan pengecekan:
-        if ($user->status !== 'active') {
-            return redirect()->route('login')
-                ->with('error', 'Akun Anda belum aktif. Silakan menunggu persetujuan admin.');
+        // Jika belum ada, tentukan role otomatis berdasarkan domain
+        $domain = substr(strrchr($email, "@"), 1);
+        $role = null;
+
+        if ($domain === 'politala.ac.id') {
+            $role = 'dosen';
+        } elseif ($domain === 'mhs.politala.ac.id') {
+            $role = 'mahasiswa';
         }
 
-        Auth::login($user, true);
+        // Jika domain tidak dikenali, kembalikan ke login
+        if (!$role) {
+            return redirect()->route('login')->with('error', 'Gunakan email Politala untuk login.');
+        }
 
-        return redirect()->route('dashboard'); // sesuaikan nama route dashboard kamu
+        // Simpan data sementara di session untuk melengkapi registrasi
+        session([
+            'google_user' => [
+                'name' => $name,
+                'email' => $email,
+                'role' => $role,
+                'google_id' => $googleId,
+            ]
+        ]);
+
+        // Arahkan ke form pendaftaran tambahan
+        return redirect()->route('register.google.complete');
+    }
+
+    protected function redirectByRole(User $user)
+    {
+        switch ($user->role) {
+            case 'admin':
+                return redirect()->route('dashboard');
+            case 'dosen':
+                return redirect()->route('dashboard');
+            case 'mahasiswa':
+                return redirect()->route('dashboard');
+            default:
+                return redirect()->route('login');
+        }
     }
 }

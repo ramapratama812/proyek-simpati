@@ -6,6 +6,7 @@ use App\Http\Controllers\PublicationController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ResearchProjectController;
 use App\Http\Controllers\ProjectPublicationController;
+use App\Http\Controllers\Auth\GoogleRegisterController;
 use App\Http\Controllers\Auth\RegistrationRequestController;
 
 Route::get('/', function () {
@@ -56,12 +57,14 @@ Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
     ->name('google.callback');
 
-// Form permohonan pendaftaran (user umum)
-Route::get('/request-register', [RegistrationRequestController::class, 'create'])
-    ->name('request-register.create');
+// Lengkapi data pendaftaran Google (jika perlu)
+Route::get('/register/google/complete', [GoogleRegisterController::class, 'showCompleteForm'])
+    ->name('register.google.complete');
+Route::post('/register/google/complete', [GoogleRegisterController::class, 'storeComplete'])
+    ->name('register.google.store');
 
-Route::post('/request-register', [RegistrationRequestController::class, 'store'])
-    ->name('request-register.store');
+// Tombol login / daftar pakai Google, role dikirim lewat query ?role=dosen / ?role=mahasiswa
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 
 // Route untuk update status validasi pendaftaran (approve/reject)
 Route::middleware(['auth'])->group(function () {

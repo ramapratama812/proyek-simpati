@@ -84,9 +84,23 @@
     </button>
 
     <p class="mt-4 text-center text-secondary">
-      Sudah punya akun?
-      <a href="{{ route('login') }}" class="fw-semibold text-primary text-decoration-none">Masuk</a>
+        Sudah punya akun?
+        <a href="{{ route('login') }}" class="fw-semibold text-primary text-decoration-none">Masuk</a>
     </p>
+
+    <div class="d-flex align-items-center my-3">
+        <hr class="flex-grow-1">
+        <span class="px-2 text-muted">atau</span>
+        <hr class="flex-grow-1">
+    </div>
+
+    {{-- Google Auth --}}
+    <a href="{{ route('auth.google.redirect') }}"
+        class="btn w-100 py-2 fw-semibold d-flex align-items-center justify-content-center border"
+        style="background-color:rgb(231, 231, 231); border-radius:10px; border-color:#ddd;">
+       <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" width="22" class="me-2">
+       <span class="text-secondary">Daftar dengan Google</span>
+    </a>
   </form>
 </div>
 

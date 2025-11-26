@@ -16,54 +16,49 @@ use App\Mail\NewRegistrationRequestMail;
 class RegistrationRequestController extends Controller
 {
     /**
-     * Form permohonan pendaftaran.
-     */
-    public function create()
-    {
-        return view('auth.request-register');
-    }
-
-    /**
-     * Simpan permohonan dan kirim email ke Admin + User.
-     */
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'role'  => ['required', 'in:dosen,mahasiswa'],
-        ]);
-
-        $req = RegistrationRequest::create($data);
-
-        // Email ke admin
-        $adminEmails = $this->getAdminEmails();
-
-        if (!empty($adminEmails)) {
-            foreach ($adminEmails as $adminEmail) {
-                Mail::to($adminEmail)->send(new NewRegistrationRequestMail($req));
-            }
-        }
-
-
-        // Email ke user (konfirmasi permohonan diterima)
-        Mail::to($req->email)->send(new RegistrationReceivedMail($req));
-
-        return redirect()->route('login')
-            ->with('status', 'Permohonan pendaftaran berhasil dikirim. Silakan cek email Anda.');
-    }
-
-    /**
      * Daftar permohonan (halaman Admin).
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->ensureAdmin();
 
-        $requests = RegistrationRequest::orderByDesc('created_at')->paginate(20);
+        // ambil nilai filter dari query string
+        $status = $request->get('status', 'all');   // all | pending | approved | rejected
+        $sort   = $request->get('sort', 'latest');  // latest | oldest | name_asc | name_desc
 
-        return view('admin.registration_requests', compact('requests'));
+        $query = RegistrationRequest::query();
+
+        // filter status (kecuali "all")
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('status', $status);
+        }
+
+        // urutkan
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
+
+        return view('admin.registration_requests', [
+            'requests' => $requests,
+            'status'   => $status,
+            'sort'     => $sort,
+        ]);
     }
+
 
     /**
      * Admin menyetujui permohonan → buat akun User + kirim email.
@@ -90,13 +85,20 @@ class RegistrationRequestController extends Controller
 
         // Tandai request sebagai approved
         $registrationRequest->status = 'approved';
-        $registrationRequest->note   = 'Disetujui oleh ' . auth()->user()->name;
+
+        // Tambahin note opsional dari admin
+        $validatedData = request()->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $registrationRequest->note = $validatedData['note'] ?? null;
+
+        // Simpan perubahan
         $registrationRequest->save();
 
         // Email ke user bahwa akun sudah aktif
         Mail::to($user->email)->send(new AccountApprovedMail($user));
 
-        return back()->with('ok', 'Permohonan disetujui dan akun pengguna telah dibuat / diaktifkan.');
+        return back()->with('ok', 'Permohonan disetujui dan akun pengguna telah dibuat/diaktifkan.');
     }
 
     /**
@@ -119,7 +121,14 @@ class RegistrationRequestController extends Controller
         ]);
 
         $registrationRequest->status = 'rejected';
-        $registrationRequest->note   = $data['note'] ?? 'Permohonan ditolak.';
+
+        // Tambahin note opsional dari admin
+        $validatedData = request()->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $registrationRequest->note = $validatedData['note'] ?? null;
+
+        // Simpan perubahan
         $registrationRequest->save();
 
         // Kirim email ke pemohon bahwa permohonan ditolak
