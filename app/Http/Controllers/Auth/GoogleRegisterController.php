@@ -60,6 +60,6 @@ class GoogleRegisterController extends Controller
 
         session()->forget('google_user');
 
-        return redirect()->route('login')->with('ok', 'Permohonan pendaftaran akun telah dikirim ke admin.');
+        return redirect()->route('login')->with('status', 'Permohonan pendaftaran akun telah dikirim ke admin.');
     }
 }

@@ -1,21 +1,18 @@
-{{-- Layout baru pakai navigasi sidebar plus styling CSS --}}
-
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SIMPATI</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" >
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.css" rel="stylesheet">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -26,13 +23,13 @@
 
     .wrapper {
       display: flex;
-      height: 100vh;
+      min-height: 100vh;
     }
 
     /* ===== Sidebar ===== */
     .sidebar {
       width: 270px;
-      background-color: #001F4D; /* 🔹 Biru tua solid */
+      background-color: #001F4D;
       padding: 35px 24px;
       color: #fff;
       display: flex;
@@ -78,7 +75,6 @@
       transition: all 0.25s ease;
     }
 
-    /* Neon bar kiri menu aktif */
     .sidebar a.active::before {
       content: "";
       position: absolute;
@@ -126,12 +122,10 @@
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .required-asterisk {
-        color: red;
-    }
+    .required-asterisk { color: red; }
 
     /* ===== Responsif ===== */
     @media (max-width: 992px) {
@@ -144,9 +138,7 @@
         box-shadow: none;
       }
 
-      .sidebar .logo {
-        display: none;
-      }
+      .sidebar .logo { display: none; }
 
       .sidebar a {
         flex-direction: column;
@@ -160,7 +152,7 @@
 
 <body>
   <div class="wrapper">
-    <!-- Sidebar -->
+    {{-- Sidebar tidak muncul di halaman login & register --}}
     @if (!in_array(Route::currentRouteName(), ['login', 'register']))
       <div class="sidebar">
         <div class="logo">
@@ -169,71 +161,125 @@
         </div>
 
         @auth
+          @php $role = strtolower(auth()->user()->role ?? ''); @endphp
 
-            {{-- Bagi admin: kelola validasi kegiatan --}}
-            @php
-                $role = strtolower(auth()->user()->role ?? '');
-            @endphp
+          {{-- Admin: Validasi Kegiatan --}}
+          @if($role === 'admin')
+            <a href="{{ route('projects.validation.index') }}"
+               class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
+              <i class="bi bi-check2-square"></i>
+              <span>Validasi Kegiatan</span>
+            </a>
+          @endif
 
-            @if($role === 'admin')
-                <li class="nav-item">
-                    <a href="{{ route('projects.validation.index') }}" class="nav-link">
-                        <i class="bi bi-check2-square"></i>
-                        <span>Validasi Kegiatan</span>
-                    </a>
-                </li>
-            @endif
+          {{-- Admin: Kelola Permohonan Akun --}}
+          @if($role === 'admin')
+            <a href="{{ route('admin.registration-requests.index') }}"
+               class="{{ request()->routeIs('admin.registration-requests.*') ? 'active' : '' }}">
+              <i class="bi bi-person-check"></i>
+              <span>Kelola Permohonan Akun</span>
+            </a>
+          @endif
 
-            {{-- Bagi admin: kelola permohonan approval akun pengguna --}}
-            @php
-                $role = strtolower(auth()->user()->role ?? '');
-            @endphp
+          <a href="{{ route('dashboard') }}"
+             class="{{ request()->is('dashboard') ? 'active' : '' }}">
+            <i class="bi bi-house-door-fill"></i> Dasbor Utama
+          </a>
 
-            @if($role === 'admin')
-                <li class="nav-item">
-                    <a href="{{ route('admin.registration-requests.index') }}"
-                    class="nav-link {{ request()->routeIs('admin.registration-requests.*') ? 'active' : '' }}">
-                        {{-- ikon bebas: pakai bootstrap icons kalau ada --}}
-                        <span class="nav-icon"><i class="bi bi-person-check"></i></span>
-                        <span class="nav-text">Kelola Permohonan Akun</span>
-                    </a>
-                </li>
-            @endif
+          <a href="{{ route('projects.index') }}"
+             class="{{ request()->is('projects*') ? 'active' : '' }}">
+            <i class="bi bi-list-task"></i> Kegiatan
+          </a>
 
-            <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                <i class="bi bi-house-door-fill"></i> Dasbor Utama
-            </a>
-            <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
-                <i class="bi bi-list-task"></i> Kegiatan
-            </a>
-            <a href="{{ route('publications.index') }}" class="{{ request()->is('publications*') ? 'active' : '' }}">
-                <i class="bi bi-journal-text"></i> Publikasi
-            </a>
-            <a href="{{ route('dosen.index') }}" class="{{ request()->is('dosen*') ? 'active' : '' }}">
-                <i class="bi bi-person-lines-fill"></i> Dosen
-            </a>
-            <a href="{{ route('mahasiswa.index') }}" class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
-                <i class="bi bi-people-fill"></i> Mahasiswa
-            </a>
+          <a href="{{ route('publications.index') }}"
+             class="{{ request()->is('publications*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i> Publikasi
+          </a>
+
+          <a href="{{ route('dosen.index') }}"
+             class="{{ request()->is('dosen*') ? 'active' : '' }}">
+            <i class="bi bi-person-lines-fill"></i> Dosen
+          </a>
+
+          <a href="{{ route('mahasiswa.index') }}"
+             class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
+            <i class="bi bi-people-fill"></i> Mahasiswa
+          </a>
         @endauth
       </div>
     @endif
 
-    <!-- Konten Utama -->
+    {{-- Konten utama --}}
     <div class="content">
+      {{-- Navbar atas (kecuali login & register) --}}
       @if (!in_array(Route::currentRouteName(), ['login', 'register']))
         <nav class="navbar navbar-expand-lg sticky-top">
           <div class="container-fluid d-flex justify-content-end">
             @auth
-              <ul class="navbar-nav">
+              @php
+                  // Kalau controller tidak mengirim $notifications, pakai array kosong
+                  $notifItems = $notifications ?? [];
+              @endphp
+
+              <ul class="navbar-nav align-items-center">
+                {{-- Lonceng notifikasi --}}
+                <li class="nav-item dropdown me-3">
+                  <a class="nav-link position-relative"
+                     href="#"
+                     id="notifDropdown"
+                     role="button"
+                     data-bs-toggle="dropdown"
+                     aria-expanded="false">
+                    <i class="bi bi-bell fs-5"></i>
+                    @if(count($notifItems))
+                      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ count($notifItems) }}
+                      </span>
+                    @endif
+                  </a>
+
+                  <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0"
+                       aria-labelledby="notifDropdown"
+                       style="min-width: 360px; max-height: 420px; overflow-y: auto;">
+                    <div class="px-3 py-2 border-bottom">
+                      <strong>Notifikasi Terbaru</strong>
+                    </div>
+
+                    @if(count($notifItems))
+                      @foreach($notifItems as $item)
+                        <div class="dropdown-item small">
+                          <div class="fw-semibold mb-1" style="white-space: normal;">
+                            {{ $item['message'] ?? $item->message ?? '-' }}
+                          </div>
+                          <div class="text-muted" style="font-size: 0.75rem;">
+                            {{ $item['time'] ?? (($item->created_at ?? null) ? $item->created_at->format('d M Y H:i') : '') }}
+                          </div>
+                        </div>
+                        <div class="dropdown-divider m-0"></div>
+                      @endforeach
+                    @else
+                      <div class="px-3 py-3 small text-muted">
+                        Tidak ada notifikasi.
+                      </div>
+                    @endif
+                  </div>
+                </li>
+
+                {{-- Dropdown profil --}}
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" id="navbarDropdown"
-                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="nav-link dropdown-toggle fw-semibold text-dark"
+                     href="#"
+                     id="profileDropdown"
+                     role="button"
+                     data-bs-toggle="dropdown"
+                     aria-expanded="false">
                     {{ Auth::user()->name }}
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0" aria-labelledby="navbarDropdown">
+                  <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
+                      aria-labelledby="profileDropdown">
                     <li>
-                      <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
+                      <a class="dropdown-item d-flex align-items-center"
+                         href="{{ route('profile.show') }}">
                         <i class="bi bi-person-circle me-2"></i> Lihat Profil
                       </a>
                     </li>
@@ -241,7 +287,8 @@
                     <li>
                       <form action="{{ route('logout') }}" method="POST" class="m-0">
                         @csrf
-                        <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                        <button type="submit"
+                                class="dropdown-item d-flex align-items-center text-danger">
                           <i class="bi bi-box-arrow-right me-2"></i> Keluar
                         </button>
                       </form>
@@ -255,16 +302,24 @@
       @endif
 
       <main>
+        {{-- Flash message global (misal untuk status setelah redirect) --}}
+        @if (session('status'))
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    {!! session('status') !!}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
         @yield('content')
       </main>
 
-      {{-- Buat masukin script --}}
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-      @stack('scripts')
-
-      @yield('scripts')
       <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
+      @stack('scripts')
+      @yield('scripts')
     </div>
   </div>
 </body>

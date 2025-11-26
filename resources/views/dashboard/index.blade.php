@@ -109,7 +109,7 @@
   @endif
 
   <div class="row mb-3">
-    <div class="col-md-8">
+    <div class="col-md-12">
       <div class="card">
         <div class="card-header">Kegiatan Yang Saya Ikuti Sebagai Anggota</div>
         <div class="card-body">
@@ -126,30 +126,6 @@
                     </div>
                   </div>
                   @include('projects._validation_badge', ['project' => $p])
-                </li>
-              @endforeach
-            </ul>
-          @endif
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Notifikasi Terbaru</span>
-        </div>
-        <div class="card-body">
-          @if($notifications->isEmpty())
-            <p class="text-muted mb-0">Tidak ada notifikasi.</p>
-          @else
-            <ul class="list-group list-group-flush">
-              @foreach($notifications as $notif)
-                <li class="list-group-item px-0">
-                  <div class="small">{{ $notif->message }}</div>
-                  <div class="text-muted small">
-                    {{ $notif->created_at?->format('d M Y H:i') }}
-                  </div>
                 </li>
               @endforeach
             </ul>

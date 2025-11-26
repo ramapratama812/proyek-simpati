@@ -36,18 +36,37 @@
 
     {{-- Password --}}
     <div class="row">
-      <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold">Password</label>
-        <input type="password" name="password" class="form-control rounded-3 shadow-sm border-0"
-               style="background-color:#f4f7fc;" required>
-        @error('password')<small class="text-danger">{{ $message }}</small>@enderror
-      </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <div class="position-relative">
+                <input type="password" name="password" id="passwordInput"
+                    class="form-control rounded-3 shadow-sm border-0"
+                    style="background-color:#f4f7fc;" required>
 
-      <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold">Konfirmasi Password</label>
-        <input type="password" name="password_confirmation" class="form-control rounded-3 shadow-sm border-0"
-               style="background-color:#f4f7fc;" required>
-      </div>
+                @error('password')<small class="text-danger">{{ $message }}</small>@enderror
+
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                    style="cursor:pointer;" onclick="toggleVisibility('passwordInput', 'passwordIcon')">
+                    <i class="bi bi-eye-slash text-secondary" id="passwordIcon" style="font-size:1.2rem;"></i>
+                </span>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">Konfirmasi Password</label>
+            <div class="position-relative">
+                <input type="password" name="password_confirmation" id="confirmInput"
+                    class="form-control rounded-3 shadow-sm border-0"
+                    style="background-color:#f4f7fc;" required>
+
+                @error('password_confirmation')<small class="text-danger">{{ $message }}</small>@enderror
+
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                    style="cursor:pointer;" onclick="toggleVisibility('confirmInput', 'confirmIcon')">
+                    <i class="bi bi-eye-slash text-secondary" id="confirmIcon" style="font-size:1.2rem;"></i>
+                </span>
+            </div>
+        </div>
     </div>
 
     {{-- Role --}}
@@ -80,7 +99,7 @@
     {{-- Tombol --}}
     <button class="btn w-100 py-2 fw-semibold text-white"
             style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">
-      Daftar
+      Ajukan Pendaftaran
     </button>
 
     <p class="mt-4 text-center text-secondary">
@@ -120,5 +139,21 @@ document.getElementById('roleSelect').addEventListener('change', function() {
     nidnField.classList.remove('d-none');
   }
 });
+
+// Fungsi tunggal untuk menangani toggle password
+function toggleVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    } else {
+        input.type = "password";
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    }
+}
 </script>
 @endsection

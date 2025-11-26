@@ -39,20 +39,27 @@ class User extends Authenticatable
     protected $hidden = ['password','remember_token'];
 
     // Relasi ke profil dosen
-    public function lecturerProfile()
-    {
-        return $this->hasOne(LecturerProfile::class);
-    }
+    // public function lecturerProfile()
+    // {
+    //     return $this->hasOne(LecturerProfile::class);
+    // }
 
-    // Relasi ke profil mahasiswa
-    public function studentProfile()
-    {
-        return $this->hasOne(StudentProfile::class);
-    }
+    // // Relasi ke profil mahasiswa
+    // public function studentProfile()
+    // {
+    //     return $this->hasOne(StudentProfile::class);
+    // }
 
     // Relasi ke proyek penelitian yang diketuai
     public function projectsLed()
     {
         return $this->hasMany(ResearchProject::class,'ketua_id');
     }
+
+    // Relasi ke notifikasi pengguna
+    public function userNotifications()
+    {
+        return $this->hasMany(UserNotification::class, 'user_id');
+}
+
 }
