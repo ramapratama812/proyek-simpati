@@ -32,6 +32,8 @@ class User extends Authenticatable
         'scholar_id',
         'orcid_id',
         'foto',
+        'google_id',
+        'status',
     ];
 
     protected $hidden = ['password','remember_token'];

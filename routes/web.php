@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicationController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ResearchProjectController;
 use App\Http\Controllers\ProjectPublicationController;
+use App\Http\Controllers\Auth\RegistrationRequestController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,5 +45,41 @@ Route::middleware('auth')->group(function () {
     Route::delete('/publications/{publication}', [PublicationController::class, 'destroy'])->name('publications.destroy');
 });
 
-// show bisa publik (atau auth), sesuaikan
+// show publikasi
 Route::get('/publications/{publication}', [PublicationController::class, 'show'])->name('publications.show');
+
+// Tombol login / daftar pakai Google, role dikirim lewat query ?role=dosen / ?role=mahasiswa
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
+    ->name('google.redirect');
+
+// Callback dari Google
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->name('google.callback');
+
+// Form permohonan pendaftaran (user umum)
+Route::get('/request-register', [RegistrationRequestController::class, 'create'])
+    ->name('request-register.create');
+
+Route::post('/request-register', [RegistrationRequestController::class, 'store'])
+    ->name('request-register.store');
+
+// Route untuk update status validasi pendaftaran (approve/reject)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/registration-requests', [RegistrationRequestController::class, 'index'])
+        ->name('admin.registration-requests.index');
+
+    Route::post('/admin/registration-requests/{registrationRequest}/approve',
+        [RegistrationRequestController::class, 'approve']
+    )->name('admin.registration-requests.approve');
+
+    Route::post('/admin/registration-requests/{registrationRequest}/reject',
+        [RegistrationRequestController::class, 'reject']
+    )->name('admin.registration-requests.reject');
+});
+
+// Route untuk update status validasi publikasi (belum dipakai)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/admin/publications/{publication}/status',
+        [PublicationController::class, 'updateStatus']
+    )->name('admin.publications.update-status');
+});

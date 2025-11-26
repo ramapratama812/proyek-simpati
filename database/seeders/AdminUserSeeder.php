@@ -10,11 +10,11 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!User::where('email','admin@simpati.local')->exists()) {
+        if (!User::where('email','ramapratama812@gmail.com')->exists()) {
             User::create([
-                'name'=>'Administrator',
-                'username'=>'admin',
-                'email'=>'admin@simpati.local',
+                'name'=>'Administrator No 2',
+                'username'=>'adminKedua',
+                'email'=>'ramapratama812@gmail.com',
                 'password'=>Hash::make('password'),
                 'role'=>'admin',
             ]);

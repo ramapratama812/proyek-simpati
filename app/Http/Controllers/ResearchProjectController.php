@@ -9,6 +9,9 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Models\Publication;
 use Illuminate\Support\Facades\Schema;
+use App\Mail\ResearchProjectSubmittedMail;
+use App\Mail\ResearchProjectStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
 
 class ResearchProjectController extends Controller
 {
@@ -185,7 +188,6 @@ class ResearchProjectController extends Controller
                 'keywords'          => $data['keywords'] ?? null,
                 'tautan'            => $data['tautan'] ?? null,
                 'created_by'        => auth()->id(),
-
                 'validation_status' => 'draft',   // BARU
             ]);
 
@@ -206,6 +208,13 @@ class ResearchProjectController extends Controller
                     $path = $file->store('projects','public');
                     $project->images()->create(['path'=>$path]);
                 }
+            }
+
+            // kirim email notifikasi ke admin
+            $adminEmails = User::where('role', 'admin')->pluck('email')->all();
+
+            if (!empty($adminEmails)) {
+                Mail::to($adminEmails)->send(new ResearchProjectSubmittedMail($project));
             }
 
             return redirect()->route('projects.show',$project)->with('ok','Kegiatan berhasil disimpan.');
@@ -382,7 +391,7 @@ class ResearchProjectController extends Controller
         $project->validated_at      = null;
         $project->save();
 
-        // kirim notifikasi ke semua admin
+        // === Notifikasi internal ke admin (sudah ada) ===
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             UserNotification::create([
@@ -393,7 +402,14 @@ class ResearchProjectController extends Controller
             ]);
         }
 
-        return back()->with('ok', 'Kegiatan berhasil diajukan untuk validasi admin.');
+        // === Tambahan: kirim EMAIL ke semua admin ===
+        $adminEmails = $admins->pluck('email')->filter()->unique()->all();
+
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new ResearchProjectSubmittedMail($project));
+        }
+
+        return back()->with('ok', 'Kegiatan berhasil diajukan untuk validasi.');
     }
 
     public function destroy(ResearchProject $project)
@@ -450,13 +466,30 @@ class ResearchProjectController extends Controller
 
         $userIds = array_unique(array_filter($userIds));
 
+        // Kumpulkan email dosen yang akan dikirimi email
+        $emails = [];
+
         foreach ($userIds as $uid) {
+            // notifikasi internal (sudah ada)
             UserNotification::create([
                 'user_id'    => $uid,
                 'project_id' => $project->id,
                 'type'       => $type,
                 'message'    => $message,
             ]);
+
+            // ambil email user untuk email notifikasi
+            $user = User::find($uid);
+            if ($user && $user->email) {
+                $emails[] = $user->email;
+            }
+        }
+
+        $emails = array_unique($emails);
+
+        // Kirim email status kegiatan kalau ada email yang valid
+        if (!empty($emails)) {
+            Mail::to($emails)->send(new ResearchProjectStatusChangedMail($project));
         }
     }
 

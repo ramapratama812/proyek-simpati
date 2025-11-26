@@ -6,7 +6,10 @@ use App\Models\Publication;
 use Illuminate\Http\Request;
 use App\Models\ResearchProject;
 use Illuminate\Support\Facades\Schema;
-
+use App\Mail\PublicationCreatedMail;
+use App\Mail\PublicationStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 
 class PublicationController extends Controller
 {
@@ -104,14 +107,26 @@ class PublicationController extends Controller
         $pid = $validated['project_id'] ?? null;
         if ($pid) {
             $project = ResearchProject::findOrFail($pid);
-            $this->authorizeAttachToProject($project);   // <-- method baru di bawah
+            $this->authorizeAttachToProject($project);   // <-- method kamu sendiri
         }
 
+        // === simpan publikasi ===
         $pub = Publication::create($validated);
 
+        // attach ke project jika ada
         if ($pid) {
-            // attach aman (id valid + user berhak)
             $pub->projects()->syncWithoutDetaching([$pid]);
+        }
+
+        // kirim email notifikasi ke admin
+        $adminEmails = User::where('role', 'admin')
+            ->pluck('email')
+            ->filter()
+            ->unique()
+            ->all();
+
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new PublicationCreatedMail($pub));
         }
 
         return redirect()
@@ -247,6 +262,37 @@ class PublicationController extends Controller
             'filterTahun'   => $tahun,
             'tahunOptions'  => $tahunOptions,
         ]);
+    }
+
+    // method cadangan untuk update status publikasi (belum dipakai)
+    public function updateStatus(Request $request, Publication $publication)
+    {
+        // batasi ke admin saja
+        $user = auth()->user();
+        abort_unless(strtolower($user->role ?? '') === 'admin', 403);
+
+        $data = $request->validate([
+            'status'          => 'required|string|max:100',
+            'validation_note' => 'nullable|string',
+        ]);
+
+        if (Schema::hasColumn('publications', 'status')) {
+            $publication->status = $data['status'];
+        }
+
+        if (Schema::hasColumn('publications', 'validation_note')) {
+            $publication->validation_note = $data['validation_note'] ?? null;
+        }
+
+        $publication->save();
+
+        // kirim email ke pemilik publikasi
+        if (method_exists($publication, 'owner') && $publication->owner && $publication->owner->email) {
+            Mail::to($publication->owner->email)
+                ->send(new PublicationStatusChangedMail($publication));
+        }
+
+        return back()->with('ok', 'Status publikasi berhasil diperbarui.');
     }
 
 }

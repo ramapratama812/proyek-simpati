@@ -51,6 +51,16 @@
       Belum punya akun?
       <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-none">Daftar</a>
     </p>
+
+    {{-- Login sebagai Dosen dengan akun Google --}}
+    <a href="{{ route('google.redirect', ['role' => 'dosen']) }}" class="btn btn-outline-danger w-100 mb-2">
+        Login / Daftar Dosen dengan Google (@politala.ac.id)
+    </a>
+
+    {{-- Login sebagai Mahasiswa dengan akun Google --}}
+    <a href="{{ route('google.redirect', ['role' => 'mahasiswa']) }}" class="btn btn-outline-danger w-100">
+        Login / Daftar Mahasiswa dengan Google (@mhs.politala.ac.id)
+    </a>
   </form>
 </div>
 

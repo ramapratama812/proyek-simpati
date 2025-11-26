@@ -170,6 +170,7 @@
 
         @auth
 
+            {{-- Bagi admin: kelola validasi kegiatan --}}
             @php
                 $role = strtolower(auth()->user()->role ?? '');
             @endphp
@@ -179,6 +180,22 @@
                     <a href="{{ route('projects.validation.index') }}" class="nav-link">
                         <i class="bi bi-check2-square"></i>
                         <span>Validasi Kegiatan</span>
+                    </a>
+                </li>
+            @endif
+
+            {{-- Bagi admin: kelola permohonan approval akun pengguna --}}
+            @php
+                $role = strtolower(auth()->user()->role ?? '');
+            @endphp
+
+            @if($role === 'admin')
+                <li class="nav-item">
+                    <a href="{{ route('admin.registration-requests.index') }}"
+                    class="nav-link {{ request()->routeIs('admin.registration-requests.*') ? 'active' : '' }}">
+                        {{-- ikon bebas: pakai bootstrap icons kalau ada --}}
+                        <span class="nav-icon"><i class="bi bi-person-check"></i></span>
+                        <span class="nav-text">Kelola Permohonan Akun</span>
                     </a>
                 </li>
             @endif
