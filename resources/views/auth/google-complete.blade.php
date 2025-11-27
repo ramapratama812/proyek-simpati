@@ -73,5 +73,6 @@ function toggleVisibility(inputId, iconId) {
         icon.classList.add('bi-eye-slash');
     }
 }
+
 </script>
 @endsection

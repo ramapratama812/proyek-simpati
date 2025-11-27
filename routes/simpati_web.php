@@ -88,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/kegiatan/validasi/{project}/reject', [ResearchProjectController::class, 'rejectValidation'])
             ->name('reject');
     });
-
+    
     // ==================================================
     // 🔹 Publikasi
     // ==================================================
