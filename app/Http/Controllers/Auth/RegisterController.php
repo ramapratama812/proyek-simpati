@@ -52,10 +52,10 @@ class RegisterController extends Controller
             'nim'                   => [
                 'nullable', 'string', 'max:20', 'required_if:role,mahasiswa'
             ],
-        ], [
-            'nidn.required_if'      => 'NIDN/NIP wajib diisi untuk dosen.',
-            'nim.required_if'       => 'NIM wajib diisi untuk mahasiswa.',
-        ]);
+            ], [
+                'nidn.required_if'      => 'NIDN/NIP wajib diisi untuk dosen.',
+                'nim.required_if'       => 'NIM wajib diisi untuk mahasiswa.',
+            ]);
 
         // 🔹 Satukan NIM / NIDN ke satu field "identity"
         $identity = $validated['role'] === 'mahasiswa'

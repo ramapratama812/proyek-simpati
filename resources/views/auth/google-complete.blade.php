@@ -60,7 +60,7 @@
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 35px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08); 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
             font-size: 0.95rem;
             line-height: 1.6;
         }
@@ -134,7 +134,7 @@
         Role: {{ ucfirst($google['role'] ?? 'Tidak diketahui') }}
     </div>
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('register.google.store') }}">
         @csrf
 
         <div class="mb-3">
@@ -171,7 +171,7 @@
             <input type="text" name="identity" class="form-control" placeholder="Masukkan {{ $label }}" required>
         </div>
 
-        <button class="btn-submit" type="submit">Daftar</button>
+        <button class="btn-submit" type="submit">Kirim Permohonan</button>
 
     </form>
 

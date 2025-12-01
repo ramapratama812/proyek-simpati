@@ -18,131 +18,95 @@ use App\Http\Controllers\DosenPrestasiController;
 | AUTH (Login & Register)
 |--------------------------------------------------------------------------
 */
+// Login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// Register
 Route::get('/register', [RegisterController::class, 'show'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
 
-
 /*
 |--------------------------------------------------------------------------
-| ROUTES SETELAH LOGIN
+| ROUTES SETELAH LOGIN (PROTECTED)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard
+    // ==================================================
+    // 🔹 Dashboard
+    // ==================================================
     Route::get('/', fn() => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Dosen Prestasi
-    |--------------------------------------------------------------------------
-    */
+    // ==================================================
+    // 🔹 Manajemen Pengguna (Dosen & Mahasiswa)
+    // ==================================================
+
+    // --- Dosen ---
+    Route::resource('dosen', DosenController::class);
     Route::resource('dosen-prestasi', DosenPrestasiController::class);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Dosen (CRUD)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/dosen', [DosenController::class, 'index'])->name('dosen.index');
-    Route::get('/dosen/{dosen}', [DosenController::class, 'show'])->name('dosen.show');
-    Route::get('/dosen/{dosen}/edit', [DosenController::class, 'edit'])->name('dosen.edit');
-    Route::put('/dosen/{dosen}', [DosenController::class, 'update'])->name('dosen.update');
-    Route::delete('/dosen/{dosen}', [DosenController::class, 'destroy'])->name('dosen.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Mahasiswa (CRUD)
-    |--------------------------------------------------------------------------
-    */
+    // --- Mahasiswa ---
+    // Note: Route custom harus diletakkan SEBELUM Route::resource agar tidak tertimpa oleh {id}
     Route::get('/mahasiswa/search', [MahasiswaController::class, 'search'])->name('mahasiswa.search');
+    // Jika 'detail' hanya alias untuk 'show', sebenarnya resource sudah menghandle ini via mahasiswa/{id}
     Route::get('/mahasiswa/detail/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.detail');
+    Route::resource('mahasiswa', MahasiswaController::class);
 
-    // resource tanpa index agar tidak duplikasi
-    Route::resource('mahasiswa', MahasiswaController::class)->except(['index']);
+    // ==================================================
+    // 🔹 Kegiatan & Publikasi (Dosen)
+    // ==================================================
 
-    // Index mahasiswa (pisah untuk menghindari konflik)
-    Route::get('/mahasiswa', [MahasiswaController::class, 'index'])->name('mahasiswa.index');
+    // Halaman "Milik Saya"
+    Route::get('/kegiatan/kelola', [ResearchProjectController::class, 'myProjects'])->name('projects.my');
+    Route::get('/publikasi/kelola', [PublicationController::class, 'myPublications'])->name('publications.my');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Research Projects (Penelitian & Pengabdian)
-    |--------------------------------------------------------------------------
-    */
+    // CRUD Utama
     Route::resource('projects', ResearchProjectController::class);
-
-    // Ajukan validasi kegiatan oleh pembuat
-    Route::post('/projects/{project}/ajukan-validasi',
-        [ResearchProjectController::class, 'submitValidation']
-    )->name('projects.submitValidation');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validasi Kegiatan (Admin)
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('admin')
-        ->name('projects.validation.')
-        ->group(function () {
-
-        Route::get('/kegiatan/validasi',
-            [ResearchProjectController::class, 'validationIndex']
-        )->name('index');
-
-        Route::get('/kegiatan/validasi/{project}',
-            [ResearchProjectController::class, 'validationShow']
-        )->name('show');
-
-        Route::post('/kegiatan/validasi/{project}/approve',
-            [ResearchProjectController::class, 'approveValidation']
-        )->name('approve');
-
-        Route::post('/kegiatan/validasi/{project}/revision',
-            [ResearchProjectController::class, 'requestRevision']
-        )->name('revision');
-
-        Route::post('/kegiatan/validasi/{project}/reject',
-            [ResearchProjectController::class, 'rejectValidation']
-        )->name('reject');
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Publikasi
-    |--------------------------------------------------------------------------
-    */
     Route::resource('publications', PublicationController::class);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Import Publikasi (CrossRef, BibTeX)
-    |--------------------------------------------------------------------------
-    */
+    // Validasi Kegiatan (Diajukan oleh Dosen)
+    Route::post('/projects/{project}/ajukan-validasi', [ResearchProjectController::class, 'submitValidation'])
+        ->name('projects.submitValidation');
+
+    // ==================================================
+    // 🔹 Validasi Kegiatan (Area Admin/Kaprodi)
+    // ==================================================
+    Route::prefix('admin')
+        ->name('projects.validation.')
+        ->controller(ResearchProjectController::class)
+        ->group(function () {
+            Route::get('/kegiatan/validasi', 'validationIndex')->name('index');
+            Route::get('/kegiatan/validasi/{project}', 'validationShow')->name('show');
+            Route::post('/kegiatan/validasi/{project}/approve', 'approveValidation')->name('approve');
+            Route::post('/kegiatan/validasi/{project}/revision', 'requestRevision')->name('revision');
+            Route::post('/kegiatan/validasi/{project}/reject', 'rejectValidation')->name('reject');
+        });
+
+    // ==================================================
+    // 🔹 Tools & Utilities
+    // ==================================================
+
+    // Import Data
     Route::post('/import/crossref', [ImportController::class, 'crossrefByDoi'])->name('import.crossref');
     Route::post('/import/bibtex', [ImportController::class, 'bibtexUpload'])->name('import.bibtex');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Sinkronisasi PDDIKTI
-    |--------------------------------------------------------------------------
-    */
+    // Sinkronisasi PDDIKTI
     Route::post('/sync/pddikti/dosen', [PddiktiController::class, 'syncDosen'])->name('sync.pddikti.dosen');
     Route::post('/sync/pddikti/mahasiswa', [PddiktiController::class, 'syncMhs'])->name('sync.pddikti.mhs');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Profil Pengguna
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
-        Route::get('/', 'show')->name('show');
-        Route::get('/edit', 'edit')->name('edit');
-        Route::put('/', 'update')->name('update');
-        Route::delete('/', 'destroy')->name('destroy');
-    });
+    // ==================================================
+    // 🔹 Profil Pengguna
+    // ==================================================
+    Route::prefix('profile')
+        ->name('profile.')
+        ->controller(ProfileController::class)
+        ->group(function () {
+            Route::get('/', 'show')->name('show');       // Lihat profil
+            Route::get('/edit', 'edit')->name('edit');   // Edit profil
+            Route::put('/', 'update')->name('update');   // Simpan perubahan
+            Route::delete('/', 'destroy')->name('destroy'); // Hapus akun
+        });
 });
