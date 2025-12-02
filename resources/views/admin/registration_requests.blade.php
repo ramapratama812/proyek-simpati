@@ -4,9 +4,6 @@
 <div class="container">
     <h4 class="mb-3">Permohonan Pendaftaran Akun</h4>
 
-    @if(session('ok'))    <div class="alert alert-success">{{ session('ok') }}</div> @endif
-    @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
-
     {{-- Filter --}}
     <form method="GET"
           action="{{ route('admin.registration-requests.index') }}"

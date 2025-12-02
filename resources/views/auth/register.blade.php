@@ -82,14 +82,14 @@
     </div>
 
     {{-- NIM / NIDN --}}
-    <div class="mb-3 d-none" id="nimField">
+    <div class="mb-3 {{ old('role') === 'mahasiswa' ? '' : 'd-none' }}" id="nimField">
       <label class="form-label fw-semibold">NIM</label>
       <input name="nim" class="form-control rounded-3 shadow-sm border-0"
              style="background-color:#f4f7fc;" value="{{ old('nim') }}">
       @error('nim')<small class="text-danger">{{ $message }}</small>@enderror
     </div>
 
-    <div class="mb-3 d-none" id="nidnField">
+    <div class="mb-3 {{ old('role') === 'dosen' ? '' : 'd-none' }}" id="nidnField">
       <label class="form-label fw-semibold">NIDN/NIP</label>
       <input name="nidn" class="form-control rounded-3 shadow-sm border-0"
              style="background-color:#f4f7fc;" value="{{ old('nidn') }}">

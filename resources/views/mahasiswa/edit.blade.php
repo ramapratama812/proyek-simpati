@@ -12,6 +12,16 @@
             @csrf
             @method('PUT')
 
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="row g-4">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Nama Lengkap</label>
@@ -39,8 +49,14 @@
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">NIM</label>
-                    <input type="text" name="nim" class="form-control rounded-pill shadow-sm border-0"
-                           value="{{ old('nim', $mahasiswa->nim) }}" required>
+                    <input type="text"
+                           name="nim"
+                           class="form-control rounded-pill shadow-sm border-0 @error('nim') is-invalid @enderror"
+                           value="{{ old('nim', $mahasiswa->nim) }}"
+                           required>
+                    @error('nim')
+                        <small class="text-danger d-block mt-1">{{ $message }}</small>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
@@ -52,18 +68,20 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Jenis Kelamin</label>
                     <select name="jenis_kelamin" class="form-select rounded-pill shadow-sm border-0" required>
-                        <option value="Perempuan" {{ $mahasiswa->jenis_kelamin == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                        <option value="Laki-laki" {{ $mahasiswa->jenis_kelamin == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                        @php $jk = old('jenis_kelamin', $mahasiswa->jenis_kelamin); @endphp
+                        <option value="Perempuan" {{ $jk == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                        <option value="Laki-laki" {{ $jk == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Status Aktivitas</label>
                     <select name="status_terakhir" class="form-select rounded-pill shadow-sm border-0" required>
-                        <option value="Aktif" {{ $mahasiswa->status_terakhir == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="Cuti" {{ $mahasiswa->status_terakhir == 'Cuti' ? 'selected' : '' }}>Cuti</option>
-                        <option value="Lulus" {{ $mahasiswa->status_terakhir == 'Lulus' ? 'selected' : '' }}>Lulus</option>
-                        <option value="DO" {{ $mahasiswa->status_terakhir == 'DO' ? 'selected' : '' }}>Drop Out</option>
+                        @php $status = old('status_terakhir', $mahasiswa->status_terakhir); @endphp
+                        <option value="Aktif" {{ $status == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="Cuti" {{ $status == 'Cuti' ? 'selected' : '' }}>Cuti</option>
+                        <option value="Lulus" {{ $status == 'Lulus' ? 'selected' : '' }}>Lulus</option>
+                        <option value="DO" {{ $status == 'DO' ? 'selected' : '' }}>Drop Out</option>
                     </select>
                 </div>
             </div>

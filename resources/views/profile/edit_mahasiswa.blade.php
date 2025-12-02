@@ -37,6 +37,16 @@
                 @csrf
                 @method('PUT')
 
+                @if ($errors->any())
+                    <div class="alert alert-danger mb-4">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <div class="mb-3">
@@ -57,10 +67,14 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">NIM</label>
-                            <input type="text" name="nim"
+                            <input type="text"
+                                   name="nim"
+                                   class="form-control @error('nim') is-invalid @enderror"
                                    value="{{ old('nim', $mahasiswa->nim ?? '') }}"
-                                   class="form-control rounded-pill shadow-sm @error('nim') is-invalid @enderror">
-                            @error('nim') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                   required>
+                            @error('nim')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                     </div>

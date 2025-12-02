@@ -68,7 +68,7 @@ class RegisterController extends Controller
 
             return back()
                 ->withErrors([
-                    $field => 'NIM atau NIDN/NIP ini sudah digunakan pada permohonan lain.',
+                    $field => 'NIM atau NIDN/NIP ini sudah digunakan.',
                 ])
                 ->withInput();
         }
