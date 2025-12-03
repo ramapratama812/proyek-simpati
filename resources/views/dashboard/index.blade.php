@@ -8,19 +8,51 @@
     <div class="alert alert-warning d-flex justify-content-between align-items-center">
       <div>
         @if($pendingValidation > 0)
-          Anda memiliki <strong>{{ $pendingValidation }}</strong> kegiatan yang
+          Ada <strong>{{ $pendingValidation }}</strong> kegiatan yang
           <strong>menunggu validasi</strong> admin.
+          <br>
         @endif
         @if($needRevision > 0)
-          @if($pendingValidation > 0)<br>@endif
+          @if($needRevision > 0)@endif
           Ada <strong>{{ $needRevision }}</strong> kegiatan yang
           <strong>memerlukan revisi</strong>.
         @endif
       </div>
       <div>
         <a href="{{ route('projects.my', ['status' => 'pending']) }}"
-           class="btn btn-sm btn-outline-dark">
-          Lihat Kegiatan
+            class="btn btn-sm btn-outline-dark">
+            Lihat Pending
+        </a>
+        <a href="{{ route('projects.my', ['status' => 'revision_requested']) }}"
+            class="btn btn-sm btn-outline-dark">
+            Lihat Revisi
+        </a>
+      </div>
+    </div>
+  @endif
+
+  @if($pubPending > 0 || $pubNeedRevision > 0)
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+      <div>
+        @if($pubPending > 0)
+          Ada <strong>{{ $pubPending }}</strong> publikasi yang
+          <strong>menunggu validasi</strong> admin.
+          <br>
+        @endif
+        @if($pubNeedRevision > 0)
+          @if($pubNeedRevision > 0)@endif
+          Ada <strong>{{ $pubNeedRevision }}</strong> publikasi yang
+          <strong>memerlukan revisi</strong>.
+        @endif
+      </div>
+      <div>
+        <a href="{{ route('publications.my', ['status' => 'pending']) }}"
+            class="btn btn-sm btn-outline-primary">
+            Lihat Pending
+        </a>
+        <a href="{{ route('publications.my', ['status' => 'revision_requested']) }}"
+            class="btn btn-sm btn-outline-primary">
+            Lihat Revisi
         </a>
       </div>
     </div>
@@ -90,16 +122,31 @@
                 <p class="text-muted mb-0">Belum ada data.</p>
             @else
                 <ul class="list-group">
-                @foreach($publikasiSaya as $pub)
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <a href="{{ route('publications.show', $pub) }}">{{ $pub->judul }}</a>
-                        <div class="small text-muted">
-                        {{ $pub->jenis ?? '-' }} • {{ $pub->tahun ?? '-' }}
+
+                    @foreach($publikasiSaya as $pub)
+                        @php
+                            $status = $pub->validation_status ?? 'draft';
+                            [$badgeClass, $label] = match ($status) {
+                                'approved'           => ['bg-success', 'Disetujui'],
+                                'pending'            => ['bg-secondary', 'Pending'],
+                                'revision_requested' => ['bg-warning text-dark', 'Perlu Revisi'],
+                                'rejected'           => ['bg-danger', 'Ditolak'],
+                                'draft'              => ['bg-light text-dark', 'Draft'],
+                                default              => ['bg-light text-muted', ucfirst($status)],
+                            };
+                        @endphp
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ route('publications.show', $pub) }}">{{ $pub->judul }}</a>
+                                <div class="small text-muted">
+                                    {{ $pub->jenis }} • {{ $pub->tahun ?? '-' }}
+                                </div>
+                            </div>
+                            <span class="badge {{ $badgeClass }}">{{ $label }}</span>
                         </div>
-                    </div>
-                    </li>
-                @endforeach
+                  @endforeach
+
                 </ul>
             @endif
             </div>

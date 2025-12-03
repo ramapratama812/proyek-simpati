@@ -111,6 +111,8 @@ class PublicationController extends Controller
         }
 
         // === simpan publikasi ===
+        $validated['validation_status'] = 'draft';
+
         $pub = Publication::create($validated);
 
         // attach ke project jika ada
@@ -162,18 +164,38 @@ class PublicationController extends Controller
     /** CRUD Publikasi. */
     public function show(Publication $publication)
     {
+        $user = auth()->user();
+        $isOwner = $publication->owner_id === ($user->id ?? null);
+        $isAdmin = strtolower($user->role ?? '') === 'admin';
+
+        if (!$isOwner && !$isAdmin && $publication->validation_status !== 'approved') {
+            return redirect()
+                ->route('publications.index')
+                ->with('popup_error', 'Publikasi ini belum tersedia untuk umum.');
+        }
+
         return view('publications.show', ['pub' => $publication]);
     }
 
     public function edit(Publication $publication)
     {
         $this->authorizeManage($publication);
+
+        // membatalkan edit jika status publikasi sudah approved
+        if($publication->validation_status === 'approved') {
+            return redirect()
+            ->back()
+            ->with('status', 'Publikasi yang sudah disetujui tidak boleh diedit.');
+        }
+
         return view('publications.edit', compact('publication'));
     }
 
     public function update(Request $request, Publication $publication)
     {
         $this->authorizeManage($publication);
+
+        abort_if($publication->validation_status === 'approved', 403);
 
         $validated = $request->validate([
             'judul'          => 'required|string|max:255',
@@ -224,6 +246,7 @@ class PublicationController extends Controller
         $q      = trim($request->get('q', ''));
         $jenis  = $request->get('jenis');
         $tahun  = $request->get('tahun');
+        $status = $request->get('status');  // validation_status
 
         $pubs = Publication::where('owner_id', $user->id);
 
@@ -241,6 +264,10 @@ class PublicationController extends Controller
 
         if ($tahun) {
             $pubs->where('tahun', $tahun);
+        }
+
+        if ($status) {
+            $pubs->where('validation_status', $status);
         }
 
         $pubs = $pubs
@@ -261,6 +288,7 @@ class PublicationController extends Controller
             'filterJenis'   => $jenis,
             'filterTahun'   => $tahun,
             'tahunOptions'  => $tahunOptions,
+            'filterStatus'  => $status,
         ]);
     }
 
@@ -295,4 +323,28 @@ class PublicationController extends Controller
         return back()->with('ok', 'Status publikasi berhasil diperbarui.');
     }
 
+    public function submitValidation(Publication $publication)
+    {
+        // hanya pemilik publikasi yang boleh ajukan
+        abort_unless(auth()->id() === $publication->owner_id, 403);
+
+        // jika sudah approved, tidak bisa diajukan ulang
+        abort_if($publication->validation_status === 'approved', 403);
+
+        // ubah status -> pending
+        $publication->update([
+            'validation_status' => 'pending',
+        ]);
+
+        // tambahkan notifikasi untuk admin
+        foreach (\App\Models\User::where('role', 'admin')->get() as $admin) {
+            \App\Models\UserNotification::create([
+                'user_id' => $admin->id,
+                'type'    => 'publication_validation_request',
+                'message' => "Publikasi \"{$publication->judul}\" diajukan untuk validasi.",
+            ]);
+        }
+
+        return back()->with('ok', 'Publikasi berhasil diajukan untuk validasi admin.');
+    }
 }

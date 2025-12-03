@@ -2,13 +2,13 @@
 
 @section('content')
 <div class="container">
-  {{-- Header judul --}}
-  <div class="mb-3">
-    <h4 class="mb-3">{{ $pub->judul }}</h4>
-  </div>
+    {{-- Header judul --}}
+    <div class="mb-3">
+        <h4 class="mb-3">{{ $pub->judul }}</h4>
+    </div>
 
-  {{-- Kontainer Flexbox untuk Tombol Edit/Hapus (Kiri) dan DOI (Kanan) --}}
-  <div class="mb-3 d-flex justify-content-between align-items-center">
+    {{-- Kontainer Flexbox untuk Tombol Edit/Hapus (Kiri) dan DOI (Kanan) --}}
+    <div class="mb-3 d-flex justify-content-between align-items-center">
 
     {{-- Kiri: Hak edit/hapus hanya untuk owner --}}
     @php
@@ -19,15 +19,35 @@
         : $isAdmin;
     @endphp
 
-    <div class="d-flex gap-2">
-      @if($canManage)
-        <a href="{{ route('publications.edit', $pub) }}" class="btn btn-warning">Edit</a>
-        <form method="POST" action="{{ route('publications.destroy', $pub) }}"
-            onsubmit="return confirm('Hapus publikasi ini? Tindakan tidak bisa dibatalkan.');">
-        @csrf @method('DELETE')
-        <button class="btn btn-danger">Hapus</button>
-        </form>
-      @endif
+    {{-- Hapus class d-flex dari container utama agar Alert bisa turun ke bawah --}}
+    <div>
+        @if($canManage)
+            {{-- Bungkus tombol-tombol dalam container flex tersendiri --}}
+            <div class="d-flex gap-2 align-items-center">
+                <a href="{{ route('publications.edit', $pub) }}" class="btn btn-warning">Edit</a>
+
+                <form method="POST" action="{{ route('publications.destroy', $pub) }}"
+                    onsubmit="return confirm('Hapus publikasi ini? Tindakan tidak bisa dibatalkan.');">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-danger">Hapus</button>
+                </form>
+
+                {{-- Tombol Ajukan Validasi --}}
+                @if($pub->validation_status === 'draft' || $pub->validation_status === 'revision_requested')
+                    <form method="POST" action="{{ route('publications.submit', $pub->id) }}">
+                        @csrf
+                        <button class="btn btn-primary">Ajukan Validasi ke Admin</button>
+                    </form>
+                @endif
+            </div>
+
+            {{-- Alert diletakkan di luar div tombol agar muncul rapi di bawahnya --}}
+            @if($pub->validation_status === 'approved')
+                <div class="alert alert-success mt-2">
+                    Publikasi ini sudah divalidasi dan tidak dapat diedit lagi.
+                </div>
+            @endif
+        @endif
     </div>
 
     {{-- Kanan: DOI (Diposisikan di pojok kanan, sejajar dengan tombol) --}}

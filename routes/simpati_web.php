@@ -12,6 +12,7 @@ use App\Http\Controllers\DosenController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DosenPrestasiController;
+use App\Http\Controllers\Admin\PublicationValidationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
     // Jika 'detail' hanya alias untuk 'show', sebenarnya resource sudah menghandle ini via mahasiswa/{id}
     Route::get('/mahasiswa/detail/{id}', [MahasiswaController::class, 'show'])->name('mahasiswa.detail');
     Route::resource('mahasiswa', MahasiswaController::class);
+    Route::put('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'updateProfile'])
+    ->name('mahasiswa.update');
+
 
     // ==================================================
     // 🔹 Kegiatan & Publikasi (Dosen)
@@ -67,9 +71,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('projects', ResearchProjectController::class);
     Route::resource('publications', PublicationController::class);
 
-    // Validasi Kegiatan (Diajukan oleh Dosen)
+    // Validasi Kegiatan dan Publikasi (Diajukan oleh Dosen)
     Route::post('/projects/{project}/ajukan-validasi', [ResearchProjectController::class, 'submitValidation'])
         ->name('projects.submitValidation');
+    Route::post('/publications/{publication}/submit', [PublicationController::class, 'submitValidation'])
+        ->name('publications.submit');
 
     // ==================================================
     // 🔹 Validasi Kegiatan (Area Admin/Kaprodi)
@@ -83,6 +89,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/kegiatan/validasi/{project}/approve', 'approveValidation')->name('approve');
             Route::post('/kegiatan/validasi/{project}/revision', 'requestRevision')->name('revision');
             Route::post('/kegiatan/validasi/{project}/reject', 'rejectValidation')->name('reject');
+        });
+
+    Route::middleware(['role:admin'])
+        ->prefix('admin/publications')
+        ->name('admin.publications.')
+        ->group(function () {
+            Route::get('validation', [PublicationValidationController::class, 'index'])->name('validation.index');
+            Route::get('validation/{publication}', [PublicationValidationController::class, 'show'])->name('validation.show');
+            Route::post('validation/{publication}', [PublicationValidationController::class, 'update'])->name('validation.update');
         });
 
     // ==================================================

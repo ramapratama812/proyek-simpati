@@ -163,14 +163,23 @@
         @auth
           @php $role = strtolower(auth()->user()->role ?? ''); @endphp
 
-          {{-- Admin: Validasi Kegiatan --}}
-          @if($role === 'admin')
-            <a href="{{ route('projects.validation.index') }}"
-               class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
-              <i class="bi bi-check2-square"></i>
-              <span>Validasi Kegiatan</span>
-            </a>
-          @endif
+        {{-- Admin: Validasi Kegiatan --}}
+        @if($role === 'admin')
+        <a href="{{ route('projects.validation.index') }}"
+            class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Validasi Kegiatan</span>
+        </a>
+        @endif
+
+        {{-- Admin: Validasi Publikasi --}}
+        @if($role === 'admin')
+        <a href="{{ route('admin.publications.validation.index') }}"
+            class="{{ request()->routeIs('validation.*') ? 'active' : '' }}">
+            <i class="bi bi-file-earmark-check"></i>
+            <span>Validasi Publikasi</span>
+        </a>
+        @endif
 
           {{-- Admin: Kelola Permohonan Akun --}}
           @if($role === 'admin')
@@ -328,6 +337,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
+        @endif
+
+        @if(session('popup_error'))
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('popup_error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
         @endif
 
         @yield('content')

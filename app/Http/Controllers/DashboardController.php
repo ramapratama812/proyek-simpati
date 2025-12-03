@@ -10,8 +10,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
-
-
 class DashboardController extends Controller
 {
     public function index()
@@ -65,11 +63,19 @@ class DashboardController extends Controller
 
             $totalPublikasi = Publication::where('owner_id', $user->id)->count();
 
+            // Validasi kegiatan
             $pendingValidation = ResearchProject::where('ketua_id', $user->id)
                 ->where('validation_status', 'pending')
                 ->count();
-
             $needRevision = ResearchProject::where('ketua_id', $user->id)
+                ->where('validation_status', 'revision_requested')
+                ->count();
+
+            // Validasi publikasi
+            $pubPending = Publication::where('owner_id', $user->id ?? null)
+                ->where('validation_status', 'pending')
+                ->count();
+            $pubNeedRevision = Publication::where('owner_id', $user->id ?? null)
                 ->where('validation_status', 'revision_requested')
                 ->count();
 
@@ -121,7 +127,9 @@ class DashboardController extends Controller
             'kegiatanSayaKetua',
             'kegiatanSebagaiAnggota',
             'publikasiSaya',
-            'notifications'
+            'notifications',
+            'pubPending',
+            'pubNeedRevision'
         ));
     }
 

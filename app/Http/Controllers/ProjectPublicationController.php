@@ -30,8 +30,11 @@ class ProjectPublicationController extends Controller
 
         // daftar publikasi milik user sendiri (hanya jika boleh kelola)
         $myPubs = collect();
+
+        // batasi daftar publikasi hanya yang sudah disetujui
         if ($canManage) {
-            $myPubs = Publication::where('owner_id', auth()->id())
+            $myPubs = Publication::approved()
+                ->where('owner_id', auth()->id())
                 ->orderByDesc('id')
                 ->get(['id','judul']);
         }
@@ -47,10 +50,17 @@ class ProjectPublicationController extends Controller
             'publication_id' => 'required|integer|exists:publications,id',
         ]);
 
-        // pastikan publikasi itu milik user (owner)
-        $pub = Publication::whereKey($data['publication_id'])
+        // pastikan publikasi itu milik user (owner) DAN sudah disetujui
+        $pub = Publication::approved()
+            ->whereKey($data['publication_id'])
             ->where('owner_id', auth()->id())
             ->firstOrFail();
+
+     // versi tanpa scopeApproved
+     // $pub = Publication::whereKey($data['publication_id'])
+     //     ->where('owner_id', auth()->id())
+     //     ->where('validation_status', 'approved')
+     //     ->firstOrFail();
 
         $project->publications()->syncWithoutDetaching([$pub->id]);
 

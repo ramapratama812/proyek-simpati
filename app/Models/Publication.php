@@ -8,7 +8,6 @@ use App\Models\ResearchProject;
 
 class Publication extends Model
 {
-    use HasFactory;
     protected $fillable = [
         'owner_id',
         'project_id',
@@ -24,8 +23,22 @@ class Publication extends Model
         'issn',
         'penulis',
         'sumber',
+        'validation_status',
+        'validation_note',
+        'validated_by',
     ];
+
     protected $casts = ['penulis'=>'array','sumber'=>'array'];
+
+    public function validator()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function scopeApproved($q)
+    {
+        return $q->where('validation_status', 'approved');
+    }
 
     public function owner()
     {
