@@ -15,6 +15,7 @@ class Dosen extends Model
         'email',
         'nomor_hp',
         'nidn',
+        'sinta_id', // nambahin ini buat kolom sinta_id, buat nyimpen SINTA ID dosen
         'nip', // tambahkan ini jika memang ada kolom NIP di tabel
         'status_ikatan_kerja',
         'jenis_kelamin',
@@ -31,5 +32,10 @@ class Dosen extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
 
+    }
+
+    public function performanceMetrics()
+    {
+        return $this->hasMany(DosenPerformanceMetric::class);
     }
 }

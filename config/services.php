@@ -47,4 +47,11 @@ return [
     'client_secret' => env('GOOGLE_CLIENT_SECRET'),
     'redirect'      => env('GOOGLE_REDIRECT_URL'),
     ],
+
+    // setting untuk SINTA
+    'sinta' => [
+        'base_url' => env('SINTA_BASE_URL', 'https://sinta.kemdiktisaintek.go.id'),
+        'timeout'  => env('SINTA_TIMEOUT', 10),
+    ],
+
 ];

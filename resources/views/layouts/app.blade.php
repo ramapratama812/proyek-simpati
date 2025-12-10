@@ -163,23 +163,22 @@
         @auth
           @php $role = strtolower(auth()->user()->role ?? ''); @endphp
 
-        {{-- Admin: Validasi Kegiatan --}}
-        @if($role === 'admin')
-        <a href="{{ route('projects.validation.index') }}"
-            class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
-            <i class="bi bi-clipboard-check"></i>
-            <span>Validasi Kegiatan</span>
-        </a>
-        @endif
+          @if($role === 'admin')
+          <div class="d-flex align-items-center my-3">
+            <hr class="flex-grow-1">
+            <span class="px-2">Zona Admin</span>
+            <hr class="flex-grow-1">
+          </div>
+          @endif
 
-        {{-- Admin: Validasi Publikasi --}}
-        @if($role === 'admin')
-        <a href="{{ route('admin.publications.validation.index') }}"
-            class="{{ request()->routeIs('validation.*') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-check"></i>
-            <span>Validasi Publikasi</span>
-        </a>
-        @endif
+          {{-- Adimn: kelola tpk ahp --}}
+          @if($role === 'admin')
+            <a href="{{ route('ahp.criteria_comparisons.edit') }}"
+               class="{{ request()->routeIs('ahp.criteria_comparisons.*') ? 'active' : '' }}">
+              <i class="bi bi-person-check"></i>
+              <span>Kelola Hitung TPK AHP</span>
+            </a>
+          @endif
 
           {{-- Admin: Kelola Permohonan Akun --}}
           @if($role === 'admin')
@@ -189,6 +188,30 @@
               <span>Kelola Permohonan Akun</span>
             </a>
           @endif
+
+          {{-- Admin: Validasi Kegiatan --}}
+          @if($role === 'admin')
+          <a href="{{ route('projects.validation.index') }}"
+            class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Validasi Kegiatan</span>
+          </a>
+          @endif
+
+          {{-- Admin: Validasi Publikasi --}}
+          @if($role === 'admin')
+          <a href="{{ route('admin.publications.validation.index') }}"
+            class="{{ request()->routeIs('validation.*') ? 'active' : '' }}">
+            <i class="bi bi-file-earmark-check"></i>
+            <span>Validasi Publikasi</span>
+          </a>
+          @endif
+
+          <div class="d-flex align-items-center my-3">
+             <hr class="flex-grow-1">
+             <span class="px-2">Menu Umum</span>
+             <hr class="flex-grow-1">
+          </div>
 
           <a href="{{ route('dashboard') }}"
              class="{{ request()->is('dashboard') ? 'active' : '' }}">
@@ -213,6 +236,17 @@
           <a href="{{ route('mahasiswa.index') }}"
              class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Mahasiswa
+          </a>
+
+          <div class="d-flex align-items-center my-3">
+            <hr class="flex-grow-1">
+            <span class="px-2">Lainnya</span>
+            <hr class="flex-grow-1">
+          </div>
+
+          <a href="{{ route('tpk.dosen_berprestasi.index') }}"
+             class="{{ request()->is('tpk/dosen_berprestasi*') ? 'active' : '' }}">
+            <i class="bi bi-person-lines-fill"></i> Ranking Dosen Berprestasi
           </a>
         @endauth
       </div>

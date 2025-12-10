@@ -4,13 +4,6 @@
 <div class="container">
   <h4 class="mb-3">Publikasi untuk: "{{ $project->judul }}"</h4>
 
-  @if(session('ok'))
-    <div class="alert alert-success">{{ session('ok') }}</div>
-  @endif
-  @if(session('err'))
-    <div class="alert alert-danger">{{ session('err') }}</div>
-  @endif
-
   @php
       $userId           = auth()->id();
       $isKetua          = $userId && $userId == $project->ketua_id;

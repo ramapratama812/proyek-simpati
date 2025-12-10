@@ -1,17 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ResearchProjectController;
-use App\Http\Controllers\PublicationController;
+use App\Http\Controllers\AhpController;
+use App\Http\Controllers\DosenController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\PddiktiController;
-use App\Http\Controllers\DosenController;
-use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PublicationController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DosenPrestasiController;
+use App\Http\Controllers\ResearchProjectController;
+use App\Http\Controllers\DosenBerprestasiController;
+use App\Http\Controllers\AhpCriteriaComparisonController;
 use App\Http\Controllers\Admin\PublicationValidationController;
 
 /*
@@ -123,5 +126,31 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/edit', 'edit')->name('edit');   // Edit profil
             Route::put('/', 'update')->name('update');   // Simpan perubahan
             Route::delete('/', 'destroy')->name('destroy'); // Hapus akun
+        });
+
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/ahp/kriteria/hitung', [AhpController::class, 'hitungKriteria'])
+            ->name('ahp.kriteria.hitung');
+
+        Route::post('/tpk/dosen-berprestasi/hitung', [DosenBerprestasiController::class, 'hitung'])
+            ->name('tpk.dosen_berprestasi.hitung');
+
+        Route::get('/ahp/kriteria/comparisons', [AhpCriteriaComparisonController::class, 'edit'])
+            ->name('ahp.criteria_comparisons.edit');
+
+        Route::post('/ahp/kriteria/comparisons', [AhpCriteriaComparisonController::class, 'update'])
+            ->name('ahp.criteria_comparisons.update');
+
+        Route::post('/ahp/kriteria/comparisons/calculate', [AhpCriteriaComparisonController::class, 'calculateWeights'])
+            ->name('ahp.criteria_comparisons.calculate');
+
+        Route::get('/tpk/dosen-berprestasi', [DosenBerprestasiController::class, 'index'])
+            ->name('tpk.dosen_berprestasi.index');
+
+        Route::post('/tpk/dosen-berprestasi/sync-internal', [DosenBerprestasiController::class, 'syncInternal'])
+            ->name('tpk.dosen_berprestasi.sync_internal');
+
+        Route::post('/tpk/dosen-berprestasi/sync-sinta', [DosenBerprestasiController::class, 'syncSinta'])
+            ->name('tpk.dosen_berprestasi.sync_sinta');
         });
 });
