@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Services\DosenMetricsAggregationService;
+use App\Models\SintaSyncLog;
 use App\Services\SintaCrawler;
 use Illuminate\Console\Command;
+use App\Services\DosenMetricsAggregationService;
 
 class SyncDosenSintaMetrics extends Command
 {
@@ -12,18 +13,42 @@ class SyncDosenSintaMetrics extends Command
     protected $description = 'Sinkronkan Skor SINTA, SINTA 3Yr, Jumlah Hibah dan Publikasi GS 1 tahun dari SINTA ke dosen_performance_metrics';
 
     public function handle(
-        DosenMetricsAggregationService $metricsService,
+        DosenMetricsAggregationService $service,
         SintaCrawler $crawler
-    ): int
-    {
+    ): int {
         $tahun = (int) ($this->argument('tahun') ?: now()->year);
 
         $this->info("Sinkronisasi data SINTA untuk tahun {$tahun} ...");
 
-        $metrics = $metricsService->aggregateFromSintaForYear($tahun, $crawler);
+        try {
+            $metrics = $service->aggregateFromSintaForYear($tahun, $crawler);
+            $count   = $metrics->count();
 
-        $this->info("Selesai. Data metrics yang ter-update: " . $metrics->count());
+            SintaSyncLog::create([
+                'tahun'         => $tahun,
+                'triggered_by'  => null,
+                'source'        => 'console',
+                'total_metrics' => $count,
+                'status'        => 'success',
+                'message'       => null,
+            ]);
 
-        return self::SUCCESS;
+            $this->info("Selesai. Data metrics yang ter-update: {$count}");
+
+            return self::SUCCESS;
+        } catch (\Throwable $e) {
+            SintaSyncLog::create([
+                'tahun'         => $tahun,
+                'triggered_by'  => null,
+                'source'        => 'console',
+                'total_metrics' => 0,
+                'status'        => 'failed',
+                'message'       => $e->getMessage(),
+            ]);
+
+            $this->error('Gagal sync data SINTA: ' . $e->getMessage());
+
+            return self::FAILURE;
+        }
     }
 }

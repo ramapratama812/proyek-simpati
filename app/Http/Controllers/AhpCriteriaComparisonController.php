@@ -120,9 +120,21 @@ class AhpCriteriaComparisonController extends Controller
                 ->with('error', 'Gagal menghitung bobot AHP: ' . $e->getMessage());
         }
 
+        $cr = $result['cr'] ?? null;
+
+        $message = 'Bobot AHP berhasil dihitung dan disimpan.';
+        if (!is_null($cr)) {
+            $message .= ' CR = ' . number_format($cr, 4);
+            if ($cr > 0.1) {
+                $message .= ' (TIDAK konsisten, periksa ulang perbandingan kriteria).';
+            } else {
+                $message .= ' (konsisten).';
+            }
+        }
+
         return redirect()
             ->route('ahp.criteria_comparisons.edit')
-            ->with('status', 'Bobot AHP berhasil dihitung dan disimpan.')
+            ->with('status', $message)
             ->with('ahp_result', [
                 'lambda_max' => $result['lambda_max'],
                 'ci'         => $result['ci'],

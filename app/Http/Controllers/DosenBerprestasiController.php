@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\SintaSyncLog;
 use Illuminate\Http\Request;
 use App\Services\SintaCrawler;
 use App\Services\DosenRankingService;
@@ -18,19 +19,23 @@ class DosenBerprestasiController extends Controller
         $tahun = (int) ($request->input('tahun') ?: now()->year);
 
         $user = auth()->user();
-        $role = strtolower($user->role ?? ''); // asumsi kolom 'role' ada di tabel users
+        $role = strtolower($user->role ?? '');
 
         try {
-            $ranking = $rankingService->hitungRanking($tahun);
+            $result  = $rankingService->hitungRanking($tahun);
+            $ranking = $result['ranking'];
+            $cr      = $result['cr'];
             $error   = null;
         } catch (\Throwable $e) {
             $ranking = collect();
+            $cr      = null;
             $error   = $e->getMessage();
         }
 
         return view('tpk.dosen_berprestasi.index', [
             'tahun'   => $tahun,
             'ranking' => $ranking,
+            'cr'      => $cr,
             'error'   => $error,
             'role'    => $role,
         ]);
@@ -69,23 +74,36 @@ class DosenBerprestasiController extends Controller
         Request $request,
         DosenMetricsAggregationService $metricsService,
         SintaCrawler $crawler
-    )
-    {
-        // Cek apakah user adalah admin
-        if (strtolower(auth()->user()->role ?? '') !== 'admin') {
-            abort(403);
-        }
-
+    ) {
         $tahun = (int) ($request->input('tahun') ?: now()->year);
+        $user  = auth()->user();
 
         try {
             $metrics = $metricsService->aggregateFromSintaForYear($tahun, $crawler);
             $count   = $metrics->count();
 
+            SintaSyncLog::create([
+                'tahun'         => $tahun,
+                'triggered_by'  => $user?->id,
+                'source'        => 'web',
+                'total_metrics' => $count,
+                'status'        => 'success',
+                'message'       => null,
+            ]);
+
             return redirect()
                 ->route('tpk.dosen_berprestasi.index', ['tahun' => $tahun])
                 ->with('status', "Sync data SINTA berhasil. {$count} baris metrics ter-update.");
         } catch (\Throwable $e) {
+            SintaSyncLog::create([
+                'tahun'         => $tahun,
+                'triggered_by'  => $user?->id,
+                'source'        => 'web',
+                'total_metrics' => 0,
+                'status'        => 'failed',
+                'message'       => $e->getMessage(),
+            ]);
+
             return redirect()
                 ->route('tpk.dosen_berprestasi.index', ['tahun' => $tahun])
                 ->with('error', 'Gagal sync data SINTA: ' . $e->getMessage());

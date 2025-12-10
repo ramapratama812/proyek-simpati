@@ -4,6 +4,18 @@
 <div class="container">
     <h4 class="mb-3">Ranking Dosen Berprestasi (Metode AHP)</h4>
 
+    @if(!is_null($cr))
+        <div class="alert {{ $cr <= 0.1 ? 'alert-success' : 'alert-danger' }}">
+            Rasio konsistensi AHP (CR):
+            <strong>{{ number_format($cr, 4) }}</strong>
+            @if($cr <= 0.1)
+                &mdash; perbandingan kriteria konsisten.
+            @else
+                &mdash; tidak konsisten (&gt; 0.10). Perbaiki perbandingan kriteria sebelum menggunakan ranking.
+            @endif
+        </div>
+    @endif
+
     {{-- Filter tahun + tombol sync --}}
     <div class="row g-2 mb-3 align-items-end">
         <div class="col-md-3">

@@ -5,11 +5,19 @@
     <h4 class="mb-3">Perbandingan Kriteria (AHP)</h4>
 
     <p class="text-muted">
-        Isi perbandingan berpasangan antar kriteria menggunakan skala 1–9.
+        Isi perbandingan berpasangan antar kriteria menggunakan skala Saaty 1–9.
         Nilai 1 = sama penting, 9 = sangat jauh lebih penting.
     </p>
 
-    {{-- Form untuk menyimpan perbandingan --}}
+    <div class="alert alert-info small">
+        <h6><strong>Cara pakai:</strong></h6>
+        <p>1) Isi perbandingan berpasangan antar kriteria di tabel di bawah,</p>
+        <p>2) klik <em>Simpan Perbandingan</em>,</p>
+        <p>3) klik <em>Hitung Bobot AHP</em>.</p>
+        Usahakan rasio konsistensi (CR) ≤ 0,10.
+    </div>
+
+    {{-- Form untuk menyimpan perbandingan - tabel perbandingan kriteria --}}
     <form action="{{ route('ahp.criteria_comparisons.update') }}" method="POST" class="mb-4">
         @csrf
 
@@ -84,18 +92,27 @@
     </form>
 
     {{-- Panel hasil perhitungan bobot + CR --}}
-    <div class="card">
-        <div class="card-header">
-            Hasil Bobot Kriteria & Konsistensi
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Hasil Bobot Kriteria &amp; Konsistensi</span>
+
+            @php $ahpResult = session('ahp_result'); @endphp
+            @if($ahpResult)
+                @php $crVal = $ahpResult['cr']; @endphp
+                <span class="badge {{ $crVal <= 0.1 ? 'bg-success' : 'bg-danger' }}">
+                    CR: {{ number_format($crVal, 4) }}
+                    @if($crVal <= 0.1)
+                        &mdash; konsisten
+                    @else
+                        &mdash; tidak konsisten
+                    @endif
+                </span>
+            @endif
         </div>
         <div class="card-body">
-            @php
-                $ahpResult = session('ahp_result');
-            @endphp
-
             @if($ahpResult)
-                <p>
-                    <strong>λ max (Lamda Maksimum):</strong> {{ number_format($ahpResult['lambda_max'], 4) }}<br>
+                <p class="mb-2">
+                    <strong>λ max (Lambda Maksimum):</strong> {{ number_format($ahpResult['lambda_max'], 4) }}<br>
                     <strong>CI (Indeks Konsistensi):</strong> {{ number_format($ahpResult['ci'], 4) }}<br>
                     <strong>CR (Rasio Konsistensi):</strong>
                     <span class="{{ $ahpResult['cr'] <= 0.1 ? 'text-success' : 'text-danger' }}">
@@ -109,8 +126,8 @@
                 </p>
             @else
                 <p class="text-muted">
-                    Belum ada hasil perhitungan bobot AHP pada sesi ini. Tekan tombol "Hitung Bobot AHP"
-                    setelah menyimpan perbandingan kriteria.
+                    Belum ada hasil perhitungan bobot AHP pada sesi ini.
+                    Tekan tombol <strong>Hitung Bobot AHP</strong> setelah menyimpan perbandingan kriteria.
                 </p>
             @endif
 
@@ -128,9 +145,7 @@
                         <tr>
                             <td>{{ $c->kode }}</td>
                             <td>{{ $c->nama }}</td>
-                            <td>
-                                {{ $c->bobot !== null ? number_format($c->bobot, 6) : '-' }}
-                            </td>
+                            <td>{{ $c->bobot !== null ? number_format($c->bobot, 6) : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
