@@ -20,6 +20,8 @@
                 </div>
             @endif
 
+            {{-- ❌ FOTO PROFIL DIHAPUS --}}
+
             {{-- Data dosen --}}
             <div class="row">
                 {{-- Kolom kiri --}}
@@ -82,7 +84,6 @@
 
             {{-- Tombol aksi --}}
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                {{-- Tombol kembali ke daftar dosen --}}
                 <a href="{{ route('dosen.index') }}"
                    class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold btn-animated">
                     ← Kembali
@@ -106,74 +107,31 @@
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
-{{-- STYLE TAMBAHAN --}}
+{{-- STYLE --}}
 <style>
-    body {
-        background-color: #f5f6fa;
-    }
-
-    label {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #6c757d;
-    }
-
-    span.fw-semibold {
-        font-size: 1rem;
-        color: #212121;
-    }
-
-    .badge {
-        border-radius: 8px;
-        font-size: 0.85rem;
-    }
-
-    /* Efek halus untuk tombol */
-    .btn-animated {
-        transition: all 0.25s ease-in-out;
-    }
-
-    .btn-animated:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-outline-primary {
-        border-width: 2px;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #001F4D;
-        color: #fff;
-        border-color: #001F4D;
-    }
-
-    .btn-outline-danger:hover {
-        background-color: #c62828;
-        color: #fff;
-        border-color: #c62828;
-    }
-
-    [style*="#ffca28"]:hover {
-        background-color: #fbc02d !important;
-        color: #000 !important;
-    }
-
+    body { background-color: #f5f6fa; }
+    label { font-size: 0.9rem; font-weight: 600; color: #6c757d; }
+    span.fw-semibold { font-size: 1rem; color: #212121; }
+    .badge { border-radius: 8px; font-size: 0.85rem; }
+    .btn-animated { transition: all 0.25s ease-in-out; }
+    .btn-animated:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); }
+    .btn-outline-primary { border-width: 2px; }
+    .btn-outline-primary:hover { background-color: #001F4D; color: #fff; border-color: #001F4D; }
+    .btn-outline-danger:hover { background-color: #c62828; color: #fff; border-color: #c62828; }
+    [style*="#ffca28"]:hover { background-color: #fbc02d !important; color: #000 !important; }
     .gradient-shadow {
-        box-shadow:
-            0 10px 30px rgba(0, 31, 77, 0.2),
-            0 20px 50px rgba(0, 53, 128, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 31, 77, 0.2),
+                    0 20px 50px rgba(0, 53, 128, 0.1);
         transition: all 0.3s ease-in-out;
     }
-
     .gradient-shadow:hover {
-        box-shadow:
-            0 15px 45px rgba(0, 31, 77, 0.25),
-            0 25px 70px rgba(0, 53, 128, 0.15);
+        box-shadow: 0 15px 45px rgba(0, 31, 77, 0.25),
+                    0 25px 70px rgba(0, 53, 128, 0.15);
         transform: translateY(-2px);
     }
 </style>

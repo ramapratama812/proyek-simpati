@@ -8,117 +8,131 @@
 @endphp
 
 <div class="container py-5">
-    <div class="card border-0 rounded-4 overflow-hidden gradient-shadow">
+    <div class="card border-0 shadow-lg rounded-4 mx-auto"
+         style="max-width: 1200px; background-color: #ffffff; padding: 3rem 4rem;">
 
-        {{-- HEADER --}}
-        <div class="text-center text-white py-4"
-             style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
-            <h3 class="fw-bold mb-0">Edit Profil Mahasiswa</h3>
+        <h3 class="text-center fw-bold mb-2 text-primary">Edit Profil Mahasiswa</h3>
+        <p class="text-center text-muted mb-4" style="font-size: 0.95rem;">
+            Perbarui informasi biodata akademik Anda.
+        </p>
+
+        {{-- Notifikasi --}}
+        @if(session('success'))
+        <div class="alert alert-success text-center mb-4 rounded-3 shadow-sm py-2">
+            {{ session('success') }}
         </div>
+        @endif
 
-        {{-- BODY --}}
-        <div class="card-body bg-light py-5 px-5">
+        @if ($errors->any())
+        <div class="alert alert-danger text-center mb-4 rounded-3 shadow-sm py-2">
+            <strong>Terjadi kesalahan!</strong> Periksa kembali input Anda.
+        </div>
+        @endif
 
-            {{-- Notifikasi --}}
-            @if(session('success'))
-                <div class="alert alert-success text-center mb-4 rounded-3 shadow-sm py-2">
-                    {{ session('success') }}
-                </div>
-            @endif
+        {{-- FORM --}}
+        <form action="{{ route('mahasiswa.update', $mahasiswa->id) }}" method="POST">
+            @csrf
+            @method('PUT')
 
-            @if ($errors->any())
-                <div class="alert alert-danger text-center mb-4 rounded-3 shadow-sm py-2">
-                    <strong>Terjadi kesalahan!</strong> Periksa kembali input Anda.
-                </div>
-            @endif
+            <div class="row g-5">
+                {{-- Kolom kiri --}}
+                <div class="col-md-6">
+                    <div class="p-4 rounded-3 shadow-sm mb-4" style="background-color: #fafbfc;">
 
-            {{-- FORM EDIT PROFIL --}}
-            <form action="{{ route('mahasiswa.update', $mahasiswa->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="row">
-                    <div class="col-md-6 mb-4">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Nama Lengkap</label>
+                            <label class="form-label fw-semibold">Nama</label>
                             <input type="text" name="nama"
                                    value="{{ old('nama', $mahasiswa->nama ?? $user->name ?? '') }}"
-                                   class="form-control rounded-pill shadow-sm @error('nama') is-invalid @enderror">
-                            @error('nama') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                   class="form-control shadow-sm">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Email</label>
                             <input type="email" name="email"
                                    value="{{ old('email', $user->email ?? '') }}"
-                                   class="form-control rounded-pill shadow-sm @error('email') is-invalid @enderror">
-                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                   class="form-control shadow-sm">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">NIM</label>
                             <input type="text" name="nim"
                                    value="{{ old('nim', $mahasiswa->nim ?? '') }}"
-                                   class="form-control rounded-pill shadow-sm @error('nim') is-invalid @enderror">
-                            @error('nim') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                   class="form-control shadow-sm">
                         </div>
 
                     </div>
+                </div>
 
-                    <div class="col-md-6 mb-4">
+                {{-- Kolom kanan --}}
+                <div class="col-md-6">
+                    <div class="p-4 rounded-3 shadow-sm mb-4" style="background-color: #fafbfc;">
+
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Jenis Kelamin</label>
-                            <select name="jenis_kelamin"
-                                    class="form-select rounded-pill shadow-sm @error('jenis_kelamin') is-invalid @enderror">
-                                <option value="">-- Pilih Jenis Kelamin --</option>
-                                <option value="Laki-laki" {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin ?? '') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="Perempuan" {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin ?? '') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                            <select name="jenis_kelamin" class="form-select shadow-sm">
+                                <option value="" disabled {{ !$mahasiswa->jenis_kelamin ? 'selected' : '' }}>Pilih Jenis Kelamin</option>
+                                <option value="Laki-laki" {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="Perempuan" {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
                             </select>
-                            @error('jenis_kelamin') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Semester</label>
-                            <input type="number" name="semester" min="1"
+                            <input type="number" min="1" name="semester"
                                    value="{{ old('semester', $mahasiswa->semester ?? '') }}"
-                                   class="form-control rounded-pill shadow-sm @error('semester') is-invalid @enderror">
-                            @error('semester') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                   class="form-control shadow-sm">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Status Aktivitas</label>
-                            <select name="status_aktivitas"
-                                    class="form-select rounded-pill shadow-sm @error('status_aktivitas') is-invalid @enderror">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Aktif" {{ old('status_aktivitas', $mahasiswa->status_aktivitas ?? '') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="Cuti" {{ old('status_aktivitas', $mahasiswa->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>Cuti</option>
+                            <select name="status_aktivitas" class="form-select shadow-sm">
+                                <option value="Aktif" {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                                <option value="Cuti" {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Cuti' ? 'selected' : '' }}>Cuti</option>
                             </select>
-                            @error('status_aktivitas') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
+
                     </div>
                 </div>
+            </div>
 
-                {{-- TOMBOL --}}
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <a href="{{ route('mahasiswa.show', $mahasiswa->id) }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
-                        ← Kembali
-                    </a>
-                    <button type="submit" class="btn btn-success text-white fw-semibold px-4 py-2 rounded-pill">
-                        Simpan Perubahan
-                    </button>
-                </div>
-            </form>
-        </div>
+            {{-- Tombol --}}
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ route('mahasiswa.index', $mahasiswa->id) }}" class="btn btn-outline-primary px-4 rounded-pill fw-semibold">
+                    ← Batal
+                </a>
+
+                <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-{{-- CSS --}}
 <style>
-    body { background-color: #f5f6fa; }
-    .form-control, .form-select { border: 1.5px solid #dee2e6; transition: all 0.2s ease-in-out; }
-    .form-control:focus, .form-select:focus { border-color: #2575fc; box-shadow: 0 0 0 0.2rem rgba(37,117,252,.25); }
-    .btn-success:hover { background-color: #2e7d32; transform: translateY(-1px); transition: 0.2s ease-in-out; }
-    .gradient-shadow { box-shadow: 0 10px 30px rgba(106,17,203,.15), 0 20px 50px rgba(37,117,252,.1); }
+    body { background-color: #f0f3f8; }
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #1565c0;
+        box-shadow: 0 0 0 0.25rem rgba(21, 101, 192, 0.2);
+    }
+    .btn-primary {
+        background-color: #1565c0;
+        border: none;
+        transition: 0.2s;
+    }
+    .btn-primary:hover {
+        background-color: #0d47a1;
+        transform: scale(1.02);
+    }
+    .btn-outline-primary:hover {
+        background-color: #1565c0;
+        color: #fff;
+    }
 </style>
 
 @endsection

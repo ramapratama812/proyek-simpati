@@ -12,52 +12,49 @@
 
         {{-- Isi --}}
         <div class="card-body px-5 py-5" style="background-color: #fbfbff;">
-            <div class="row">
-                {{-- Kolom kiri --}}
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Nama</p>
-                        <p class="text-dark mb-0">{{ $dosen->nama }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Email</p>
-                        <p class="text-dark mb-0">{{ $dosen->email }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Nomor HP</p>
-                        <p class="text-dark mb-0">{{ $dosen->nomor_hp ?? '-' }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">NIDN / NIP</p>
-                        <p class="text-dark mb-0">{{ $dosen->nidn ?? $dosen->nip ?? '-' }}</p>
-                    </div>
+            <div class="row align-items-center">
+                    <h5 class="mt-3 fw-bold">{{ $dosen->nama }}</h5>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $dosen->email }}</p>
                 </div>
 
-                {{-- Kolom kanan --}}
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Status Ikatan Kerja</p>
-                        <p class="text-dark mb-0">{{ $dosen->status_ikatan_kerja }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Jenis Kelamin</p>
-                        <p class="text-dark mb-0">{{ $dosen->jenis_kelamin }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Pendidikan Terakhir</p>
-                        <p class="text-dark mb-0">{{ $dosen->pendidikan_terakhir }}</p>
-                    </div>
+                {{-- Kolom kanan (detail biodata) --}}
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">Nomor HP</p>
+                                <p class="text-dark mb-0">{{ $dosen->nomor_hp ?? '-' }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">NIDN / NIP</p>
+                                <p class="text-dark mb-0">{{ $dosen->nidn ?? $dosen->nip ?? '-' }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">Status Ikatan Kerja</p>
+                                <p class="text-dark mb-0">{{ $dosen->status_ikatan_kerja ?? '-' }}</p>
+                            </div>
+                        </div>
 
-                    {{-- Status Aktivitas --}}
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">Status Aktivitas</p>
-                        @if(strtolower($dosen->status_aktivitas) == 'aktif')
-                            <span class="status-badge bg-success">Aktif</span>
-                        @elseif(strtolower($dosen->status_aktivitas) == 'cuti')
-                            <span class="status-badge bg-warning text-dark">Cuti</span>
-                        @else
-                            <span class="status-badge bg-secondary">Tidak Aktif</span>
-                        @endif
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">Jenis Kelamin</p>
+                                <p class="text-dark mb-0">{{ $dosen->jenis_kelamin ?? '-' }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">Pendidikan Terakhir</p>
+                                <p class="text-dark mb-0">{{ $dosen->pendidikan_terakhir ?? '-' }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-muted mb-1">Status Aktivitas</p>
+                                @if(strtolower($dosen->status_aktivitas) == 'aktif')
+                                    <span class="status-badge bg-success">Aktif</span>
+                                @elseif(strtolower($dosen->status_aktivitas) == 'cuti')
+                                    <span class="status-badge bg-warning text-dark">Cuti</span>
+                                @else
+                                    <span class="status-badge bg-secondary">Tidak Aktif</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

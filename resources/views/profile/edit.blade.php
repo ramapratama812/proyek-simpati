@@ -6,11 +6,13 @@
          style="max-width: 1200px; background-color: #ffffff; padding: 3rem 4rem;">
 
         <h3 class="text-center fw-bold mb-2 text-primary">Edit Profil Dosen</h3>
-        <p class="text-center text-muted mb-5" style="font-size: 0.95rem;">
+        <p class="text-center text-muted mb-4" style="font-size: 0.95rem;">
             Perbarui informasi pribadi dan akademik Anda.
         </p>
 
-        {{-- Pastikan route pakai profile.update --}}
+        {{-- ❌ Bagian FOTO dihapus total --}}
+
+        {{-- ✅ Form --}}
         <form action="{{ route('profile.update') }}" method="POST">
             @csrf
             @method('PUT')
@@ -26,7 +28,7 @@
                                    value="{{ old('name', $user->name) }}" required>
                         </div>
 
-                        {{-- Email (non-editable) --}}
+                        {{-- Email --}}
                         <div class="mb-3">
                             <label for="email" class="form-label fw-semibold">Email</label>
                             <input type="email" id="email" class="form-control shadow-sm bg-light"
@@ -47,15 +49,13 @@
                             <input type="text" id="nidn" name="nidn" class="form-control shadow-sm"
                                    value="{{ old('nidn', $dosen->nidn ?? '') }}">
                         </div>
-
-                        {{-- Perguruan Tinggi --}}
-
                     </div>
                 </div>
 
                 {{-- Kolom kanan --}}
                 <div class="col-md-6">
                     <div class="p-4 rounded-3 shadow-sm mb-4" style="background-color: #fafbfc;">
+
                         {{-- Status Ikatan Kerja --}}
                         <div class="mb-3">
                             <label for="status_ikatan_kerja" class="form-label fw-semibold">Status Ikatan Kerja</label>
@@ -87,7 +87,7 @@
                             </select>
                         </div>
 
-                        {{-- Status Aktivitas (enum: Aktif, Tidak Aktif, Cuti) --}}
+                        {{-- Status Aktivitas --}}
                         <div class="mb-3">
                             <label for="status_aktivitas" class="form-label fw-semibold">Status Aktivitas</label>
                             <select id="status_aktivitas" name="status_aktivitas" class="form-select shadow-sm">
@@ -96,9 +96,6 @@
                                 <option value="Cuti" {{ old('status_aktivitas', $dosen->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>Cuti</option>
                             </select>
                         </div>
-
-                        {{-- Program Studi --}}
-
                     </div>
                 </div>
             </div>

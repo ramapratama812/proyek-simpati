@@ -27,8 +27,12 @@ class RegisterController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(['dosen', 'mahasiswa'])],
-            'nidn' => 'nullable|string|max:20', // nambahin nidn biar masuk pas registrasi akun
-            'nim' => 'nullable|string|max:20', // nambahin nidn biar masuk pas registrasi akun
+
+            // ❌ NIDN dihapus total
+            // 'nidn' => 'nullable|string|max:20',
+
+            // hanya mahasiswa yg butuh NIM
+            'nim' => 'nullable|string|max:20',
         ]);
 
         // 🔹 Simpan user baru ke tabel users
@@ -40,12 +44,15 @@ class RegisterController extends Controller
             'role' => $validated['role'],
         ]);
 
-        // 🔹 Jika role-nya dosen, buat juga data dasar di tabel dosens
+        // 🔹 Jika role dosen — simpan data ke tabel dosens
         if ($user->role === 'dosen') {
             Dosen::create([
                 'nama' => $user->name,
                 'email' => $user->email,
-                'nidn' => $validated['nidn'],
+
+                // ❌ tidak ada nidn lagi
+                'nidn' => null,
+
                 'nip' => null,
                 'perguruan_tinggi' => null,
                 'status_ikatan_kerja' => null,
@@ -56,30 +63,20 @@ class RegisterController extends Controller
             ]);
         }
 
-        // metod baru 🔹 Jika role-nya mahasiswa, buat juga data dasar di tabel dosens
-        if ($user->role == 'mahasiswa') {
+        // 🔹 Jika role mahasiswa — simpan data mahasiswa
+        if ($user->role === 'mahasiswa') {
             Mahasiswa::create([
-                'nama'             => $validated['name'],
-                'nim'              => $validated['nim'],
-                'email'            => $validated['email'],
+                'nama'  => $validated['name'],
+                'nim'   => $validated['nim'] ?? null,
+                'email' => $validated['email'],
             ]);
         }
 
-        // 🔹 Login otomatis setelah daftar
+        // 🔹 Login otomatis
         Auth::login($user);
 
-        // 🔹 Arahkan berdasarkan peran
-        if ($user->role === 'dosen') {
-            return redirect()->route('dashboard') // ubah ke route profil dosen kamu
-                ->with('success', 'Pendaftaran berhasil! Silakan lengkapi profil Anda.');
-        }
-
-        if ($user->role === 'mahasiswa') {
-            return redirect()->route('dashboard')
-                ->with('success', 'Pendaftaran berhasil! Selamat datang di SIMPATI.');
-        }
-
-        // Default redirect
-        return redirect()->route('dashboard');
+        // 🔹 Redirect
+        return redirect()->route('dashboard')
+            ->with('success', 'Pendaftaran berhasil! Selamat datang di SIMPATI.');
     }
 }

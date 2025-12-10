@@ -7,11 +7,12 @@ use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
     /**
-     * Tampilkan profil berdasarkan role user yang login.
+     * 🔹 Tampilkan profil berdasarkan role user yang login.
      */
     public function show()
     {
@@ -36,7 +37,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Form edit profil berdasarkan role.
+     * 🔹 Form edit profil berdasarkan role.
      */
     public function edit()
     {
@@ -65,19 +66,20 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update profil berdasarkan role.
+     * 🔹 Update profil berdasarkan role.
      */
     public function update(Request $request)
     {
         $user = Auth::user();
         $role = strtolower($user->role ?? '');
 
-        // 🔹 Validasi umum untuk semua role
+        // ✅ Validasi umum
         $request->validate([
             'name' => 'required|string|max:255',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // update data user (tabel users)
+        // Update tabel users
         $user->update(['name' => $request->input('name')]);
 
         /**
@@ -86,13 +88,27 @@ class ProfileController extends Controller
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email, true);
 
-            // 🔹 Pastikan semua kolom yang sesuai dengan tabel dosens saja
+            // ✅ Upload foto baru
+            if ($request->hasFile('foto')) {
+                // hapus foto lama (kalau ada)
+                if ($dosen->foto && Storage::disk('public')->exists('foto_dosen/' . $dosen->foto)) {
+                    Storage::disk('public')->delete('foto_dosen/' . $dosen->foto);
+                }
+
+                // simpan foto baru ke storage
+                $file = $request->file('foto');
+                $namaFile = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('foto_dosen', $namaFile, 'public');
+                $dosen->foto = $namaFile;
+            }
+
+            // isi kolom lain
             $this->safeFill($dosen, [
                 'nama' => $request->name,
                 'nidn' => $request->nidn,
                 'pendidikan_terakhir' => $request->pendidikan_terakhir,
                 'status_ikatan_kerja' => $request->status_ikatan_kerja,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum: Aktif / Tidak Aktif / Cuti
+                'status_aktivitas' => $request->status_aktivitas,
                 'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
                 'jenis_kelamin' => $request->jenis_kelamin,
             ]);
@@ -112,12 +128,24 @@ class ProfileController extends Controller
          */
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
+
+            if ($request->hasFile('foto')) {
+                if ($mahasiswa->foto && Storage::disk('public')->exists('foto_mahasiswa/' . $mahasiswa->foto)) {
+                    Storage::disk('public')->delete('foto_mahasiswa/' . $mahasiswa->foto);
+                }
+
+                $file = $request->file('foto');
+                $namaFile = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('foto_mahasiswa', $namaFile, 'public');
+                $mahasiswa->foto = $namaFile;
+            }
+
             $this->safeFill($mahasiswa, [
                 'nama' => $request->name,
                 'nim' => $request->nim,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'semester' => $request->semester,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum sama
+                'status_aktivitas' => $request->status_aktivitas,
                 'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
             ]);
 
@@ -135,7 +163,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Hapus akun user & relasi.
+     * 🔹 Hapus akun user & relasi.
      */
     public function destroy()
     {
@@ -144,12 +172,22 @@ class ProfileController extends Controller
 
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
-            if ($dosen) $dosen->delete();
+            if ($dosen) {
+                if ($dosen->foto && Storage::disk('public')->exists('foto_dosen/' . $dosen->foto)) {
+                    Storage::disk('public')->delete('foto_dosen/' . $dosen->foto);
+                }
+                $dosen->delete();
+            }
         }
 
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
-            if ($mahasiswa) $mahasiswa->delete();
+            if ($mahasiswa) {
+                if ($mahasiswa->foto && Storage::disk('public')->exists('foto_mahasiswa/' . $mahasiswa->foto)) {
+                    Storage::disk('public')->delete('foto_mahasiswa/' . $mahasiswa->foto);
+                }
+                $mahasiswa->delete();
+            }
         }
 
         Auth::logout();
@@ -165,8 +203,12 @@ class ProfileController extends Controller
         $table = (new Dosen)->getTable();
         $q = Dosen::query();
 
-        if (Schema::hasColumn($table, 'user_id')) $q->where('user_id', $userId);
-        if (Schema::hasColumn($table, 'email')) $q->orWhere('email', $email);
+        // ✅ pastikan hanya ambil data dosen milik user login
+        if (Schema::hasColumn($table, 'user_id')) {
+            $q->where('user_id', $userId);
+        } elseif (Schema::hasColumn($table, 'email')) {
+            $q->where('email', $email);
+        }
 
         $row = $q->first();
         if (!$row && $createIfMissing) {
@@ -183,8 +225,11 @@ class ProfileController extends Controller
         $table = (new Mahasiswa)->getTable();
         $q = Mahasiswa::query();
 
-        if (Schema::hasColumn($table, 'user_id')) $q->where('user_id', $userId);
-        if (Schema::hasColumn($table, 'email')) $q->orWhere('email', $email);
+        if (Schema::hasColumn($table, 'user_id')) {
+            $q->where('user_id', $userId);
+        } elseif (Schema::hasColumn($table, 'email')) {
+            $q->where('email', $email);
+        }
 
         $row = $q->first();
         if (!$row && $createIfMissing) {

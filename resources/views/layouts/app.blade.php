@@ -1,4 +1,4 @@
-{{-- Layout baru pakai navigasi sidebar plus styling CSS --}}
+{{-- Layout utama dengan sidebar + navbar nama profil --}}
 
 <!doctype html>
 <html lang="id">
@@ -6,16 +6,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SIMPATI</title>
+
+  {{-- ===== Import CSS Bootstrap, Icon, Font ===== --}}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" >
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.css" rel="stylesheet">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       height: 100%;
@@ -32,7 +31,7 @@
     /* ===== Sidebar ===== */
     .sidebar {
       width: 270px;
-      background-color: #001F4D; /* 🔹 Biru tua solid */
+      background-color: #001F4D;
       padding: 35px 24px;
       color: #fff;
       display: flex;
@@ -78,7 +77,6 @@
       transition: all 0.25s ease;
     }
 
-    /* Neon bar kiri menu aktif */
     .sidebar a.active::before {
       content: "";
       position: absolute;
@@ -102,7 +100,7 @@
       font-weight: 600;
     }
 
-    /* ===== Konten ===== */
+    /* ===== Konten utama ===== */
     .content {
       flex: 1;
       display: flex;
@@ -110,6 +108,7 @@
       background-color: #f8f9fa;
     }
 
+    /* ===== Navbar ===== */
     nav.navbar {
       border-bottom: 1px solid #e5e5e5;
       background-color: #ffffff;
@@ -130,7 +129,7 @@
     }
 
     .required-asterisk {
-        color: red;
+      color: red;
     }
 
     /* ===== Responsif ===== */
@@ -143,11 +142,7 @@
         border-radius: 0;
         box-shadow: none;
       }
-
-      .sidebar .logo {
-        display: none;
-      }
-
+      .sidebar .logo { display: none; }
       .sidebar a {
         flex-direction: column;
         font-size: 0.85rem;
@@ -160,7 +155,8 @@
 
 <body>
   <div class="wrapper">
-    <!-- Sidebar -->
+
+    {{-- ===== Sidebar ===== --}}
     @if (!in_array(Route::currentRouteName(), ['login', 'register']))
       <div class="sidebar">
         <div class="logo">
@@ -212,7 +208,7 @@
             @endif
 
           <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-house-door-fill"></i> Dasbor Utama
+            <i class="bi bi-house-door-fill"></i> Dashboard 
           </a>
           <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
             <i class="bi bi-list-task"></i> Kegiatan
@@ -230,22 +226,27 @@
       </div>
     @endif
 
-    <!-- Konten Utama -->
+    {{-- ===== Konten utama ===== --}}
     <div class="content">
+
+      {{-- ===== Navbar ===== --}}
       @if (!in_array(Route::currentRouteName(), ['login', 'register']))
         <nav class="navbar navbar-expand-lg sticky-top">
           <div class="container-fluid d-flex justify-content-end">
             @auth
               <ul class="navbar-nav">
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" id="navbarDropdown"
-                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ Auth::user()->name }}
+                  {{-- 🔹 Nama pengguna di navbar --}}
+                  <a class="nav-link dropdown-toggle fw-semibold text-dark"
+                     href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-2"></i> {{ Auth::user()->name }}
                   </a>
+
+                  {{-- 🔹 Dropdown menu --}}
                   <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0" aria-labelledby="navbarDropdown">
                     <li>
                       <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
-                        <i class="bi bi-person-circle me-2"></i> Lihat Profil
+                        <i class="bi bi-person-lines-fill me-2"></i> Lihat Profil
                       </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
@@ -265,17 +266,17 @@
         </nav>
       @endif
 
+      {{-- ===== Area konten ===== --}}
       <main>
         @yield('content')
       </main>
 
-      {{-- Buat masukin script --}}
+      {{-- ===== Script ===== --}}
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-      @stack('scripts')
-
-      @yield('scripts')
       <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
+      @stack('scripts')
+      @yield('scripts')
     </div>
   </div>
 </body>
