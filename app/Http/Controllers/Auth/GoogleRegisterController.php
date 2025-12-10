@@ -32,21 +32,39 @@ class GoogleRegisterController extends Controller
             return redirect()->route('login')->with('error', 'Sesi login Google tidak ditemukan.');
         }
 
+        // role sudah ditentukan dari proses Google sebelumnya
+        $role = $googleData['role'] ?? null;
+
         $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username',
-            'password' => 'required|string|min:8|confirmed',
-            'identity' => 'required|string|max:50|unique:registration_requests,identity',
+            'username' => [
+                'required', 'string', 'max:50',
+                'unique:users,username',
+                'unique:registration_requests,username',
+            ],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+
+            // tetap satu field "identity", isinya NIM atau NIDN/NIP tergantung role
+            'identity' => [
+                'required', 'string', 'max:50',
+                'unique:registration_requests,identity',
+            ],
+
+            // SINTA ID opsional (relevan kalau role = dosen)
+            'sinta_id' => ['nullable', 'string', 'max:50'],
         ]);
 
+        $sintaId = ($role === 'dosen') ? ($validated['sinta_id'] ?? null) : null;
+
         $req = RegistrationRequest::create([
-            'name'     => $googleData['name'],
-            'email'    => $googleData['email'],
-            'role'     => $googleData['role'],
-            'identity' => $validated['identity'],
-            'username' => $validated['username'],
-            'password' => Hash::make($validated['password']),
-            'status'   => 'pending',
+            'name'      => $googleData['name'],
+            'email'     => $googleData['email'],
+            'role'      => $role,
+            'identity'  => $validated['identity'],     // NIM / NIDN/NIP
+            'username'  => $validated['username'],
+            'password'  => Hash::make($validated['password']),
+            'status'    => 'pending',
             'google_id' => $googleData['google_id'] ?? null,
+            'sinta_id'  => $sintaId,                    // <—— disimpan juga di sini
         ]);
 
         // Kirim email ke admin

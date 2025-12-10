@@ -96,6 +96,22 @@
       @error('nidn')<small class="text-danger">{{ $message }}</small>@enderror
     </div>
 
+    {{-- form tambah SINTA ID jika dosen --}}
+    <div class="mb-3" id="sinta-field" style="display: none;">
+        <label for="sinta_id" class="form-label">SINTA ID (opsional)</label>
+        <input type="text"
+               name="sinta_id"
+               id="sinta_id"
+               value="{{ old('sinta_id') }}"
+               class="form-control @error('sinta_id') is-invalid @enderror">
+        <div class="form-text">
+            Masukkan ID author SINTA jika sudah memiliki akun SINTA.
+        </div>
+        @error('sinta_id')
+            <span class="invalid-feedback">{{ $message }}</span>
+        @enderror
+    </div>
+
     {{-- Tombol --}}
     <button class="btn w-100 py-2 fw-semibold text-white"
             style="background: linear-gradient(90deg, #007bff, #0056d2); border: none; border-radius: 10px;">
@@ -155,5 +171,24 @@ function toggleVisibility(inputId, iconId) {
         icon.classList.add('bi-eye-slash');
     }
 }
+
+// Tampilkan atau sembunyikan field SINTA ID berdasarkan pilihan role
+function toggleSintaField() {
+    const roleSelect = document.querySelector('select[name="role"]');
+    const sintaField = document.getElementById('sinta-field');
+
+    if (!roleSelect || !sintaField) return;
+
+    const role = roleSelect.value;
+    sintaField.style.display = (role === 'dosen') ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const roleSelect = document.querySelector('select[name="role"]');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', toggleSintaField);
+        toggleSintaField();
+    }
+});
 </script>
 @endsection

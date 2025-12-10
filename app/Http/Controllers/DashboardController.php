@@ -17,102 +17,120 @@ class DashboardController extends Controller
         $user = auth()->user();
         $role = strtolower($user->role ?? '');
 
-        // Inisialisasi default supaya aman dipakai di view,
-        // terutama untuk role mahasiswa (biar nggak undefined variable).
-        $totalKegiatan         = 0;
-        $totalPublikasi        = 0;
-        $pendingValidation     = 0;
-        $needRevision          = 0;
-        $activityByYear        = collect();
-        $publicationByYear     = collect();
-        $kegiatanSayaKetua     = collect();
+        // Inisialisasi default supaya aman dipakai di view
+        $totalKegiatan          = 0;
+        $totalPublikasi         = 0;
+        $pendingValidation      = 0;
+        $needRevision           = 0;
+        $pubPending             = 0;
+        $pubNeedRevision        = 0;
+        $activityByYear         = collect();
+        $publicationByYear      = collect();
+        $kegiatanSayaKetua      = collect();
         $kegiatanSebagaiAnggota = collect();
-        $publikasiSaya         = collect();
+        $publikasiSaya          = collect();
+
+        // Flag peringatan profil belum lengkap (Dosen/Mahasiswa)
+        $needsProfile = false;
 
         // =========================
         // ROLE MAHASISWA
         // =========================
         if ($role === 'mahasiswa') {
 
-            // Mahasiswa HANYA boleh melihat kegiatan yang diikuti sebagai anggota
-            $kegiatanSebagaiAnggota = ResearchProject::whereHas('members', function ($q) use ($user) {
+            // Cek apakah sudah punya record di tabel mahasiswa
+            if (\Schema::hasTable((new \App\Models\Mahasiswa)->getTable())) {
+                $needsProfile = ! \App\Models\Mahasiswa::where('user_id', $user->id)->exists();
+            }
+
+            // Mahasiswa hanya melihat kegiatan yang diikuti sebagai anggota
+            $kegiatanSebagaiAnggota = \App\Models\ResearchProject::whereHas('members', function ($q) use ($user) {
                     $q->where('users.id', $user->id);
                 })
                 ->latest()
                 ->take(5)
                 ->get();
 
-            // Catatan:
-            // - totalKegiatan, totalPublikasi, pendingValidation, needRevision, dst
-            //   sengaja dibiarkan 0/kosong karena di dashboard nanti tidak akan ditampilkan
-            //   untuk role mahasiswa.
+            // Statistik lain & validasi publikasi dibiarkan default (0),
+            // karena memang tidak ditampilkan/dianggap relevan untuk mahasiswa.
         }
+
         // =========================
-        // ROLE SELAIN MAHASISWA (DOSEN/ADMIN)
+        // ROLE DOSEN / ADMIN / LAINNYA
         // =========================
         else {
 
-            // Fokus: tampilan dosen/admin (logika asli kamu dipertahankan)
-            $totalKegiatan = ResearchProject::where(function ($q) use ($user) {
+            // Kalau role dosen → cek profil dosen
+            if ($role === 'dosen' && \Schema::hasTable((new \App\Models\Dosen)->getTable())) {
+                $needsProfile = ! \App\Models\Dosen::where('user_id', $user->id)->exists();
+            }
+
+            // Fokus: tampilan dosen/admin
+            $totalKegiatan = \App\Models\ResearchProject::where(function ($q) use ($user) {
                     $q->where('ketua_id', $user->id)
-                      ->orWhere('created_by', $user->id)
-                      ->orWhereHas('members', function ($qq) use ($user) {
-                          $qq->where('users.id', $user->id);
-                      });
+                    ->orWhere('created_by', $user->id)
+                    ->orWhereHas('members', function ($qq) use ($user) {
+                        $qq->where('users.id', $user->id);
+                    });
                 })->count();
 
-            $totalPublikasi = Publication::where('owner_id', $user->id)->count();
+            $totalPublikasi = \App\Models\Publication::where('owner_id', $user->id)->count();
 
             // Validasi kegiatan
-            $pendingValidation = ResearchProject::where('ketua_id', $user->id)
+            $pendingValidation = \App\Models\ResearchProject::where('ketua_id', $user->id)
                 ->where('validation_status', 'pending')
                 ->count();
-            $needRevision = ResearchProject::where('ketua_id', $user->id)
+
+            $needRevision = \App\Models\ResearchProject::where('ketua_id', $user->id)
                 ->where('validation_status', 'revision_requested')
                 ->count();
 
             // Validasi publikasi
-            $pubPending = Publication::where('owner_id', $user->id ?? null)
+            $pubPending = \App\Models\Publication::where('owner_id', $user->id)
                 ->where('validation_status', 'pending')
                 ->count();
-            $pubNeedRevision = Publication::where('owner_id', $user->id ?? null)
+
+            $pubNeedRevision = \App\Models\Publication::where('owner_id', $user->id)
                 ->where('validation_status', 'revision_requested')
                 ->count();
 
-            $activityByYear = ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, COUNT(*) as total')
+            // Grafik kegiatan per tahun
+            $activityByYear = \App\Models\ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, COUNT(*) as total')
                 ->where(function ($q) use ($user) {
                     $q->where('ketua_id', $user->id)
-                      ->orWhere('created_by', $user->id)
-                      ->orWhereHas('members', function ($qq) use ($user) {
-                          $qq->where('users.id', $user->id);
-                      });
+                    ->orWhere('created_by', $user->id)
+                    ->orWhereHas('members', function ($qq) use ($user) {
+                        $qq->where('users.id', $user->id);
+                    });
                 })
                 ->whereNotNull('tahun_usulan')
                 ->groupBy('tahun')
                 ->orderBy('tahun')
                 ->get();
 
-            $publicationByYear = Publication::selectRaw('tahun, COUNT(*) as total')
+            // Grafik publikasi per tahun
+            $publicationByYear = \App\Models\Publication::selectRaw('tahun, COUNT(*) as total')
                 ->where('owner_id', $user->id)
                 ->whereNotNull('tahun')
                 ->groupBy('tahun')
                 ->orderBy('tahun')
                 ->get();
 
-            $kegiatanSayaKetua = ResearchProject::where('ketua_id', $user->id)
+            // List kegiatan & publikasi terbaru
+            $kegiatanSayaKetua = \App\Models\ResearchProject::where('ketua_id', $user->id)
                 ->latest()->take(5)->get();
 
-            $kegiatanSebagaiAnggota = ResearchProject::whereHas('members', function ($q) use ($user) {
+            $kegiatanSebagaiAnggota = \App\Models\ResearchProject::whereHas('members', function ($q) use ($user) {
                     $q->where('users.id', $user->id);
                 })
                 ->latest()->take(5)->get();
 
-            $publikasiSaya = Publication::where('owner_id', $user->id)
+            $publikasiSaya = \App\Models\Publication::where('owner_id', $user->id)
                 ->latest()->take(5)->get();
         }
 
         // NOTIFIKASI → tetap dipakai semua role
-        $notifications = UserNotification::where('user_id', $user->id)
+        $notifications = \App\Models\UserNotification::where('user_id', $user->id)
             ->latest()
             ->take(10)
             ->get();
@@ -129,7 +147,9 @@ class DashboardController extends Controller
             'publikasiSaya',
             'notifications',
             'pubPending',
-            'pubNeedRevision'
+            'pubNeedRevision',
+            'role',
+            'needsProfile'
         ));
     }
 

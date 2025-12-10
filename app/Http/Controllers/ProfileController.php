@@ -73,28 +73,36 @@ class ProfileController extends Controller
         $role = strtolower($user->role ?? '');
 
         // 🔹 Validasi umum untuk semua role
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-        ]);
+        ];
 
-        // update data user (tabel users)
-        $user->update(['name' => $request->input('name')]);
+        // khusus dosen, izinkan sinta_id
+        if ($role === 'dosen') {
+            $rules['sinta_id'] = 'nullable|string|max:50';
+        }
 
-        /**
-         * ====================== UNTUK DOSEN ======================
-         */
+        $request->validate($rules);
+
+        // Siapkan data user untuk update
+        $userData = [
+            'name' => $request->input('name'),
+        ];
+
+        // ====================== UNTUK DOSEN ======================
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email, true);
 
             // 🔹 Pastikan semua kolom yang sesuai dengan tabel dosens saja
             $this->safeFill($dosen, [
-                'nama' => $request->name,
-                'nidn' => $request->nidn,
-                'pendidikan_terakhir' => $request->pendidikan_terakhir,
-                'status_ikatan_kerja' => $request->status_ikatan_kerja,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum: Aktif / Tidak Aktif / Cuti
-                'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
-                'jenis_kelamin' => $request->jenis_kelamin,
+                'nama'                 => $request->name,
+                'nidn'                 => $request->nidn,
+                'pendidikan_terakhir'  => $request->pendidikan_terakhir,
+                'status_ikatan_kerja'  => $request->status_ikatan_kerja,
+                'status_aktivitas'     => $request->status_aktivitas,
+                'nomor_hp'             => $request->nomor_hp ?? $request->no_hp,
+                'jenis_kelamin'        => $request->jenis_kelamin,
+                'sinta_id'             => $request->sinta_id,   // ⬅️ tambahin ini
             ]);
 
             if (Schema::hasColumn($dosen->getTable(), 'email')) {
@@ -105,20 +113,24 @@ class ProfileController extends Controller
             }
 
             $dosen->save();
+
+            // 🔹 Sinkronkan juga ke tabel users kalau ada kolom sinta_id
+            if (Schema::hasColumn($user->getTable(), 'sinta_id')) {
+                $userData['sinta_id'] = $request->sinta_id;
+            }
         }
 
-        /**
-         * ====================== UNTUK MAHASISWA ======================
-         */
+        // ====================== UNTUK MAHASISWA ======================
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
+
             $this->safeFill($mahasiswa, [
-                'nama' => $request->name,
-                'nim' => $request->nim,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'semester' => $request->semester,
-                'status_aktivitas' => $request->status_aktivitas, // ✅ enum sama
-                'nomor_hp' => $request->nomor_hp ?? $request->no_hp,
+                'nama'            => $request->name,
+                'nim'             => $request->nim,
+                'jenis_kelamin'   => $request->jenis_kelamin,
+                'semester'        => $request->semester,
+                'status_aktivitas'=> $request->status_aktivitas,
+                'nomor_hp'        => $request->nomor_hp ?? $request->no_hp,
             ]);
 
             if (Schema::hasColumn($mahasiswa->getTable(), 'user_id')) {
@@ -131,8 +143,12 @@ class ProfileController extends Controller
             $mahasiswa->save();
         }
 
+        // 🔹 Terakhir, update data user (tabel users) sekali saja
+        $user->update($userData);
+
         return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
     }
+
 
     /**
      * Hapus akun user & relasi.

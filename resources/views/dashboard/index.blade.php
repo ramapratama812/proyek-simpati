@@ -2,6 +2,16 @@
 
 @section('content')
 <div class="container">
+
+  @if($needsProfile)
+    <div class="alert alert-warning">
+        Profil {{ $role === 'dosen' ? 'dosen' : 'mahasiswa' }} Anda belum lengkap.
+        Silakan lengkapi data di menu
+        <a href="{{ route('profile.edit') }}" class="alert-link">Edit Profil</a>
+        agar semua fitur SIMPATI dapat digunakan.
+    </div>
+  @endif
+
   <h4 class="mb-3">Dasbor Utama</h4>
 
   @if($pendingValidation > 0 || $needRevision > 0)

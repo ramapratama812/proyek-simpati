@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
-// Mail notifikasi yang sudah kita pakai di flow permohonan
 use App\Mail\NewRegistrationRequestMail;
 use App\Mail\RegistrationReceivedMail;
 
@@ -23,39 +22,32 @@ class RegisterController extends Controller
 
     public function store(Request $request)
     {
-        // 🔹 Validasi input form register lama
+        // 🔹 Validasi input form register
         $validated = $request->validate([
-            'name'                  => [
-                'required', 'string', 'max:255'
-            ],
-            'username'              => [
+            'name'     => ['required', 'string', 'max:255'],
+            'username' => [
                 'required', 'string', 'max:255',
                 'unique:users,username',
                 'unique:registration_requests,username',
             ],
-            'email'                 => [
+            'email'    => [
                 'required', 'email', 'max:255',
                 'unique:users,email',
                 'unique:registration_requests,email',
             ],
-            'password'              => [
-                'required', 'string', 'min:8', 'confirmed'
-            ],
-            'role'                  => [
-                'required', Rule::in(['dosen', 'mahasiswa'])
-            ],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role'     => ['required', Rule::in(['dosen', 'mahasiswa'])],
 
             // NIM / NIDN-NIP, wajib tergantung role
-            'nidn'                  => [
-                'nullable', 'string', 'max:20', 'required_if:role,dosen'
-            ],
-            'nim'                   => [
-                'nullable', 'string', 'max:20', 'required_if:role,mahasiswa'
-            ],
-            ], [
-                'nidn.required_if'      => 'NIDN/NIP wajib diisi untuk dosen.',
-                'nim.required_if'       => 'NIM wajib diisi untuk mahasiswa.',
-            ]);
+            'nidn'     => ['nullable', 'string', 'max:20', 'required_if:role,dosen'],
+            'nim'      => ['nullable', 'string', 'max:20', 'required_if:role,mahasiswa'],
+
+            // SINTA ID opsional, hanya relevan untuk dosen
+            'sinta_id' => ['nullable', 'string', 'max:50'],
+        ], [
+            'nidn.required_if' => 'NIDN/NIP wajib diisi untuk dosen.',
+            'nim.required_if'  => 'NIM wajib diisi untuk mahasiswa.',
+        ]);
 
         // 🔹 Satukan NIM / NIDN ke satu field "identity"
         $identity = $validated['role'] === 'mahasiswa'
@@ -73,6 +65,11 @@ class RegisterController extends Controller
                 ->withInput();
         }
 
+        // 🔹 Normalisasi sinta_id: hanya dosen yang boleh isi, lainnya dibuat null
+        $sintaId = $validated['role'] === 'dosen'
+            ? ($validated['sinta_id'] ?? null)
+            : null;
+
         // 🔹 Simpan sebagai permohonan pendaftaran (BUKAN langsung buat user)
         $req = RegistrationRequest::create([
             'name'      => $validated['name'],
@@ -84,6 +81,7 @@ class RegisterController extends Controller
             'status'    => 'pending',
             'note'      => null,
             'google_id' => null,
+            'sinta_id'  => $sintaId,                           // <—— ini poinnya
         ]);
 
         // 🔹 Kirim email ke semua admin (notifikasi permohonan baru)

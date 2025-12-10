@@ -14,6 +14,7 @@ class RegistrationRequest extends Model
         'note',
         'username',
         'identity',
+        'sinta_id',
         'password',
         'google_id',
 

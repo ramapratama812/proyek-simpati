@@ -76,6 +76,11 @@
                         @endif
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="text-muted d-block">SINTA ID</label>
+                    <span class="fw-semibold">{{ auth()->user()->dosen->sinta_id ?? '-' }}</span>
+                </div>
             </div>
 
             <hr class="my-4">

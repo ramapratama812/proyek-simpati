@@ -101,6 +101,21 @@
 
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label for="sinta_id" class="form-label">SINTA ID</label>
+                    <input type="text"
+                           name="sinta_id"
+                           id="sinta_id"
+                           value="{{ old('sinta_id', optional($dosen)->sinta_id ?? $user->sinta_id) }}"
+                           class="form-control @error('sinta_id') is-invalid @enderror">
+                    <div class="form-text">
+                        Opsional, digunakan untuk integrasi penilaian dosen berprestasi.
+                    </div>
+                    @error('sinta_id')
+                        <span class="invalid-feedback">{{ $message }}</span>
+                    @enderror
+                </div>
             </div>
 
             {{-- Tombol --}}

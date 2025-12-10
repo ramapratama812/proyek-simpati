@@ -71,17 +71,34 @@ class RegistrationRequestController extends Controller
             return back()->with('error', 'Permohonan ini sudah diproses sebelumnya.');
         }
 
+        $role     = $registrationRequest->role;
+        $identity = $registrationRequest->identity;
+
         // Buat / update user
         $user = User::firstOrCreate(
             ['email' => strtolower($registrationRequest->email)],
             [
                 'name'      => $registrationRequest->name,
                 'username'  => Str::before($registrationRequest->email, '@'),
-                'password'  => bcrypt(Str::random(12)), // bisa diganti strategi lain
+                'password'  => $registrationRequest->password, // bisa diganti strategi lain: 'bcrypt(Str::random(12))'
                 'role'      => $registrationRequest->role,
                 'status'    => 'active',
+                'nim'       => null,
+                'nidn'      => null,
+                'sinta_id'  => null,
             ]
         );
+
+        if ($role === 'mahasiswa') {
+            // identity = NIM
+            $userData['nim'] = $identity;
+        } elseif ($role === 'dosen') {
+            // identity = NIDN/NIP
+            $userData['nidn']     = $identity;
+            $userData['sinta_id'] = $registrationRequest->sinta_id; // <-- bawa SINTA ID ke tabel users
+        }
+
+        $user = User::create($userData);
 
         // Tandai request sebagai approved
         $registrationRequest->status = 'approved';
