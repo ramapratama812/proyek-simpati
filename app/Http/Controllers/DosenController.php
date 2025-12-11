@@ -27,7 +27,7 @@ class DosenController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nidn', 'like', "%{$search}%");
+                    ->orWhere('nidn', 'like', "%{$search}%");
 
                 if (Schema::hasColumn('dosens', 'nip')) {
                     $q->orWhere('nip', 'like', "%{$search}%");
@@ -54,11 +54,17 @@ class DosenController extends Controller
     }
 
     /**
-     * 🔹 Menampilkan detail dosen
+     * 🔹 Menampilkan detail dosen (versi upgrade: eager load relasi)
      */
     public function show($id)
     {
-        $dosen = Dosen::findOrFail($id);
+        // Sesuai commit temanmu: load relasi terkait supaya view detail gak n+1
+        $dosen = Dosen::with([
+            'kegiatanDiketuai',
+            'anggotaProyek.project',
+            'publikasi',
+        ])->findOrFail($id);
+
         return view('dosen.show', compact('dosen'));
     }
 
@@ -84,6 +90,9 @@ class DosenController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'pendidikan_terakhir' => 'nullable|string|max:50',
             'status_aktivitas' => 'nullable|string|max:20',
+            // Tambahan biar sejalan sama update()
+            'link_pddikti' => 'nullable|url|max:255',
+            'sinta_id' => 'nullable|string|max:50',
         ]);
 
         // 🔸 Pastikan kolom status_aktivitas tidak null
@@ -93,7 +102,7 @@ class DosenController extends Controller
 
         // 🔸 Filter hanya kolom yang ada di tabel
         $columns = Schema::getColumnListing('dosens');
-        $data = array_filter($validated, fn($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
+        $data = array_filter($validated, fn ($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
 
         // 🔹 Simpan ke database
         Dosen::create($data);
@@ -126,6 +135,9 @@ class DosenController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'pendidikan_terakhir' => 'nullable|string|max:50',
             'status_aktivitas' => 'nullable|string|max:20',
+            // Tambahan dari commit temanmu:
+            'link_pddikti' => 'nullable|url|max:255',
+            'sinta_id' => 'nullable|string|max:50',
         ]);
 
         // Default kalau tidak diisi
@@ -134,7 +146,7 @@ class DosenController extends Controller
         }
 
         $columns = Schema::getColumnListing('dosens');
-        $data = array_filter($validated, fn($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
+        $data = array_filter($validated, fn ($key) => in_array($key, $columns), ARRAY_FILTER_USE_KEY);
 
         $dosen->update($data);
 
