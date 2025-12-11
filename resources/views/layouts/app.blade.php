@@ -434,8 +434,19 @@
                         <div class="d-flex justify-content-end w-100">
                             @auth
                                 @php
-                                    // Kalau controller tidak mengirim $notifications, pakai array kosong
-                                    $notifItems = $notifications ?? [];
+                                    // Pastikan selalu jadi Collection supaya gampang diolah
+                                    $notifItems = $notifications ?? collect();
+
+                                    if (is_array($notifItems)) {
+                                        $notifItems = collect($notifItems);
+                                    }
+
+                                    // Hitung jumlah notif yang BELUM dibaca (read_at = null)
+                                    $unreadNotificationCount =
+                                        $unreadNotificationCount ??
+                                        (method_exists($notifItems, 'where')
+                                            ? $notifItems->where('read_at', null)->count()
+                                            : 0);
                                 @endphp
 
                                 <ul class="navbar-nav align-items-center">
@@ -444,10 +455,11 @@
                                         <a class="nav-link position-relative" href="#" id="notifDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-bell fs-5"></i>
-                                            @if (count($notifItems))
+
+                                            @if ($unreadNotificationCount > 0)
                                                 <span
                                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                    {{ count($notifItems) }}
+                                                    {{ $unreadNotificationCount }}
                                                 </span>
                                             @endif
                                         </a>
@@ -455,18 +467,68 @@
                                         <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0"
                                             aria-labelledby="notifDropdown"
                                             style="min-width: 360px; max-height: 420px; overflow-y: auto;">
-                                            <div class="px-3 py-2 border-bottom">
+                                            <div
+                                                class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
                                                 <strong>Notifikasi Terbaru</strong>
+                                                @if ($unreadNotificationCount > 0)
+                                                    <span class="badge bg-danger small">
+                                                        {{ $unreadNotificationCount }} belum dibaca
+                                                    </span>
+                                                @endif
                                             </div>
 
-                                            @if (count($notifItems))
+                                            @if ($notifItems->count())
                                                 @foreach ($notifItems as $item)
-                                                    <div class="dropdown-item small">
+                                                    @php
+                                                        // Item bisa berupa array atau model UserNotification
+                                                        $message = $item['message'] ?? ($item->message ?? '-');
+                                                        $created =
+                                                            $item['time'] ??
+                                                            (isset($item->created_at)
+                                                                ? $item->created_at->format('d M Y H:i')
+                                                                : '');
+                                                        $isRead = !empty($item['read_at'] ?? ($item->read_at ?? null));
+                                                    @endphp
+
+                                                    <div class="dropdown-item small {{ $isRead ? 'bg-light' : '' }}">
                                                         <div class="fw-semibold mb-1" style="white-space: normal;">
-                                                            {{ $item['message'] ?? ($item->message ?? '-') }}
+                                                            {{ $message }}
                                                         </div>
-                                                        <div class="text-muted" style="font-size: 0.75rem;">
-                                                            {{ $item['time'] ?? ($item->created_at ?? null ? $item->created_at->format('d M Y H:i') : '') }}
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="text-muted" style="font-size: 0.75rem;">
+                                                                {{ $created }}
+                                                            </span>
+
+                                                            {{-- Tombol tandai dibaca / belum dibaca hanya kalau ini instance model --}}
+                                                            @if ($item instanceof \App\Models\UserNotification)
+                                                                <div class="ms-2">
+                                                                    @if (!$isRead)
+                                                                        <form
+                                                                            action="{{ route('notifications.mark_read', $item) }}"
+                                                                            method="POST" class="d-inline">
+                                                                            @csrf
+                                                                            <button type="submit"
+                                                                                class="btn btn-link btn-sm p-0 text-decoration-none text-primary"
+                                                                                data-bs-toggle="tooltip"
+                                                                                title="Tandai telah dibaca">
+                                                                                <i class="bi bi-envelope-check fs-5"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    @else
+                                                                        <form
+                                                                            action="{{ route('notifications.mark_unread', $item) }}"
+                                                                            method="POST" class="d-inline">
+                                                                            @csrf
+                                                                            <button type="submit"
+                                                                                class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
+                                                                                data-bs-toggle="tooltip"
+                                                                                title="Tandai belum dibaca">
+                                                                                <i class="bi bi-envelope fs-5"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                     <div class="dropdown-divider m-0"></div>
@@ -478,36 +540,37 @@
                                             @endif
                                         </div>
                                     </li>
+                                </ul>
 
-                                    {{-- Dropdown profil --}}
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#"
-                                            id="profileDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            {{ Auth::user()->name }}
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
-                                            aria-labelledby="profileDropdown">
-                                            <li>
-                                                <a class="dropdown-item d-flex align-items-center"
-                                                    href="{{ route('profile.show') }}">
-                                                    <i class="bi bi-person-circle me-2"></i> Lihat Profil
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <form action="{{ route('logout') }}" method="POST" class="m-0">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="dropdown-item d-flex align-items-center text-danger">
-                                                        <i class="bi bi-box-arrow-right me-2"></i> Keluar
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </li>
+                                {{-- Dropdown profil --}}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#"
+                                        id="profileDropdown" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        {{ Auth::user()->name }}
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
+                                        aria-labelledby="profileDropdown">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center"
+                                                href="{{ route('profile.show') }}">
+                                                <i class="bi bi-person-circle me-2"></i> Lihat Profil
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="dropdown-item d-flex align-items-center text-danger">
+                                                    <i class="bi bi-box-arrow-right me-2"></i> Keluar
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
                                 </ul>
                             @endauth
                         </div>
@@ -579,6 +642,12 @@
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const backToTopBtn = document.getElementById('backToTop');
             const wrapper = document.querySelector('.wrapper');
+
+            // Initialize Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
 
             // --- Sidebar Toggle Logic ---
 

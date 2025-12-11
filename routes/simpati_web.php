@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DosenPrestasiController;
 use App\Http\Controllers\ResearchProjectController;
 use App\Http\Controllers\DosenBerprestasiController;
+use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\AhpCriteriaComparisonController;
 use App\Http\Controllers\Admin\PublicationValidationController;
 
@@ -128,6 +129,10 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/', 'destroy')->name('destroy'); // Hapus akun
         });
 
+    // ==================================================
+    // 🔹 TPK Dosen Berprestasi
+    // ==================================================
+
     Route::middleware(['auth'])->group(function () {
         Route::post('/ahp/kriteria/hitung', [AhpController::class, 'hitungKriteria'])
             ->name('ahp.kriteria.hitung');
@@ -152,5 +157,17 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/tpk/dosen-berprestasi/sync-sinta', [DosenBerprestasiController::class, 'syncSinta'])
             ->name('tpk.dosen_berprestasi.sync_sinta');
+        });
+
+    // ==================================================
+    // 🔹 Notifikasi Sistem
+    // ==================================================
+
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/notifications/{notification}/read',   [UserNotificationController::class, 'markRead'])
+            ->name('notifications.mark_read');
+
+        Route::post('/notifications/{notification}/unread', [UserNotificationController::class, 'markUnread'])
+            ->name('notifications.mark_unread');
         });
 });

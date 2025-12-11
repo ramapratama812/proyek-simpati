@@ -130,10 +130,14 @@ class DashboardController extends Controller
         }
 
         // NOTIFIKASI → tetap dipakai semua role
-        $notifications = \App\Models\UserNotification::where('user_id', $user->id)
+        $notifications = UserNotification::where('user_id', $user->id)
             ->latest()
             ->take(10)
             ->get();
+
+        $unreadNotificationCount = UserNotification::where('user_id', $user->id)
+            ->unread()
+            ->count();
 
         return view('dashboard.index', compact(
             'totalKegiatan',
@@ -146,6 +150,7 @@ class DashboardController extends Controller
             'kegiatanSebagaiAnggota',
             'publikasiSaya',
             'notifications',
+            'unreadNotificationCount',
             'pubPending',
             'pubNeedRevision',
             'role',
