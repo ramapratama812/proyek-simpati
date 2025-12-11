@@ -58,7 +58,13 @@ class DosenController extends Controller
      */
     public function show($id)
     {
-        $dosen = Dosen::findOrFail($id);
+        // Eager load relasi yang diperlukan
+        $dosen = Dosen::with([
+            'kegiatanDiketuai',
+            'anggotaProyek.project',
+            'publikasi'
+        ])->findOrFail($id);
+
         return view('dosen.show', compact('dosen'));
     }
 
@@ -126,6 +132,8 @@ class DosenController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'pendidikan_terakhir' => 'nullable|string|max:50',
             'status_aktivitas' => 'nullable|string|max:20',
+            'link_pddikti' => 'nullable|url|max:255',
+            'sinta_id' => 'nullable|string|max:50',
         ]);
 
         // Default kalau tidak diisi
