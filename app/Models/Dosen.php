@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dosen extends Model
 {
@@ -39,3 +41,18 @@ class Dosen extends Model
         return $this->hasMany(DosenPerformanceMetric::class);
     }
 }
+public function kegiatanDiketuai(): HasMany
+    {
+      
+        return $this->hasMany(ResearchProject::class, 'ketua_id', 'user_id'); 
+    }
+
+    public function anggotaProyek(): HasMany
+    {
+        return $this->hasMany(ProjectMember::class, 'user_id', 'user_id');
+    }
+ public function publikasi()
+{
+    return $this->hasMany(Publication::class, 'owner_id', 'user_id');
+}
+
