@@ -51,7 +51,6 @@ Route::middleware(['auth'])->group(function () {
 
     // --- Dosen ---
     Route::resource('dosen', DosenController::class);
-    Route::resource('dosen-prestasi', DosenPrestasiController::class);
 
     // --- Mahasiswa ---
     // Note: Route custom harus diletakkan SEBELUM Route::resource agar tidak tertimpa oleh {id}
@@ -62,7 +61,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'updateProfile'])
     ->name('mahasiswa.update');
 
-
     // ==================================================
     // 🔹 Kegiatan & Publikasi (Dosen)
     // ==================================================
@@ -70,6 +68,9 @@ Route::middleware(['auth'])->group(function () {
     // Halaman "Milik Saya"
     Route::get('/kegiatan/kelola', [ResearchProjectController::class, 'myProjects'])->name('projects.my');
     Route::get('/publikasi/kelola', [PublicationController::class, 'myPublications'])->name('publications.my');
+
+    // Get detail publikasi untuk detail profile dosen
+    Route::get('/publikasi/{id}', [PublicationController::class, 'show'])->name('publikasi.show');
 
     // CRUD Utama
     Route::resource('projects', ResearchProjectController::class);
