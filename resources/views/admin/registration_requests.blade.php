@@ -49,6 +49,7 @@
                     <th>Nama</th>
                     <th>Email</th>
                     <th style="white-space:nowrap;">NIM / NIDN-NIP</th>
+                    <th style="white-space:nowrap;">SINTA ID</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Catatan</th>
@@ -63,6 +64,7 @@
                     <td>{{ $req->name }}</td>
                     <td>{{ $req->email }}</td>
                     <td>{{ $req->identity }}</td>
+                    <td>{{ $req->sinta_id }}</td>
                     <td>{{ ucfirst($req->role) }}</td>
                     <td>{{ strtoupper($req->status) }}</td>
                     <td style="max-width:280px;">

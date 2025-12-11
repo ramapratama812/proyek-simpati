@@ -45,7 +45,7 @@
                         <div class="mb-3">
                             <label for="nidn" class="form-label fw-semibold">NIDN / NIP</label>
                             <input type="text" id="nidn" name="nidn" class="form-control shadow-sm"
-                                   value="{{ old('nidn', $dosen->nidn ?? '') }}">
+                                   value="{{ old('nidn', $dosen->nidn ?? $user->nidn ?? '') }}">
                         </div>
 
                         {{-- Perguruan Tinggi --}}

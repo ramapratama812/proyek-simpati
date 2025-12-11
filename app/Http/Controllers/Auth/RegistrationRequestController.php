@@ -74,49 +74,52 @@ class RegistrationRequestController extends Controller
         $role     = $registrationRequest->role;
         $identity = $registrationRequest->identity;
 
-        // Buat / update user
+        // 1) Buat / ambil user berdasarkan email
         $user = User::firstOrCreate(
             ['email' => strtolower($registrationRequest->email)],
             [
-                'name'      => $registrationRequest->name,
-                'username'  => Str::before($registrationRequest->email, '@'),
-                'password'  => $registrationRequest->password, // bisa diganti strategi lain: 'bcrypt(Str::random(12))'
-                'role'      => $registrationRequest->role,
-                'status'    => 'active',
-                'nim'       => null,
-                'nidn'      => null,
-                'sinta_id'  => null,
+                'name'     => $registrationRequest->name,
+                'username' => $registrationRequest->username ?? \Illuminate\Support\Str::before($registrationRequest->email, '@'),
+                'password' => $registrationRequest->password, // sudah di-hash saat register
+                'role'     => $registrationRequest->role,
+                'status'   => 'active',
+                'nim'      => null,
+                'nidn'     => null,
+                'sinta_id' => null,
             ]
         );
 
+        // 2) Update kolom identitas sesuai role
+        $updateData = [];
+
         if ($role === 'mahasiswa') {
             // identity = NIM
-            $userData['nim'] = $identity;
+            $updateData['nim'] = $identity;
         } elseif ($role === 'dosen') {
             // identity = NIDN/NIP
-            $userData['nidn']     = $identity;
-            $userData['sinta_id'] = $registrationRequest->sinta_id; // <-- bawa SINTA ID ke tabel users
+            $updateData['nidn']     = $identity;
+            $updateData['sinta_id'] = $registrationRequest->sinta_id;
         }
 
-        $user = User::create($userData);
+        if (! empty($updateData)) {
+            $user->update($updateData);
+        }
 
-        // Tandai request sebagai approved
+        // 3) Tandai request sebagai approved + simpan note
         $registrationRequest->status = 'approved';
 
-        // Tambahin note opsional dari admin
         $validatedData = request()->validate([
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
         $registrationRequest->note = $validatedData['note'] ?? null;
-
-        // Simpan perubahan
         $registrationRequest->save();
 
-        // Email ke user bahwa akun sudah aktif
+        // 4) Email ke user bahwa akun sudah aktif
         Mail::to($user->email)->send(new AccountApprovedMail($user));
 
         return back()->with('ok', 'Permohonan disetujui dan akun pengguna telah dibuat/diaktifkan.');
     }
+
 
     /**
      * Admin menolak permohonan.

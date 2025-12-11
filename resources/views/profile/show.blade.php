@@ -41,7 +41,7 @@
 
                     <div class="mb-3">
                         <label class="text-muted d-block">NIDN / NIP</label>
-                        <span class="fw-semibold">{{ $dosen->nidn ?? '-' }}</span>
+                        <span class="fw-semibold">{{ $dosen->nidn ?? $user->nidn ?? '-' }}</span>
                     </div>
                 </div>
 
@@ -79,7 +79,7 @@
 
                 <div class="mb-3">
                     <label class="text-muted d-block">SINTA ID</label>
-                    <span class="fw-semibold">{{ auth()->user()->dosen->sinta_id ?? '-' }}</span>
+                    <span class="fw-semibold">{{ $dosen->sinta_id ?? $user->sinta_id ?? '-' }}</span>
                 </div>
             </div>
 
