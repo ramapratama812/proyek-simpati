@@ -18,6 +18,10 @@ class ProfileController extends Controller
         $user = Auth::user();
         $role = strtolower($user->role ?? '');
 
+        if ($role === 'admin') {
+            return view('profile.show_admin', compact('user', 'role'));
+        }
+
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
             return view('profile.show', compact('user', 'dosen', 'role'));
