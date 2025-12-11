@@ -18,6 +18,7 @@ use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\AhpCriteriaComparisonController;
 use App\Http\Controllers\Admin\PublicationValidationController;
 
+Route::get('/publikasi/{id}', [PublicationController::class, 'show'])->name('publikasi.show');
 /*
 |--------------------------------------------------------------------------
 | AUTH (Login & Register)
