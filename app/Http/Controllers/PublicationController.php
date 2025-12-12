@@ -20,6 +20,7 @@ class PublicationController extends Controller
         $sort = $request->get('sort','latest');
 
         $pubs = Publication::query();
+        $pubs->where('validation_status', 'approved');
 
         if ($q !== '') {
             $pubs->where(function($w) use ($q){

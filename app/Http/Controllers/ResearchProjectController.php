@@ -71,6 +71,10 @@ class ResearchProjectController extends Controller
             $projects->whereRaw("$yearExpr = ?", [$year]);
         }
 
+        if ($type) {
+            $projects->where('jenis', $type);
+        }
+
         switch ($sort) {
             case 'year_desc': $projects->orderByRaw("$yearExpr DESC"); break;
             case 'year_asc' : $projects->orderByRaw("$yearExpr ASC");  break;
