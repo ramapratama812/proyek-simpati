@@ -48,12 +48,14 @@ class PublicationController extends Controller
 
         $chartRows = Publication::selectRaw("$yearExpr AS y, COUNT(*) AS c")
             ->whereRaw("$yearExpr IS NOT NULL")
+            ->where('validation_status', 'approved')
             ->groupBy('y')
             ->orderBy('y')
             ->get();
 
         $years = Publication::selectRaw("DISTINCT $yearExpr AS y")
             ->whereRaw("$yearExpr IS NOT NULL")
+            ->where('validation_status', 'approved')
             ->orderBy('y','desc')
             ->pluck('y');
 
