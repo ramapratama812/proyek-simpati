@@ -331,6 +331,53 @@
                 @auth
                     @php $role = strtolower(auth()->user()->role ?? ''); @endphp
 
+                    <div class="sidebar-divider">
+                        <hr><span>Menu Awal</span>
+                        <hr>
+                    </div>
+
+                    <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-house-door-fill"></i> Dasbor Utama
+                    </a>
+
+                    <div class="sidebar-divider">
+                        <hr><span>Menu Unggahan</span>
+                        <hr>
+                    </div>
+
+                    <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
+                        <i class="bi bi-list-task"></i> Kegiatan
+                    </a>
+
+                    <a href="{{ route('publications.index') }}"
+                        class="{{ request()->is('publications*') ? 'active' : '' }}">
+                        <i class="bi bi-journal-text"></i> Publikasi
+                    </a>
+
+                    <div class="sidebar-divider">
+                        <hr><span>Daftar Personel</span>
+                        <hr>
+                    </div>
+
+                    <a href="{{ route('dosen.index') }}" class="{{ request()->is('dosen*') ? 'active' : '' }}">
+                        <i class="bi bi-person-lines-fill"></i> Dosen
+                    </a>
+
+                    <a href="{{ route('mahasiswa.index') }}" class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
+                        <i class="bi bi-people-fill"></i> Mahasiswa
+                    </a>
+
+                    <div class="sidebar-divider">
+                        <hr><span>Lainnya</span>
+                        <hr>
+                    </div>
+
+                    <a href="{{ route('tpk.dosen_berprestasi.index') }}"
+                        class="{{ request()->is('tpk/dosen_berprestasi*') ? 'active' : '' }}">
+                        <i class="bi bi-trophy-fill"></i>
+                        <span>Ranking Dosen Berprestasi</span>
+                    </a>
+
                     @if ($role === 'admin')
                         @if ($role === 'admin')
                             <div class="sidebar-divider">
@@ -375,48 +422,6 @@
                             <span>Validasi Publikasi</span>
                         </a>
                     @endif
-
-                    <div class="sidebar-divider">
-                        <hr><span>Menu Umum</span>
-                        <hr>
-                    </div>
-
-                    <a href="{{ route('dashboard') }}" class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                        <i class="bi bi-house-door-fill"></i> Dasbor Utama
-                    </a>
-
-                    <a href="{{ route('projects.index') }}" class="{{ request()->is('projects*') ? 'active' : '' }}">
-                        <i class="bi bi-list-task"></i> Kegiatan
-                    </a>
-
-                    <a href="{{ route('publications.index') }}"
-                        class="{{ request()->is('publications*') ? 'active' : '' }}">
-                        <i class="bi bi-journal-text"></i> Publikasi
-                    </a>
-
-                    <div class="sidebar-divider">
-                        <hr><span>Daftar Personel</span>
-                        <hr>
-                    </div>
-
-                    <a href="{{ route('dosen.index') }}" class="{{ request()->is('dosen*') ? 'active' : '' }}">
-                        <i class="bi bi-person-lines-fill"></i> Dosen
-                    </a>
-
-                    <a href="{{ route('mahasiswa.index') }}" class="{{ request()->is('mahasiswa*') ? 'active' : '' }}">
-                        <i class="bi bi-people-fill"></i> Mahasiswa
-                    </a>
-
-                    <div class="sidebar-divider">
-                        <hr><span>Lainnya</span>
-                        <hr>
-                    </div>
-
-                    <a href="{{ route('tpk.dosen_berprestasi.index') }}"
-                        class="{{ request()->is('tpk/dosen_berprestasi*') ? 'active' : '' }}">
-                        <i class="bi bi-trophy-fill"></i>
-                        <span>Ranking Dosen Berprestasi</span>
-                    </a>
                 @endauth
             </div>
         @endif
