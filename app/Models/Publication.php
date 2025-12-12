@@ -20,6 +20,7 @@ class Publication extends Model
         'abstrak',
         'jumlah_halaman',
         'doi',
+        'file',
         'issn',
         'penulis',
         'sumber',
