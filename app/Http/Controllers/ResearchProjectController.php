@@ -30,10 +30,11 @@ class ResearchProjectController extends Controller
 
     public function index(Request $request)
     {
-        $q     = trim($request->get('q', ''));
-        $year  = $request->get('year');
-        $type  = $request->get('type');
-        $sort  = $request->get('sort', 'latest');
+        $q           = trim($request->get('q', ''));
+        $year        = $request->get('year');
+        $type        = $request->get('type');
+        $sort        = $request->get('sort', 'latest');
+        $chartFilter = $request->get('chart_filter', 'all'); // all, penelitian, pengabdian
 
         $projects = ResearchProject::query();
 
@@ -86,9 +87,22 @@ class ResearchProjectController extends Controller
         $projects = $projects->paginate(12)->withQueryString();
 
         // --- Data chart ---
-        $chartRows = DB::table('research_projects')
+        // Hanya hitung yang sudah APPROVED
+        $chartQuery = DB::table('research_projects')
             ->selectRaw("$yearExpr AS y, COUNT(*) AS c")
-            ->whereRaw("$yearExpr IS NOT NULL")
+            ->whereRaw("$yearExpr IS NOT NULL");
+
+        if (Schema::hasColumn('research_projects', 'validation_status')) {
+            $chartQuery->where('validation_status', 'approved');
+        }
+
+        if ($chartFilter === 'penelitian') {
+            $chartQuery->where('jenis', 'penelitian');
+        } elseif ($chartFilter === 'pengabdian') {
+            $chartQuery->where('jenis', 'pengabdian');
+        }
+
+        $chartRows = $chartQuery
             ->groupBy('y')
             ->orderBy('y')
             ->get();
@@ -101,13 +115,14 @@ class ResearchProjectController extends Controller
             ->pluck('y');
 
         return view('projects.index', [
-            'projects' => $projects,
-            'chart'    => $chartRows,
-            'years'    => $years,
-            'q'        => $q,
-            'year'     => $year,
-            'type'     => $type,
-            'sort'     => $sort,
+            'projects'    => $projects,
+            'chart'       => $chartRows,
+            'years'       => $years,
+            'q'           => $q,
+            'year'        => $year,
+            'type'        => $type,
+            'sort'        => $sort,
+            'chartFilter' => $chartFilter,
         ]);
     }
 

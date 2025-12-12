@@ -90,11 +90,32 @@
                 {{-- Chart Section --}}
                 <div class="card filter-card mb-4">
                     <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-box me-3 bg-primary-subtle text-primary">
-                                <i class="bi bi-bar-chart-fill"></i>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box me-3 bg-primary-subtle text-primary">
+                                    <i class="bi bi-bar-chart-fill"></i>
+                                </div>
+                                <h5 class="card-title mb-0 fw-bold">Statistik Kegiatan</h5>
                             </div>
-                            <h5 class="card-title mb-0 fw-bold">Statistik Kegiatan</h5>
+
+                            {{-- Chart Filter Buttons --}}
+                            <div class="btn-group" role="group">
+                                <a href="{{ request()->fullUrlWithQuery(['chart_filter' => 'all']) }}"
+                                    class="btn btn-sm {{ ($chartFilter ?? 'all') == 'all' ? 'btn-primary' : 'btn-outline-primary' }}"
+                                    data-bs-toggle="tooltip" title="Semua Kegiatan">
+                                    <i class="bi bi-grid-fill"></i>
+                                </a>
+                                <a href="{{ request()->fullUrlWithQuery(['chart_filter' => 'penelitian']) }}"
+                                    class="btn btn-sm {{ ($chartFilter ?? 'all') == 'penelitian' ? 'btn-primary' : 'btn-outline-primary' }}"
+                                    data-bs-toggle="tooltip" title="Penelitian">
+                                    <i class="bi bi-journal-bookmark"></i>
+                                </a>
+                                <a href="{{ request()->fullUrlWithQuery(['chart_filter' => 'pengabdian']) }}"
+                                    class="btn btn-sm {{ ($chartFilter ?? 'all') == 'pengabdian' ? 'btn-primary' : 'btn-outline-primary' }}"
+                                    data-bs-toggle="tooltip" title="Pengabdian">
+                                    <i class="bi bi-people"></i>
+                                </a>
+                            </div>
                         </div>
                         <div style="height: 250px;">
                             <canvas id="chartKegiatan"></canvas>
@@ -273,6 +294,12 @@
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize Tooltips
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl)
+                    })
+
                     const btnGrid = document.getElementById('btnGrid');
                     const btnList = document.getElementById('btnList');
                     const gridView = document.getElementById('gridView');
