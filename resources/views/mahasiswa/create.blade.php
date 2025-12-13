@@ -17,12 +17,19 @@
     <form action="{{ route('mahasiswa.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
+        {{-- Foto --}}
+        <div class="mb-3">
+            <label class="form-label">Foto</label>
+            <input type="file" name="foto" class="form-control @error('foto') is-invalid @enderror">
+            @error('foto')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
         {{-- Nama --}}
         <div class="mb-3">
-            <label for="nama" class="form-label">Nama</label>
-            <input type="text" id="nama" name="nama" 
-                   class="form-control @error('nama') is-invalid @enderror" 
-                   value="{{ old('nama') }}" required>
+            <label class="form-label">Nama</label>
+            <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required>
             @error('nama')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -30,10 +37,8 @@
 
         {{-- NIM --}}
         <div class="mb-3">
-            <label for="nim" class="form-label">NIM</label>
-            <input type="text" id="nim" name="nim" 
-                   class="form-control @error('nim') is-invalid @enderror" 
-                   value="{{ old('nim') }}" required>
+            <label class="form-label">NIM</label>
+            <input type="text" name="nim" class="form-control @error('nim') is-invalid @enderror" value="{{ old('nim') }}" required>
             @error('nim')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -41,9 +46,8 @@
 
         {{-- Jenis Kelamin --}}
         <div class="mb-3">
-            <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
-            <select id="jenis_kelamin" name="jenis_kelamin" 
-                    class="form-control @error('jenis_kelamin') is-invalid @enderror" required>
+            <label class="form-label">Jenis Kelamin</label>
+            <select name="jenis_kelamin" class="form-control @error('jenis_kelamin') is-invalid @enderror" required>
                 <option value="">-- Pilih --</option>
                 <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
                 <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
@@ -52,53 +56,18 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
-
-        {{-- Program Studi --}}
-        <div class="mb-3">
-            <label for="program_studi" class="form-label">Program Studi</label>
-            <input type="text" id="program_studi" name="program_studi" 
-                   class="form-control @error('program_studi') is-invalid @enderror" 
-                   value="{{ old('program_studi') }}" required>
-            @error('program_studi')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
-        {{-- Perguruan Tinggi --}}
-        <div class="mb-3">
-            <label for="perguruan_tinggi" class="form-label">Perguruan Tinggi</label>
-            <input type="text" id="perguruan_tinggi" name="perguruan_tinggi" 
-                   class="form-control @error('perguruan_tinggi') is-invalid @enderror" 
-                   value="{{ old('perguruan_tinggi') }}" required>
-            @error('perguruan_tinggi')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
         {{-- Status Terakhir --}}
         <div class="mb-3">
-            <label for="status_terakhir" class="form-label">Status Terakhir</label>
-            <input type="text" id="status_terakhir" name="status_terakhir" 
-                   class="form-control @error('status_terakhir') is-invalid @enderror" 
-                   value="{{ old('status_terakhir') }}">
+            <label class="form-label">Status Terakhir</label>
+            <input type="text" name="status_terakhir" class="form-control @error('status_terakhir') is-invalid @enderror" value="{{ old('status_terakhir') }}">
             @error('status_terakhir')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
-        {{-- Foto --}}
-        <div class="mb-3">
-            <label for="foto" class="form-label">Foto</label>
-            <input type="file" id="foto" name="foto" 
-                   class="form-control @error('foto') is-invalid @enderror">
-            @error('foto')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
-        {{-- Tombol --}}
-        <button type="submit" class="btn btn-primary">Simpan</button>
-        <a href="{{ route('mahasiswa.index') }}" class="btn btn-secondary">Batal</a>
+        {{--  --}}
+        <button type="submit" class="btn btn-success">Simpan</button>
+      <a href="{{ route('mahasiswa.index') }}" class="btn btn-secondary">Kembali</a>
     </form>
 </div>
 @endsection

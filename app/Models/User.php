@@ -11,13 +11,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-
-    /**
-     * Kolom yang bisa diisi (mass assignable)
+     * Kolom yang bisa diisi
      */
     protected $fillable = [
         'name',
@@ -36,30 +30,63 @@ class User extends Authenticatable
         'status',
     ];
 
-    protected $hidden = ['password','remember_token'];
+    /**
+     * Kolom tersembunyi
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-    // Relasi ke profil dosen
-    // public function lecturerProfile()
-    // {
-    //     return $this->hasOne(LecturerProfile::class);
-    // }
+    /* =====================================================
+     | RELASI PROFIL
+     ===================================================== */
 
-    // // Relasi ke profil mahasiswa
-    // public function studentProfile()
-    // {
-    //     return $this->hasOne(StudentProfile::class);
-    // }
-
-    // Relasi ke proyek penelitian yang diketuai
-    public function projectsLed()
+    /**
+     * 🔗 USER → MAHASISWA
+     */
+    public function mahasiswa()
     {
-        return $this->hasMany(ResearchProject::class,'ketua_id');
+        return $this->hasOne(Mahasiswa::class, 'user_id', 'id');
     }
 
-    // Relasi ke notifikasi pengguna
+    /**
+     * 🔗 USER → DOSEN
+     */
+    public function dosen()
+    {
+        return $this->hasOne(Dosen::class, 'user_id', 'id');
+    }
+
+    /* =====================================================
+     | KEGIATAN / PROJECT
+     ===================================================== */
+
+    /**
+     * 🔗 KEGIATAN YANG DIIKUTI USER
+     * (mahasiswa & dosen)
+     *
+     * project_members.user_id → users.id
+     */
+    public function projectMembers()
+    {
+        return $this->hasMany(ProjectMember::class, 'user_id', 'id');
+    }
+
+    /**
+     * 🔗 KEGIATAN YANG DIKETUAI USER (DOSEN)
+     */
+    public function projectsLed()
+    {
+        return $this->hasMany(ResearchProject::class, 'ketua_id', 'id');
+    }
+
+    /* =====================================================
+     | NOTIFIKASI
+     ===================================================== */
+
     public function userNotifications()
     {
-        return $this->hasMany(UserNotification::class, 'user_id');
-}
-
+        return $this->hasMany(UserNotification::class, 'user_id', 'id');
+    }
 }

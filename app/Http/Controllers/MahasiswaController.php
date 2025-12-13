@@ -17,6 +17,7 @@ class MahasiswaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+
         $query = Mahasiswa::query();
 
         if ($search) {
@@ -28,22 +29,29 @@ class MahasiswaController extends Controller
         }
 
         $mahasiswas = $query->orderBy('nama')->paginate(10);
+
         return view('mahasiswa.index', compact('mahasiswas'));
     }
 
     // ========================================================
-    // 📘 SHOW — detail profil mahasiswa
+    // 📘 SHOW — Biodata Mahasiswa + Kegiatan (project_members)
     // ========================================================
     public function show($id)
     {
-        $mahasiswa = Mahasiswa::findOrFail($id);
-        $user = Auth::user(); // user yang sedang login
+        $mahasiswa = Mahasiswa::with([
+            'user.projectMembers.project'
+        ])->findOrFail($id);
 
-        return view('mahasiswa.show', compact('mahasiswa', 'user'));
+        // user pemilik mahasiswa (BUKAN Auth::user())
+        $user = $mahasiswa->user;
+
+        $pddiktiUrl = "https://pddikti.kemdikbud.go.id/data_mahasiswa/" . $mahasiswa->nim;
+
+        return view('mahasiswa.show', compact('mahasiswa', 'user', 'pddiktiUrl'));
     }
 
     // ========================================================
-    // 📘 CREATE & STORE — tambah mahasiswa (khusus admin)
+    // 📘 CREATE — khusus admin
     // ========================================================
     public function create()
     {
@@ -55,11 +63,10 @@ class MahasiswaController extends Controller
         $validated = $request->validate([
             'nama'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'nim'      => 'required|string|unique:mahasiswas,nim',
+            'nim'      => 'required|string|unique:mahasiswa,nim',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        // Buat akun user
         $user = User::create([
             'name'     => $validated['nama'],
             'username' => strtolower(str_replace(' ', '', $validated['nama'])),
@@ -68,15 +75,16 @@ class MahasiswaController extends Controller
             'role'     => 'mahasiswa',
         ]);
 
-        // Buat data mahasiswa
         Mahasiswa::create([
-            'nama'             => $validated['nama'],
-            'nim'              => $validated['nim'],
-            'email'            => $validated['email'],
-            'user_id'          => $user->id,
+            'nama'    => $validated['nama'],
+            'nim'     => $validated['nim'],
+            'email'   => $validated['email'],
+            'user_id' => $user->id,
         ]);
 
-        return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa berhasil ditambahkan.');
+        return redirect()
+            ->route('mahasiswa.index')
+            ->with('success', 'Mahasiswa berhasil ditambahkan.');
     }
 
     // ========================================================
@@ -85,11 +93,20 @@ class MahasiswaController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $mahasiswa = $user->mahasiswa;
 
-        return view('mahasiswa.show', compact('user', 'mahasiswa'));
+        $mahasiswa = Mahasiswa::with([
+            'user.projectMembers.project'
+        ])->where('user_id', $user->id)
+          ->firstOrFail();
+
+        $pddiktiUrl = "https://pddikti.kemdikbud.go.id/data_mahasiswa/" . $mahasiswa->nim;
+
+        return view('mahasiswa.show', compact('user', 'mahasiswa', 'pddiktiUrl'));
     }
 
+    // ========================================================
+    // 📘 EDIT PROFILE
+    // ========================================================
     public function editProfile()
     {
         $user = Auth::user();
@@ -103,7 +120,6 @@ class MahasiswaController extends Controller
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
 
-        // ✅ Validasi tabel users
         $validatedUser = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email,' . $user->id,
@@ -111,17 +127,15 @@ class MahasiswaController extends Controller
             'password' => 'nullable|string|min:6',
         ]);
 
-        // ✅ Validasi tabel mahasiswas
         $validatedMahasiswa = $request->validate([
-            'nim'              => 'required|string|max:50|unique:mahasiswas,nim,' . ($mahasiswa?->id ?? 'NULL'),
+            'nim'              => 'required|string|max:50|unique:mahasiswa,nim,' . $mahasiswa->id,
             'jenis_kelamin'    => 'nullable|string|max:20',
             'program_studi'    => 'nullable|string|max:100',
             'perguruan_tinggi' => 'nullable|string|max:150',
             'semester'         => 'nullable|string|max:10',
-            'status_terakhir'  => 'nullable|string|max:100',
+            'status_aktivitas' => 'nullable|string|max:100',
         ]);
 
-        // ✅ Upload foto jika ada
         if ($request->hasFile('foto')) {
             if ($user->foto && Storage::disk('public')->exists(str_replace('storage/', '', $user->foto))) {
                 Storage::disk('public')->delete(str_replace('storage/', '', $user->foto));
@@ -131,39 +145,28 @@ class MahasiswaController extends Controller
             $validatedUser['foto'] = 'storage/' . $path;
         }
 
-        // ✅ Update password hanya jika diisi
         if ($request->filled('password')) {
             $validatedUser['password'] = bcrypt($request->password);
         } else {
             unset($validatedUser['password']);
         }
 
-        // ✅ Update data user
         $user->update($validatedUser);
 
-        // ✅ Update atau buat data mahasiswa
-        if ($mahasiswa) {
-            $mahasiswa->update($validatedMahasiswa + [
-                'nama'  => $validatedUser['name'],
-                'email' => $validatedUser['email'],
-            ]);
-        } else {
-            $user->mahasiswa()->create(
-                $validatedMahasiswa + [
-                    'nama'  => $validatedUser['name'],
-                    'email' => $validatedUser['email'],
-                ]
-            );
-        }
+        $mahasiswa->update($validatedMahasiswa + [
+            'nama'  => $validatedUser['name'],
+            'email' => $validatedUser['email'],
+        ]);
 
-        // ✅ Refresh agar data terbaru langsung muncul
-        auth()->user()->refresh();
+        $user->refresh();
 
-        return redirect()->route('profile.show')->with('success', 'Data berhasil diperbarui!');
+        return redirect()
+            ->route('profile.show')
+            ->with('success', 'Data berhasil diperbarui!');
     }
 
     // ========================================================
-    // 📘 HAPUS AKUN MAHASISWA LOGIN
+    // ❌ DELETE PROFILE
     // ========================================================
     public function destroyProfile()
     {
@@ -184,9 +187,9 @@ class MahasiswaController extends Controller
     }
 
     // ========================================================
-    // 🚫 NONAKTIFKAN CRUD DEFAULT
+    // 🚫 DISABLE CRUD DEFAULT
     // ========================================================
-    public function edit($id)  { abort(403, 'Akses ditolak.'); }
+    public function edit($id) { abort(403, 'Akses ditolak.'); }
     public function update(Request $r, $id) { abort(403, 'Akses ditolak.'); }
     public function destroy($id) { abort(403, 'Akses ditolak.'); }
 }
