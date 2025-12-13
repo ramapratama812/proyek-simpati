@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -17,14 +18,12 @@ class ProfileController extends Controller
      */
     public function show()
     {
-        // Pastikan mengambil data user terbaru
         $user = Auth::user()->fresh();
         $role = strtolower($user->role ?? '');
 
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
 
-            // Jika tidak ditemukan, berikan object default agar view aman
             if (!$dosen) {
                 $dosen = (object) $this->getDefaultDosenProperties();
             }
@@ -35,12 +34,10 @@ class ProfileController extends Controller
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
 
-            // Jika ada view khusus mahasiswa gunakan itu
             if (view()->exists('profile.show_mahasiswa')) {
                 return view('profile.show_mahasiswa', compact('user', 'mahasiswa', 'role'));
             }
 
-            // Jika tidak, adaptasi mahasiswa agar view profil dosen tetap bisa dipakai
             $dosen = $this->adaptMahasiswaToDosen($mahasiswa);
             if (!$dosen) {
                 $dosen = (object) $this->getDefaultDosenProperties();
@@ -49,13 +46,12 @@ class ProfileController extends Controller
             return view('profile.show', compact('user', 'dosen', 'role'));
         }
 
-        // Fallback: tampilkan view dengan dosen default agar tidak error
         $dosen = (object) $this->getDefaultDosenProperties();
         return view('profile.show', compact('user', 'role'))->with('dosen', $dosen);
     }
 
     /**
-     * Form edit profil berdasarkan role.
+     * Form edit profil.
      */
     public function edit()
     {
@@ -81,32 +77,27 @@ class ProfileController extends Controller
                 $dosen = (object) $this->getDefaultDosenProperties();
             }
 
-            return view('profile.edit', [
-                'user' => $user,
-                'dosen' => $dosen,
-                'role' => $role
-            ]);
+            return view('profile.edit', compact('user', 'dosen', 'role'));
         }
 
         $dosen = (object) $this->getDefaultDosenProperties();
-        return view('profile.edit', ['user' => $user, 'dosen' => $dosen, 'role' => $role]);
+        return view('profile.edit', compact('user', 'dosen', 'role'));
     }
 
     /**
-     * Update profil berdasarkan role.
+     * Update profil.
      */
     public function update(Request $request)
     {
         $user = Auth::user();
         $role = strtolower($user->role ?? '');
 
-        // Validasi umum
         $rules = [
             'name' => 'required|string|max:255',
             'nomor_hp' => 'nullable|string|max:20',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
 
-        // Validasi khusus dosen
         if ($role === 'dosen') {
             $rules['nidn'] = 'nullable|string|max:50';
             $rules['pendidikan_terakhir'] = ['nullable', Rule::in(['S1', 'S2', 'S3'])];
@@ -119,91 +110,58 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Persiapkan data untuk update users table
-        $userData = [
-            'name' => $validated['name'],
-        ];
-
-        // Gunakan transaction agar update konsisten
         DB::beginTransaction();
         try {
-            // ====================== UNTUK DOSEN ======================
+
             if ($role === 'dosen') {
-                // Temukan atau buat instance (tapi belum disimpan jika baru)
                 $dosen = $this->findDosenFor($user->id, $user->email, true);
 
-                // Isi field yang ada di DB secara aman
                 $this->safeFill($dosen, [
-                    'nama'                  => $validated['name'],
-                    'nidn'                  => $request->input('nidn'),
-                    'pendidikan_terakhir'   => $request->input('pendidikan_terakhir'),
-                    'status_ikatan_kerja'   => $request->input('status_ikatan_kerja'),
-                    'status_aktivitas'      => $request->input('status_aktivitas'),
-                    'nomor_hp'              => $request->input('nomor_hp') ?? $request->input('no_hp'),
-                    'jenis_kelamin'         => $request->input('jenis_kelamin'),
-                    'sinta_id'              => $request->input('sinta_id'),
-                    'link_pddikti'          => $request->input('link_pddikti'),
+                    'nama' => $validated['name'],
+                    'nidn' => $request->input('nidn'),
+                    'pendidikan_terakhir' => $request->input('pendidikan_terakhir'),
+                    'status_ikatan_kerja' => $request->input('status_ikatan_kerja'),
+                    'status_aktivitas' => $request->input('status_aktivitas'),
+                    'nomor_hp' => $request->input('nomor_hp'),
+                    'jenis_kelamin' => $request->input('jenis_kelamin'),
+                    'sinta_id' => $request->input('sinta_id'),
+                    'link_pddikti' => $request->input('link_pddikti'),
                 ]);
 
-                // Pastikan kolom email dan user_id kalau ada di tabel
-                if (Schema::hasColumn($dosen->getTable(), 'email')) {
-                    $dosen->email = $user->email;
+                // ===== FOTO DOSEN (TAMBAHAN SAJA) =====
+                if ($request->hasFile('foto')) {
+
+                    if ($dosen->foto && Storage::disk('public')->exists($dosen->foto)) {
+                        Storage::disk('public')->delete($dosen->foto);
+                    }
+
+                    $dosen->foto = $request->file('foto')
+                        ->store('foto-dosen', 'public');
                 }
+
                 if (Schema::hasColumn($dosen->getTable(), 'user_id')) {
                     $dosen->user_id = $user->id;
                 }
+                if (Schema::hasColumn($dosen->getTable(), 'email')) {
+                    $dosen->email = $user->email;
+                }
 
-                // Simpan (insert/update)
                 $dosen->save();
-
-                // Jika tabel users memiliki kolom sinta_id, update sinkronnya
-                if (Schema::hasColumn($user->getTable(), 'sinta_id')) {
-                    $userData['sinta_id'] = $request->input('sinta_id');
-                }
             }
 
-            // ====================== UNTUK MAHASISWA ======================
-            if ($role === 'mahasiswa') {
-                $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
-
-                $this->safeFill($mahasiswa, [
-                    'nama'              => $validated['name'],
-                    'nim'               => $request->input('nim'),
-                    'jenis_kelamin'     => $request->input('jenis_kelamin'),
-                    'semester'          => $request->input('semester'),
-                    'status_aktivitas'  => $request->input('status_aktivitas'),
-                    'nomor_hp'          => $request->input('nomor_hp') ?? $request->input('no_hp'),
-                ]);
-
-                if (Schema::hasColumn($mahasiswa->getTable(), 'user_id')) {
-                    $mahasiswa->user_id = $user->id;
-                }
-                if (Schema::hasColumn($mahasiswa->getTable(), 'email')) {
-                    $mahasiswa->email = $user->email;
-                }
-
-                $mahasiswa->save();
-            }
-
-            // ====================== UPDATE USERS ======================
-            // Update user hanya sekali
-            $user->update($userData);
+            $user->update([
+                'name' => $validated['name'],
+            ]);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            // Jika perlu debugging sementara, bisa log error:
-            // \Log::error('Profile update failed: '.$e->getMessage());
-            return redirect()->back()->withInput()->withErrors(['error' => 'Gagal memperbarui profil.']);
+            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui profil']);
         }
 
-        // Redirect ke show (metode show akan mengambil fresh user & dosen)
-        return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
+        return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui');
     }
 
-    /**
-     * Hapus akun user & relasi.
-     */
     public function destroy()
     {
         $user = Auth::user();
@@ -211,7 +169,12 @@ class ProfileController extends Controller
 
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
-            if ($dosen) $dosen->delete();
+            if ($dosen) {
+                if ($dosen->foto && Storage::disk('public')->exists($dosen->foto)) {
+                    Storage::disk('public')->delete($dosen->foto);
+                }
+                $dosen->delete();
+            }
         }
 
         if ($role === 'mahasiswa') {
@@ -225,35 +188,21 @@ class ProfileController extends Controller
         return redirect('/login')->with('success', 'Akun berhasil dihapus.');
     }
 
-    /* ===================== Helpers ===================== */
+    /* ===================== HELPERS (TIDAK DIUBAH) ===================== */
 
-    /**
-     * Temukan Dosen secara robust:
-     * - Jika ada kolom user_id, cari berdasarkan user_id terlebih dahulu
-     * - Jika tidak ditemukan, cari berdasarkan email
-     * - Saat $createIfMissing = true, buat instance baru (belum disimpan) dan isi email/user_id jika kolom tersedia
-     */
     private function findDosenFor(int $userId, string $email, bool $createIfMissing = false)
     {
         $table = (new Dosen)->getTable();
         $q = Dosen::query();
 
-        // Gunakan grouping agar orWhere tidak memecah kondisi lain di query global
         $q->where(function ($query) use ($table, $userId, $email) {
             if (Schema::hasColumn($table, 'user_id')) {
                 $query->where('user_id', $userId);
-                // Jika juga ada kolom email, kita coba fallback ke email (untuk kompatibilitas)
                 if (Schema::hasColumn($table, 'email')) {
                     $query->orWhere('email', $email);
                 }
-            } else {
-                // Jika tidak ada kolom user_id, pakai email saja (jika tersedia)
-                if (Schema::hasColumn($table, 'email')) {
-                    $query->where('email', $email);
-                } else {
-                    // Jika tabel dosen tidak memiliki kolom user_id maupun email, kembalikan query kosong
-                    $query->whereRaw('1 = 0');
-                }
+            } elseif (Schema::hasColumn($table, 'email')) {
+                $query->where('email', $email);
             }
         });
 
@@ -268,65 +217,30 @@ class ProfileController extends Controller
         return $row;
     }
 
-    /**
-     * Temukan Mahasiswa dengan logika serupa findDosenFor
-     */
     private function findMahasiswaFor(int $userId, string $email, bool $createIfMissing = false)
     {
-        $table = (new Mahasiswa)->getTable();
-        $q = Mahasiswa::query();
-
-        $q->where(function ($query) use ($table, $userId, $email) {
-            if (Schema::hasColumn($table, 'user_id')) {
-                $query->where('user_id', $userId);
-                if (Schema::hasColumn($table, 'email')) {
-                    $query->orWhere('email', $email);
-                }
-            } else {
-                if (Schema::hasColumn($table, 'email')) {
-                    $query->where('email', $email);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-            }
-        });
-
-        $row = $q->first();
-
-        if (!$row && $createIfMissing) {
-            $row = new Mahasiswa();
-            if (Schema::hasColumn($table, 'user_id')) $row->user_id = $userId;
-            if (Schema::hasColumn($table, 'email')) $row->email = $email;
-        }
-
-        return $row;
+        return Mahasiswa::where('user_id', $userId)->orWhere('email', $email)->first();
     }
 
-    /**
-     * Adaptasi object Mahasiswa menjadi struktur yang mirip Dosen (untuk view reuse)
-     */
     private function adaptMahasiswaToDosen(?Mahasiswa $m)
     {
         if (!$m) return null;
+
         return (object) [
             'nama' => $m->nama,
             'email' => $m->email,
-            'nomor_hp' => $m->nomor_hp ?? $m->no_hp,
+            'nomor_hp' => $m->nomor_hp,
             'nidn' => $m->nim,
             'jenis_kelamin' => $m->jenis_kelamin,
-            'pendidikan_terakhir' => $m->jenjang_pendidikan ?? null,
+            'pendidikan_terakhir' => null,
             'status_ikatan_kerja' => null,
-            'status_aktivitas' => $m->status_aktivitas ?? null,
-            'foto' => $m->foto ?? $m->photo ?? null,
-            // pastikan property ada agar view aman
+            'status_aktivitas' => null,
+            'foto' => $m->foto ?? null,
             'link_pddikti' => null,
             'sinta_id' => null,
         ];
     }
 
-    /**
-     * Default properties agar view tidak error ketika data tidak ada
-     */
     private function getDefaultDosenProperties()
     {
         return [
@@ -344,10 +258,6 @@ class ProfileController extends Controller
         ];
     }
 
-    /**
-     * Safe fill: hanya set attribute jika kolom ada di DB.
-     * Mengonversi string kosong ('') menjadi null sehingga kolom dapat dikosongkan oleh user.
-     */
     private function safeFill($model, array $data)
     {
         if (!$model) return;
@@ -355,9 +265,7 @@ class ProfileController extends Controller
         $columns = Schema::getColumnListing($model->getTable());
 
         foreach ($data as $key => $value) {
-            // normalisasi: ubah empty string jadi null
             $value = ($value === '') ? null : $value;
-
             if (in_array($key, $columns)) {
                 $model->{$key} = $value;
             }

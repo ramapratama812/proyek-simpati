@@ -10,8 +10,8 @@ class ProjectMember extends Model
 {
     use HasFactory;
     protected $fillable = ['project_id','user_id','peran'];
-}
- public function project(): BelongsTo
+
+    public function project(): BelongsTo
     {
         return $this->belongsTo(\App\Models\ResearchProject::class, 'project_id', 'id');
     }
