@@ -101,7 +101,8 @@
                                     <label for="nidn" class="form-label-custom"><i class="bi bi-card-heading me-2"></i>
                                         NIDN / NIP</label>
                                     <input type="text" id="nidn" name="nidn" class="form-control input-fancy"
-                                        value="{{ old('nidn', $dosen->nidn ?? '') }}" placeholder="Masukkan NIDN atau NIP">
+                                        value="{{ old('nidn', optional($dosen)->nidn ?? ($user->nidn ?? '')) }}"
+                                        placeholder="Masukkan NIDN atau NIP">
                                 </div>
                             </div>
 

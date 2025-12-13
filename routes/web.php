@@ -71,6 +71,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/registration-requests', [RegistrationRequestController::class, 'index'])
         ->name('admin.registration-requests.index');
 
+    Route::get('/admin/registration-requests/{registrationRequest}', [RegistrationRequestController::class, 'show'])
+        ->name('admin.registration-requests.show');
+
     Route::post('/admin/registration-requests/{registrationRequest}/approve',
         [RegistrationRequestController::class, 'approve']
     )->name('admin.registration-requests.approve');

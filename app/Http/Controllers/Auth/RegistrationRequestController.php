@@ -59,6 +59,17 @@ class RegistrationRequestController extends Controller
         ]);
     }
 
+    /**
+     * Tampilkan detail permohonan.
+     */
+    public function show(RegistrationRequest $registrationRequest)
+    {
+        $this->ensureAdmin();
+        return view('admin.registration_requests_show', [
+            'req' => $registrationRequest
+        ]);
+    }
+
 
     /**
      * Admin menyetujui permohonan → buat akun User + kirim email.
