@@ -15,6 +15,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+        /** @var \App\Models\User $user */
         $role = strtolower($user->role ?? '');
 
         // Inisialisasi default supaya aman dipakai di view
@@ -39,7 +40,7 @@ class DashboardController extends Controller
         if ($role === 'mahasiswa') {
 
             // Cek apakah sudah punya record di tabel mahasiswa
-            if (\Schema::hasTable((new \App\Models\Mahasiswa)->getTable())) {
+            if (Schema::hasTable((new \App\Models\Mahasiswa)->getTable())) {
                 $needsProfile = ! \App\Models\Mahasiswa::where('user_id', $user->id)->exists();
             }
 
@@ -48,7 +49,7 @@ class DashboardController extends Controller
                     $q->where('users.id', $user->id);
                 })
                 ->latest()
-                ->take(5)
+                ->take(50)
                 ->get();
 
             // Statistik lain & validasi publikasi dibiarkan default (0),
@@ -61,7 +62,7 @@ class DashboardController extends Controller
         else {
 
             // Kalau role dosen → cek profil dosen
-            if ($role === 'dosen' && \Schema::hasTable((new \App\Models\Dosen)->getTable())) {
+            if ($role === 'dosen' && Schema::hasTable((new \App\Models\Dosen)->getTable())) {
                 $needsProfile = ! \App\Models\Dosen::where('user_id', $user->id)->exists();
             }
 
@@ -94,8 +95,8 @@ class DashboardController extends Controller
                 ->where('validation_status', 'revision_requested')
                 ->count();
 
-            // Grafik kegiatan per tahun
-            $activityByYear = \App\Models\ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, COUNT(*) as total')
+            // Grafik kegiatan per tahun (Approved only)
+            $activityByYear = \App\Models\ResearchProject::selectRaw('COALESCE(tahun_pelaksanaan, tahun_usulan) as tahun, jenis, COUNT(*) as total')
                 ->where(function ($q) use ($user) {
                     $q->where('ketua_id', $user->id)
                     ->orWhere('created_by', $user->id)
@@ -103,14 +104,16 @@ class DashboardController extends Controller
                         $qq->where('users.id', $user->id);
                     });
                 })
+                ->where('validation_status', 'approved')
                 ->whereNotNull('tahun_usulan')
-                ->groupBy('tahun')
+                ->groupBy('tahun', 'jenis')
                 ->orderBy('tahun')
                 ->get();
 
-            // Grafik publikasi per tahun
+            // Grafik publikasi per tahun (Approved only)
             $publicationByYear = \App\Models\Publication::selectRaw('tahun, COUNT(*) as total')
                 ->where('owner_id', $user->id)
+                ->where('validation_status', 'approved')
                 ->whereNotNull('tahun')
                 ->groupBy('tahun')
                 ->orderBy('tahun')
@@ -118,15 +121,15 @@ class DashboardController extends Controller
 
             // List kegiatan & publikasi terbaru
             $kegiatanSayaKetua = \App\Models\ResearchProject::where('ketua_id', $user->id)
-                ->latest()->take(5)->get();
+                ->latest()->take(50)->get();
 
             $kegiatanSebagaiAnggota = \App\Models\ResearchProject::whereHas('members', function ($q) use ($user) {
                     $q->where('users.id', $user->id);
                 })
-                ->latest()->take(5)->get();
+                ->latest()->take(50)->get();
 
             $publikasiSaya = \App\Models\Publication::where('owner_id', $user->id)
-                ->latest()->take(5)->get();
+                ->latest()->take(50)->get();
         }
 
         // NOTIFIKASI → tetap dipakai semua role

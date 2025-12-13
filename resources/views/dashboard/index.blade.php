@@ -53,6 +53,30 @@
         .list-group-item:hover {
             background-color: #f8f9fa;
         }
+
+        .scrollable-list {
+            max-height: 300px;
+            /* Approx 3-4 rows */
+            overflow-y: auto;
+        }
+
+        /* Custom Scrollbar for cleaner look */
+        .scrollable-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
     </style>
 
     <div class="container-fluid px-0">
@@ -157,28 +181,66 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <div class="card stat-card h-100 bg-white">
-                            <div class="card-body p-4 d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-                                    <i class="bi bi-briefcase-fill fs-2"></i>
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                                        <i class="bi bi-briefcase-fill fs-2"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Kegiatan</h6>
+                                        <h2 class="mb-0 fw-bold">{{ $totalKegiatan }}</h2>
+                                        <small class="text-muted">Penelitian & Pengabdian</small>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Kegiatan</h6>
-                                    <h2 class="mb-0 fw-bold">{{ $totalKegiatan }}</h2>
-                                    <small class="text-muted">Penelitian & Pengabdian</small>
+
+                                <div class="mt-4 pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="small fw-bold text-muted"><i class="bi bi-graph-up me-1"></i> Tren
+                                            Pertahun</span>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-primary filter-btn active"
+                                                data-filter="all" data-bs-toggle="tooltip" title="Semua">
+                                                <i class="bi bi-grid-fill"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary filter-btn"
+                                                data-filter="penelitian" data-bs-toggle="tooltip" title="Penelitian">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary filter-btn"
+                                                data-filter="pengabdian" data-bs-toggle="tooltip" title="Pengabdian">
+                                                <i class="bi bi-people-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div style="height: 180px;">
+                                        <canvas id="chartKegiatan"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card stat-card h-100 bg-white">
-                            <div class="card-body p-4 d-flex align-items-center">
-                                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
-                                    <i class="bi bi-journal-check fs-2"></i>
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
+                                        <i class="bi bi-journal-check fs-2"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Publikasi</h6>
+                                        <h2 class="mb-0 fw-bold">{{ $totalPublikasi }}</h2>
+                                        <small class="text-muted">Jurnal, Prosiding, Buku, dll.</small>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Publikasi</h6>
-                                    <h2 class="mb-0 fw-bold">{{ $totalPublikasi }}</h2>
-                                    <small class="text-muted">Jurnal, Prosiding, Buku, dll.</small>
+
+                                <div class="mt-4 pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="small fw-bold text-muted"><i class="bi bi-graph-up me-1"></i> Tren
+                                            Pertahun</span>
+                                    </div>
+                                    <div style="height: 180px;">
+                                        <canvas id="chartPublikasi"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -192,8 +254,24 @@
                         <div class="card list-card">
                             <div
                                 class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                                <h5 class="fw-bold mb-0"><i class="bi bi-star-fill text-warning me-2"></i>Kegiatan Saya
-                                    (Ketua)</h5>
+                                <div>
+                                    <h5 class="fw-bold mb-1"><i class="bi bi-star-fill text-warning me-2"></i>Kegiatan Saya
+                                        (Ketua)</h5>
+                                    <div class="btn-group mt-2" role="group">
+                                        <button type="button" class="btn btn-xs btn-primary list-filter-btn active"
+                                            data-target="list-ketua" data-filter="all" title="Semua">
+                                            Semua
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-primary list-filter-btn"
+                                            data-target="list-ketua" data-filter="penelitian" title="Penelitian">
+                                            Penelitian
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-primary list-filter-btn"
+                                            data-target="list-ketua" data-filter="pengabdian" title="Pengabdian">
+                                            Pengabdian
+                                        </button>
+                                    </div>
+                                </div>
                                 <a href="{{ route('projects.my') }}"
                                     class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3">
                                     Kelola <i class="bi bi-arrow-right ms-1"></i>
@@ -206,9 +284,9 @@
                                         <p class="mt-2 small">Belum ada data kegiatan.</p>
                                     </div>
                                 @else
-                                    <div class="list-group list-group-flush">
+                                    <div class="list-group list-group-flush scrollable-list" id="list-ketua">
                                         @foreach ($kegiatanSayaKetua as $p)
-                                            <div class="list-group-item">
+                                            <div class="list-group-item" data-jenis="{{ strtolower($p->jenis) }}">
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                                     <a href="{{ route('projects.show', $p) }}"
                                                         class="fw-bold text-decoration-none text-dark stretched-link">
@@ -251,7 +329,7 @@
                                         <p class="mt-2 small">Belum ada data publikasi.</p>
                                     </div>
                                 @else
-                                    <div class="list-group list-group-flush">
+                                    <div class="list-group list-group-flush scrollable-list">
                                         @foreach ($publikasiSaya as $pub)
                                             @php
                                                 $status = $pub->validation_status ?? 'draft';
@@ -292,9 +370,27 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card list-card">
-                        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                            <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-secondary me-2"></i>Kegiatan Sebagai
-                                Anggota</h5>
+                        <div
+                            class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-1"><i class="bi bi-people-fill text-secondary me-2"></i>Kegiatan
+                                    Sebagai
+                                    Anggota</h5>
+                                <div class="btn-group mt-2" role="group">
+                                    <button type="button" class="btn btn-xs btn-primary list-filter-btn active"
+                                        data-target="list-anggota" data-filter="all" title="Semua">
+                                        Semua
+                                    </button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary list-filter-btn"
+                                        data-target="list-anggota" data-filter="penelitian" title="Penelitian">
+                                        Penelitian
+                                    </button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary list-filter-btn"
+                                        data-target="list-anggota" data-filter="pengabdian" title="Pengabdian">
+                                        Pengabdian
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             @if ($kegiatanSebagaiAnggota->isEmpty())
@@ -303,9 +399,9 @@
                                     <p class="mt-2 small">Belum ada data keikutsertaan.</p>
                                 </div>
                             @else
-                                <div class="list-group list-group-flush">
+                                <div class="list-group list-group-flush scrollable-list" id="list-anggota">
                                     @foreach ($kegiatanSebagaiAnggota as $p)
-                                        <div class="list-group-item">
+                                        <div class="list-group-item" data-jenis="{{ strtolower($p->jenis) }}">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <a href="{{ route('projects.show', $p) }}"
@@ -335,40 +431,196 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const kegiatan = @json($activityByYear);
-        const publikasi = @json($publicationByYear);
+        const rawKegiatan = @json($activityByYear);
+        const rawPublikasi = @json($publicationByYear);
 
-        const labelsKegiatan = kegiatan.map(x => x.tahun);
-        const dataKegiatan = kegiatan.map(x => x.total);
-
-        const labelsPublikasi = publikasi.map(x => x.tahun);
-        const dataPublikasi = publikasi.map(x => x.total);
-
-        if (document.getElementById('chartKegiatan')) {
-            new Chart(document.getElementById('chartKegiatan').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: labelsKegiatan,
-                    datasets: [{
-                        label: 'Jumlah Kegiatan',
-                        data: dataKegiatan
-                    }]
+        // Helper: Process Activity Data
+        function processActivityData(filterType) {
+            const grouped = {};
+            rawKegiatan.forEach(item => {
+                if (filterType === 'all' || item.jenis === filterType) {
+                    grouped[item.tahun] = (grouped[item.tahun] || 0) + item.total;
                 }
             });
+
+            // Ensure we have sorted labels
+            const labels = Object.keys(grouped).sort();
+            const data = labels.map(year => grouped[year]);
+
+            return {
+                labels,
+                data
+            };
         }
 
+        // Init Activity Chart
+        let activityChart;
+        if (document.getElementById('chartKegiatan')) {
+            const ctx = document.getElementById('chartKegiatan').getContext('2d');
+            const {
+                labels,
+                data
+            } = processActivityData('all');
+
+            activityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Kegiatan',
+                        data: data,
+                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            grid: {
+                                borderDash: [2, 4],
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Filter Listener (Buttons)
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update Active State
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active', 'btn-primary');
+                        b.classList.add('btn-outline-primary');
+                    });
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('active', 'btn-primary');
+
+                    // Update Chart
+                    const filterValue = this.getAttribute('data-filter');
+                    const {
+                        labels,
+                        data
+                    } = processActivityData(filterValue);
+                    activityChart.data.labels = labels;
+                    activityChart.data.datasets[0].data = data;
+                    activityChart.update();
+                });
+            });
+
+            // Init Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        }
+
+        // Init Publication Chart
         if (document.getElementById('chartPublikasi')) {
+            const labels = rawPublikasi.map(x => x.tahun);
+            const data = rawPublikasi.map(x => x.total);
+
             new Chart(document.getElementById('chartPublikasi').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: labelsPublikasi,
+                    labels: labels,
                     datasets: [{
                         label: 'Jumlah Publikasi',
-                        data: dataPublikasi
+                        data: data,
+                        backgroundColor: 'rgba(25, 135, 84, 0.8)',
+                        borderRadius: 4,
+                        barThickness: 20
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            grid: {
+                                borderDash: [2, 4],
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
                 }
             });
         }
+
+        // List Filtering Logic
+        document.querySelectorAll('.list-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const filterValue = this.getAttribute('data-filter');
+                const container = document.getElementById(targetId);
+
+                // Update Buttons
+                const group = this.closest('.btn-group');
+                group.querySelectorAll('.list-filter-btn').forEach(b => {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-primary');
+                });
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('active', 'btn-primary');
+
+                // Filter Items
+                if (container) {
+                    const items = container.querySelectorAll('.list-group-item');
+                    items.forEach(item => {
+                        if (filterValue === 'all' || item.getAttribute('data-jenis') ===
+                            filterValue) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        });
     </script>
 @endpush

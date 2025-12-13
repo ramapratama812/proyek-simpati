@@ -191,7 +191,9 @@ class RegistrationRequestController extends Controller
 
     protected function ensureAdmin(): void
     {
-        $role = strtolower(auth()->user()->role ?? '');
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $role = strtolower($user->role ?? '');
         abort_unless($role === 'admin', 403);
     }
 }
