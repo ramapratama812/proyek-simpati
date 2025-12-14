@@ -17,13 +17,13 @@ class Dosen extends Model
         'email',
         'nomor_hp',
         'nidn',
-        'sinta_id', // nambahin ini buat kolom sinta_id, buat nyimpen SINTA ID dosen
-        'nip', // tambahkan ini jika memang ada kolom NIP di tabel
+        'sinta_id',
+        'nip',
         'status_ikatan_kerja',
         'jenis_kelamin',
         'pendidikan_terakhir',
-        'status_aktivitas', // enum: Aktif / Tidak Aktif / Cuti
-        'foto',
+        'status_aktivitas',
+        'foto', // <-- MEMASTIKAN KOLOM FOTO ADA DI FILLABLE
     ];
 
     /**
