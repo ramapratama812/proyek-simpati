@@ -95,7 +95,8 @@ class ProfileController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'nomor_hp' => 'nullable|string|max:20',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            // ❗ PERUBAHAN DI SINI: Batasan ukuran dinaikkan ke 5MB (5120 KB) ❗
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:5120', 
         ];
 
         if ($role === 'dosen') {
@@ -128,7 +129,7 @@ class ProfileController extends Controller
                     'link_pddikti' => $request->input('link_pddikti'),
                 ]);
 
-                // ===== FOTO DOSEN (TAMBAHAN SAJA) =====
+                // ===== FOTO DOSEN LOGIC =====
                 if ($request->hasFile('foto')) {
 
                     if ($dosen->foto && Storage::disk('public')->exists($dosen->foto)) {
@@ -156,7 +157,7 @@ class ProfileController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui profil']);
+            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui profil: ' . $e->getMessage()]);
         }
 
         return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui');
@@ -179,7 +180,12 @@ class ProfileController extends Controller
 
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
-            if ($mahasiswa) $mahasiswa->delete();
+            if ($mahasiswa) {
+                 if (Schema::hasColumn($mahasiswa->getTable(), 'foto') && $mahasiswa->foto && Storage::disk('public')->exists($mahasiswa->foto)) {
+                    Storage::disk('public')->delete($mahasiswa->foto);
+                 }
+                $mahasiswa->delete();
+            }
         }
 
         Auth::logout();
@@ -188,7 +194,7 @@ class ProfileController extends Controller
         return redirect('/login')->with('success', 'Akun berhasil dihapus.');
     }
 
-    /* ===================== HELPERS (TIDAK DIUBAH) ===================== */
+    /* ===================== HELPERS (MODIFIKASI KECIL) ===================== */
 
     private function findDosenFor(int $userId, string $email, bool $createIfMissing = false)
     {
@@ -219,7 +225,12 @@ class ProfileController extends Controller
 
     private function findMahasiswaFor(int $userId, string $email, bool $createIfMissing = false)
     {
-        return Mahasiswa::where('user_id', $userId)->orWhere('email', $email)->first();
+        $q = Mahasiswa::query();
+        $q->where(function ($query) use ($userId, $email) {
+            $query->where('user_id', $userId)->orWhere('email', $email);
+        });
+        
+        return $q->first();
     }
 
     private function adaptMahasiswaToDosen(?Mahasiswa $m)
@@ -230,7 +241,7 @@ class ProfileController extends Controller
             'nama' => $m->nama,
             'email' => $m->email,
             'nomor_hp' => $m->nomor_hp,
-            'nidn' => $m->nim,
+            'nidn' => $m->nim, 
             'jenis_kelamin' => $m->jenis_kelamin,
             'pendidikan_terakhir' => null,
             'status_ikatan_kerja' => null,
