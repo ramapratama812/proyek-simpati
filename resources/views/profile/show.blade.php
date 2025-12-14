@@ -5,9 +5,28 @@
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 1200px; margin: 0 auto;">
 
         {{-- ================= HEADER ================= --}}
-        <div class="card-header text-center text-white py-4 header-dosen">
-            <i class="bi bi-person-badge-fill display-5 mb-2 d-block"></i>
-            <h2 class="fw-bolder mb-0 text-uppercase">{{ $dosen->nama ?? 'Nama Dosen' }}</h2>
+        <div class="card-header text-center text-white py-4 header-dosen position-relative">
+            
+            {{-- ❗ LOGIKA AVATAR/FOTO (UKURAN 120PX) ❗ --}}
+            @php
+                // Menggunakan $dosen->nama atau fallback ke $user->name jika diperlukan
+                $initial = strtoupper(substr($dosen->nama ?? $user->name, 0, 1));
+            @endphp
+            
+            <div class="dosen-avatar-in-header mb-3 mx-auto">
+                @if ($dosen->foto) 
+                    <img src="{{ asset('storage/' . $dosen->foto) }}" 
+                         alt="{{ $dosen->nama ?? $user->name }}" 
+                         class="dosen-profile-photo-in-header rounded-circle">
+                @else
+                    <div class="dosen-profile-initials-in-header rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                        {{ $initial }}
+                    </div>
+                @endif
+            </div>
+            {{-- ❗ AKHIR LOGIKA AVATAR ❗ --}}
+
+            <h2 class="fw-bolder mb-0 text-uppercase">{{ $dosen->nama ?? $user->name }}</h2>
             <p class="text-white-50 small mb-0">Profile Dosen | NIDN: {{ $dosen->nidn ?? '-' }}</p>
         </div>
 
@@ -33,7 +52,7 @@
                     <div class="bio-box bio-box-smooth">
                         <i class="bi bi-person-fill fs-4 me-3 text-primary-color"></i>
                         <p class="text-muted small mb-0">Nama Lengkap</p>
-                        <p class="text-dark fw-bold mb-0 text-uppercase">{{ $dosen->nama ?? '-' }}</p>
+                        <p class="text-dark fw-bold mb-0 text-uppercase">{{ $dosen->nama ?? $user->name }}</p>
                     </div>
                 </div>
 
@@ -124,19 +143,16 @@
                     </div>
                 </div>
 
-                {{-- PDDikti Link (Kanan Kelima - Dibuat terpisah di bawah) --}}
-                {{-- Kosongkan slot ini di struktur 2 kolom jika PDDikti ditaruh di bawah --}}
-
             </div>
             
             <hr class="my-5">
 
-            {{-- ================= LINK PDDIKTI (Sesuai Gambar 2) ================= --}}
+            {{-- ================= LINK PDDIKTI ================= --}}
             <h4 class="fw-bold mb-3 text-primary-dark">Akses Profil Resmi PDDIKTI</h4>
             <div class="d-flex align-items-center mb-4 pddikti-box">
                 @if($dosen->link_pddikti)
                     <a href="{{ $dosen->link_pddikti }}" target="_blank"
-                       class="btn btn-primary rounded-pill px-4 py-2 me-3 pddikti-btn">
+                       class="btn btn-primary rounded-pill px-4 py-2 me-3 pddikti-btn btn-smooth-action">
                         <i class="bi bi-box-arrow-up-right me-1"></i> Buka Profil PDDIKTI
                     </a>
 
@@ -159,22 +175,24 @@
 
             {{-- ================= AKSI ================= --}}
             <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ route('dosen.index') }}" class="btn btn-secondary rounded-pill px-4 btn-smooth-action">
+                <a href="{{ route('dosen.index') }}" class="btn btn-secondary rounded-pill px-4 btn-smooth-action btn-back">
                     <i class="bi bi-arrow-left me-1"></i> Kembali
                 </a>
 
                 <div class="d-flex gap-2">
+                    {{-- TOMBOL EDIT PROFIL DENGAN HOVER SMOOTH --}}
                     <a href="{{ route('profile.edit') }}"
-                       class="btn text-dark fw-semibold px-4 py-2 rounded-pill btn-edit-profile btn-smooth-action">
+                       class="btn text-white fw-semibold px-4 py-2 rounded-pill btn-edit-profile btn-smooth-action">
                         <i class="bi bi-pencil-square me-1"></i> Edit Profil
                     </a>
 
+                    {{-- TOMBOL HAPUS AKUN DENGAN HOVER SMOOTH --}}
                     <form action="{{ route('profile.destroy') }}" method="POST"
                           onsubmit="return confirm('Yakin ingin hapus akun?')" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                                class="btn btn-outline-danger rounded-pill px-4 py-2 btn-smooth-action">
+                                class="btn btn-outline-danger rounded-pill px-4 py-2 btn-smooth-action btn-delete-account">
                             <i class="bi bi-trash-fill me-1"></i> Hapus Akun
                         </button>
                     </form>
@@ -197,60 +215,85 @@
     --danger-color: #dc3545;
     --sinta-color: #6c5ce7; 
     --pddikti-color: #00897b;
+    --light-blue: #e8f0ff;
 }
 
-.text-primary-dark {
-    color: var(--primary-dark) !important;
+/* 1. Global Transisi untuk Elemen Interaktif */
+.btn-smooth-action, .bio-box, .pddikti-box a.btn {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Custom bezier for smooth effect */
+}
+
+.text-sinta {
+    color: var(--sinta-color) !important;
 }
 .text-primary-color {
     color: var(--primary-color) !important;
 }
-.text-sinta {
-    color: var(--sinta-color) !important;
-}
-.text-pddikti {
-    color: var(--pddikti-color) !important;
+.text-primary-dark { /* Menggunakan kode warna #001F4D */
+    color: var(--primary-dark) !important;
 }
 
-/* 1. Header & Card Styling (Gaya Modern) */
-body {
-    background: #f4f7fc; 
-    font-family: 'Poppins', sans-serif;
-}
+
+/* 1. Header & Card Styling */
 .header-dosen {
     background: linear-gradient(135deg, var(--primary-dark) 0%, #0a3d62 100%);
     box-shadow: 0 5px 15px rgba(0, 31, 77, 0.4);
     border-bottom: 5px solid var(--warning-color);
-}
-.card {
-    transition: box-shadow 0.3s ease;
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
 }
 
-/* 2. Biodata Boxes (Gaya Clean dan Smooth) */
+/* ❗ KOREKSI UKURAN AVATAR/INISIAL DI HEADER ❗ */
+/* Ukuran dikembalikan ke 120px */
+.dosen-avatar-in-header {
+    display: inline-block; 
+}
+
+.dosen-profile-photo-in-header {
+    width: 120px; 
+    height: 120px;
+    object-fit: cover;
+    border: 5px solid white; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+}
+
+.dosen-profile-initials-in-header {
+    width: 120px; 
+    height: 120px;
+    background-color: var(--light-blue);
+    color: var(--primary-dark);
+    font-size: 3rem; 
+    line-height: 1;
+    border: 5px solid white; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+}
+/* ❗ AKHIR KOREKSI UKURAN AVATAR ❗ */
+
+
+/* 2. Biodata Boxes (Hover Smooth & Spacing Jelas) */
 .bio-box {
-    /* Mengembalikan ke gaya single box per kolom */
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    padding: 15px 20px; 
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.04);
+    
     display: flex;
     flex-direction: column; 
     align-items: flex-start;
-    
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    padding: 15px 20px; /* Padding lebih besar */
-    border-radius: 14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,.04);
 }
-/* Menyesuaikan ikon agar berada di atas, seperti gambar 1 */
+
 .bio-box i {
     align-self: flex-start;
     margin-bottom: 5px; 
 }
 
-.bio-box-smooth {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.bio-box-smooth:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0,0,0,.1);
+.bio-box:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 20px rgba(0,0,0,.15); 
 }
 
 /* Status Badges */
@@ -265,35 +308,93 @@ body {
 .status-tidak-aktif { background-color: var(--danger-color); color: #fff; }
 .status-default { background-color: #ccc; color: #555; border: none; }
 
-
-/* PDDikti Box (Sesuai Gambar 2 - Lebih menonjol) */
+/* PDDikti Box */
 .pddikti-box {
     background: #e8f0ff;
     border: 1px dashed var(--primary-color);
     padding: 20px;
     border-radius: 12px;
-    /* Memastikan tombol dan tautan sejajar */
-    align-items: center; 
-}
-.pddikti-btn {
-    transition: all 0.3s ease;
 }
 
-/* Tombol Aksi */
+/* ==========================================================
+   4. PERBAIKAN TOMBOL AKSI (HOVER LEBIH SMOOTH DAN MENARIK)
+   ========================================================== */
+
+/* Tombol Edit Profile (Menonjol) */
 .btn-edit-profile {
     background-color: var(--primary-color);
-    color: white !important;
+    color: white !important; /* Pastikan teks putih */
     border: 1px solid var(--primary-dark);
+    box-shadow: 0 4px 10px rgba(0, 80, 160, 0.2);
 }
-.btn-smooth-action {
-    transition: all 0.3s ease;
-}
-.btn-smooth-action:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
-}
+
 .btn-edit-profile:hover {
     background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Tombol Hapus Akun (Gaya Outline dengan Hover Kuat) */
+.btn-delete-account {
+    border-color: var(--danger-color);
+    color: var(--danger-color) !important;
+}
+
+.btn-delete-account:hover {
+    background-color: var(--danger-color);
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* Tombol Kembali (Secondary) */
+.btn-back:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Scroll List Container */
+.scroll-list-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+.scroll-list-container::-webkit-scrollbar { width: 6px; }
+.scroll-list-container::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
+.scroll-list-container::-webkit-scrollbar-track { background-color: #f1f1f1; border-radius: 10px; }
+
+/* Custom Tabs Styling */
+.custom-tabs .nav-link {
+    color: var(--primary-dark);
+    font-weight: 600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 15px;
+}
+.custom-tabs .nav-link:hover {
+    color: var(--primary-color);
+    border-bottom-color: #d0e6ff;
+    background-color: #f5f5f5;
+}
+.custom-tabs .nav-link.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background-color: transparent;
 }
 </style>
+{{-- Memastikan Bootstrap JS untuk Tabs berfungsi (asumsi layout.app sudah memuatnya) --}}
+<script>
+    // Hanya untuk memastikan tab aktif pada refresh, jika diperlukan
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggerTabList = document.querySelectorAll('#dosenTab button')
+        triggerTabList.forEach(triggerEl => {
+            const tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.addEventListener('click', event => {
+                event.preventDefault()
+                tabTrigger.show()
+            })
+        })
+    });
+</script>
 @endsection
