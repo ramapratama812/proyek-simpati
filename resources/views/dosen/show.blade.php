@@ -4,8 +4,28 @@
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 1200px; margin: 0 auto;">
 
         {{-- ================= HEADER ================= --}}
-        <div class="card-header text-center text-white py-4 header-dosen">
-            <i class="bi bi-person-badge-fill display-5 mb-2 d-block"></i>
+        {{-- Pastikan ada class text-center di sini --}}
+        <div class="card-header text-center text-white py-4 header-dosen position-relative">
+            
+            {{-- ❗ LOGIKA AVATAR/FOTO DI ATAS NAMA (PATH KOREKSI) ❗ --}}
+            @php
+                // Asumsi $dosen->nama tersedia di controller
+                $initial = strtoupper(substr($dosen->nama ?? '', 0, 1));
+            @endphp
+
+            {{-- Tambahkan d-inline-block untuk memastikan mx-auto berfungsi dengan baik --}}
+            <div class="dosen-avatar-wrapper mb-3 d-inline-block">
+                @if ($dosen->foto) {{-- ❗ KOREKSI: $dosen->photo -> $dosen->foto ❗ --}}
+                    <img src="{{ asset('storage/' . $dosen->foto) }}" 
+                         alt="{{ $dosen->nama }}" 
+                         class="dosen-profile-photo rounded-circle">
+                @else
+                    <div class="dosen-profile-initials rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                        {{ $initial }}
+                    </div>
+                @endif
+            </div>
+            
             <h2 class="fw-bolder mb-0 text-uppercase">{{ $dosen->nama ?? 'Nama Dosen' }}</h2>
             <p class="text-white-50 small mb-0">Detail Dosen | NIDN: {{ $dosen->nidn ?? '-' }}</p>
         </div>
@@ -274,6 +294,7 @@
     --warning-color: #ffc107;
     --danger-color: #dc3545;
     --sinta-color: #6c5ce7; /* Warna Ungu untuk SINTA */
+    --light-blue: #e8f0ff;
 }
 
 .text-sinta {
@@ -289,6 +310,32 @@
 .text-primary-dark {
     color: var(--primary-dark) !important;
 }
+
+/* ❗ AVATAR STYLING (KOREKSI) ❗ */
+.dosen-avatar-wrapper {
+    display: inline-block; 
+}
+.dosen-profile-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 5px solid white; 
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+.dosen-profile-initials {
+    width: 120px;
+    height: 120px;
+    background-color: #e8f0ff; 
+    color: var(--primary-dark);
+    font-size: 3rem;
+    line-height: 1;
+    border: 5px solid white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+}
+
 
 /* 2. Biodata Boxes */
 .bio-box {
