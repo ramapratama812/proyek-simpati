@@ -21,7 +21,7 @@
                 
                 {{-- Total Dosen Terdaftar --}}
                 <div class="col-md-4 col-sm-6 p-2">
-                    <div class="stat-box-integrated shadow-sm text-primary-dark rounded-3 p-3 text-center">
+                    <div class="stat-box-integrated hover-smooth-shadow shadow-sm text-primary-dark rounded-3 p-3 text-center">
                         <i class="bi bi-people-fill fs-3 mb-1 text-primary-dark"></i>
                         <h5 class="fw-bold mb-0">{{ $dosens->total() ?? 0 }}</h5>
                         <small class="text-muted">Total Dosen</small>
@@ -30,7 +30,7 @@
 
                 {{-- Dosen Aktif Mengajar --}}
                 <div class="col-md-4 col-sm-6 p-2">
-                    <div class="stat-box-integrated shadow-sm text-primary-dark rounded-3 p-3 text-center">
+                    <div class="stat-box-integrated hover-smooth-shadow shadow-sm text-primary-dark rounded-3 p-3 text-center">
                         <i class="bi bi-person-check-fill fs-3 mb-1 text-success"></i>
                         <h5 class="fw-bold mb-0">{{ $totalDosenAktif ?? 0 }}</h5>
                         <small class="text-muted">Dosen Aktif</small>
@@ -39,7 +39,7 @@
 
                 {{-- Dosen Sedang Cuti/Tugas --}}
                 <div class="col-md-4 col-sm-6 p-2">
-                    <div class="stat-box-integrated shadow-sm text-primary-dark rounded-3 p-3 text-center">
+                    <div class="stat-box-integrated hover-smooth-shadow shadow-sm text-primary-dark rounded-3 p-3 text-center">
                         <i class="bi bi-person-lines-fill fs-3 mb-1 text-warning"></i>
                         <h5 class="fw-bold mb-0">{{ $totalDosenCuti ?? 0 }}</h5>
                         <small class="text-muted">Dosen Cuti</small>
@@ -117,6 +117,7 @@
                 <table class="table align-middle mb-0">
                     <thead>
                         <tr class="table-header">
+                            <th style="width: 40px;"></th> {{-- Kolom baru untuk Avatar --}}
                             <th>Nama</th>
                             <th>NIDN / NIP</th>
                             <th>Status Aktivitas</th>
@@ -126,31 +127,59 @@
                     <tbody>
                         @forelse ($dosens as $dosen)
                             <tr class="table-row">
+                                {{-- ❗ KOLOM AVATAR/FOTO - KOREKSI PATH & VARIABEL ❗ --}}
+                                <td>
+                                    @if ($dosen->foto) 
+                                        @php
+                                            // Memastikan path foto di sini menggunakan kolom 'foto' dan path yang benar
+                                            $photoPath = $dosen->foto;
+                                            $photoUrl = asset('storage/' . $photoPath);
+                                        @endphp
+                                        <img src="{{ $photoUrl }}"
+                                             alt="{{ $dosen->nama }}" 
+                                             class="rounded-circle" 
+                                             style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #ddd;">
+                                    @else
+                                        @php
+                                            $initial = strtoupper(substr($dosen->nama ?? '', 0, 1));
+                                        @endphp
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold" 
+                                             style="width: 40px; height: 40px; font-size: 1.1rem; background-color: var(--blue-light); color: var(--blue-medium);">
+                                            {{ $initial }}
+                                        </div>
+                                    @endif
+                                </td>
+                                
+                                {{-- KOLOM NAMA DOSEN --}}
                                 <td class="fw-bold text-uppercase text-primary-dark">{{ $dosen->nama }}</td>
+                                
+                                {{-- KOLOM NIDN/NIP --}}
                                 <td>{{ $dosen->nidn ?? $dosen->nip ?? '-' }}</td>
 
+                                {{-- KOLOM STATUS --}}
                                 <td>
                                     @if ($dosen->status_aktivitas == 'Aktif')
-                                        <span class="badge status-aktif"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
+                                            <span class="badge status-aktif"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
                                     @elseif ($dosen->status_aktivitas == 'Tidak Aktif')
-                                        <span class="badge status-tidak-aktif"><i class="bi bi-x-circle-fill me-1"></i> Non Aktif</span>
+                                            <span class="badge status-tidak-aktif"><i class="bi bi-x-circle-fill me-1"></i> Non Aktif</span>
                                     @elseif ($dosen->status_aktivitas == 'Cuti')
-                                        <span class="badge status-cuti"><i class="bi bi-pause-circle-fill me-1"></i> Cuti</span>
+                                            <span class="badge status-cuti"><i class="bi bi-pause-circle-fill me-1"></i> Cuti</span>
                                     @else
-                                        <span class="badge bg-secondary-subtle text-secondary">-</span>
+                                            <span class="badge bg-secondary-subtle text-secondary">-</span>
                                     @endif
                                 </td>
 
+                                {{-- KOLOM AKSI --}}
                                 <td class="text-center">
                                     <a href="{{ route('dosen.show', $dosen->id) }}" class="btn btn-sm btn-detail fw-semibold">
-                                        Detail <i class="bi bi-arrow-right-short"></i>
+                                            Detail <i class="bi bi-arrow-right-short"></i>
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-5">
-                                    <i class="bi bi-x-octagon-fill fs-5 me-2"></i> Data dosen tidak ditemukan.
+                                <td colspan="5" class="text-center text-muted py-5">
+                                            <i class="bi bi-x-octagon-fill fs-5 me-2"></i> Data dosen tidak ditemukan.
                                 </td>
                             </tr>
                         @endforelse
@@ -248,6 +277,7 @@ body {
     z-index: 10;
 }
 
+/* Penambahan Transisi pada Stat Box */
 .stat-box-integrated {
     background: #fff;
     border: 1px solid #e0e5ee;
@@ -256,12 +286,20 @@ body {
     height: 100%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
     
-    /* Tampilan Rata Kiri di dalam card */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
+    
+    /* Transisi untuk hover smooth */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
 }
+.stat-box-integrated:hover {
+    transform: translateY(-5px); /* Efek mengangkat */
+    box-shadow: 0 8px 20px rgba(0, 43, 109, 0.2) !important; /* Bayangan lebih jelas */
+}
+
 .stat-box-integrated .fs-5 { /* Icon */
     margin-bottom: 5px;
 }
@@ -324,17 +362,23 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Tabel Baris */
+/* Tabel Baris - Hover yang Lebih Smooth */
 .table-row td {
     padding: 18px 20px;
     font-size: 0.95rem;
     border-bottom: 1px solid #f0f4f8;
-    transition: background-color 0.3s ease;
+    /* Hilangkan transisi di sini karena sudah ada di selector row */
+}
+
+.table-row {
+    transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
 .table-row:hover {
     background: #f0f6ff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transform: translateX(2px); /* Efek pergeseran ringan */
+    cursor: pointer;
 }
 
 /* Status Badges */
@@ -349,13 +393,13 @@ body {
 .status-tidak-aktif { background-color: #6c757d; color: #fff; }
 .status-cuti { background-color: var(--warning-color); color: #333; }
 
-/* Tombol Detail */
+/* Tombol Detail - Hover yang Lebih Smooth */
 .btn-detail {
     color: var(--blue-medium);
     background-color: var(--blue-light);
     border-radius: 12px;
     padding: 6px 15px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
     font-size: 0.85em;
 }
 
@@ -363,6 +407,7 @@ body {
     color: #fff;
     background-color: var(--blue-medium);
     box-shadow: 0 4px 10px rgba(0, 80, 160, 0.3);
+    transform: translateY(-1px); /* Efek mengangkat tombol */
 }
 </style>
 @endsection
