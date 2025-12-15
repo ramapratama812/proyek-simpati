@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use App\Mail\PublicationStatusChangedMail;
+use App\Services\GoogleDriveService;
+use App\Services\GoogleDriveFileService;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use App\Services\GoogleDriveTokenService;
 
 class PublicationController extends Controller
 {
@@ -78,7 +83,7 @@ class PublicationController extends Controller
         return view('publications.create', compact('projectId'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, GoogleDriveFileService $gdriveFiles)
     {
         $validated = $request->validate([
             'judul'           => 'required|string|max:255',
@@ -93,7 +98,46 @@ class PublicationController extends Controller
             'doi'             => 'nullable|string|max:255',
             'project_id'      => 'nullable|integer|exists:research_projects,id',
             'file'            => 'nullable|file|mimes:pdf|max:2048',
+            'gdrive_pdf_json' => 'nullable|string',
         ]);
+
+        $user = $request->user();
+
+        // Simpan file PDF dari upload biasa
+        if ($request->hasFile('file')) {
+            $validated['file'] = $request->file('file')->store('publications', 'public');
+        }
+
+        // Jika user memilih dari Google Drive (prioritas Drive kalau ada)
+        if ($request->filled('gdrive_pdf_json')) {
+            $picked = json_decode($request->input('gdrive_pdf_json'), true);
+
+            if (!is_array($picked) || empty($picked['id'])) {
+                return back()->withInput()->with('error', 'Data file Google Drive tidak valid.');
+            }
+
+            try {
+                $dl = $this->downloadPdfFromDrive($picked['id']);
+
+                // Kalau sebelumnya upload file lokal, hapus dan ganti dengan yg dari Drive
+                if (!empty($validated['file'])) {
+                    Storage::disk('public')->delete($validated['file']);
+                }
+
+                $validated['file'] = $dl['path'];
+
+                // Simpan metadata Drive (opsional, tapi berguna)
+                $validated['gdrive_pdf_id']        = $dl['meta']['id'];
+                $validated['gdrive_pdf_name']      = $dl['meta']['name'];
+                $validated['gdrive_pdf_mime']      = $dl['meta']['mimeType'];
+                $validated['gdrive_pdf_view_link'] = $dl['meta']['url'];
+
+            } catch (\Throwable $e) {
+                return back()->withInput()->with('error', $e->getMessage());
+            }
+        }
+
+        unset($validated['gdrive_pdf_json']);
 
         // Process penulis into array
         if (isset($validated['penulis']) && $validated['penulis']) {
@@ -105,7 +149,7 @@ class PublicationController extends Controller
 
         // set pemilik
         if (Schema::hasColumn('publications', 'owner_id')) {
-            $validated['owner_id'] = auth()->id();
+            $validated['owner_id'] = $user->id;
         }
 
         // jika publikasi dikirim dari halaman publikasi-kegiatan, pastikan yang login = ketua/creator
@@ -203,18 +247,19 @@ class PublicationController extends Controller
         abort_if($publication->validation_status === 'approved', 403);
 
         $validated = $request->validate([
-            'judul'          => 'required|string|max:255',
-            'jenis'          => 'nullable|string|max:100',
-            'jurnal'         => 'nullable|string|max:255',
-            'tahun'          => 'nullable|integer',
-            'volume'         => 'nullable|string|max:100',
-            'nomor'          => 'nullable|string|max:100',
-            'abstrak'        => 'nullable|string',
-            'jumlah_halaman' => 'nullable|integer',
-            'penulis'        => 'nullable|string',
-            'doi'            => 'nullable|string|max:255',
-            'file'           => 'nullable|file|mimes:pdf|max:2048',
-            'remove_file'    => 'nullable|boolean', // untuk menghapus file
+            'judul'             => 'required|string|max:255',
+            'jenis'             => 'nullable|string|max:100',
+            'jurnal'            => 'nullable|string|max:255',
+            'tahun'             => 'nullable|integer',
+            'volume'            => 'nullable|string|max:100',
+            'nomor'             => 'nullable|string|max:100',
+            'abstrak'           => 'nullable|string',
+            'jumlah_halaman'    => 'nullable|integer',
+            'penulis'           => 'nullable|string',
+            'doi'               => 'nullable|string|max:255',
+            'file'              => 'nullable|file|mimes:pdf|max:2048',
+            'remove_file'       => 'nullable|boolean', // untuk menghapus file
+            'gdrive_pdf_json'   => 'nullable|string'
         ]);
 
         // Process penulis into array
@@ -242,6 +287,36 @@ class PublicationController extends Controller
         } else {
             unset($validated['file']); // jangan ngereset file jadi null tanpa sengaja
         }
+
+        // Jika pilih PDF dari Google Drive (replace file lama)
+        if ($request->filled('gdrive_pdf_json')) {
+            $picked = json_decode($request->input('gdrive_pdf_json'), true);
+
+            if (!is_array($picked) || empty($picked['id'])) {
+                return back()->withInput()->with('error', 'Data file Google Drive tidak valid.');
+            }
+
+            try {
+                $dl = $this->downloadPdfFromDrive($picked['id']);
+
+                // Hapus file lama kalau ada
+                if (!empty($publication->file)) {
+                    Storage::disk('public')->delete($publication->file);
+                }
+
+                $validated['file'] = $dl['path'];
+
+                $validated['gdrive_file_id']   = $dl['meta']['id'];
+                $validated['gdrive_file_name'] = $dl['meta']['name'];
+                $validated['gdrive_mime_type'] = $dl['meta']['mimeType'];
+                $validated['gdrive_url']       = $dl['meta']['url'];
+
+            } catch (\Throwable $e) {
+                return back()->withInput()->with('error', $e->getMessage());
+            }
+        }
+
+        unset($validated['gdrive_pdf_json']);
 
         $publication->update($validated);
 
@@ -371,5 +446,109 @@ class PublicationController extends Controller
         }
 
         return back()->with('ok', 'Publikasi berhasil diajukan untuk validasi admin.');
+    }
+
+    private function storePdfFromGoogleDrive(array $picked, $user): string
+    {
+        $fileId = $picked['id'] ?? null;
+        if (!$fileId) {
+            throw new \RuntimeException("File Google Drive tidak valid (id kosong).");
+        }
+
+        /** @var GoogleDriveTokenService $svc */
+        $svc = app(GoogleDriveTokenService::class);
+        $token = $svc->getAccessToken($user);
+
+        // ambil metadata untuk validasi
+        $meta = Http::withToken($token)->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+            'fields' => 'id,name,mimeType,size'
+        ]);
+
+        if (!$meta->ok()) {
+            throw new \RuntimeException("Gagal ambil metadata file dari Google Drive.");
+        }
+
+        $m = $meta->json();
+        $mime = $m['mimeType'] ?? '';
+        $size = (int)($m['size'] ?? 0);
+
+        if ($mime !== 'application/pdf') {
+            throw new \RuntimeException("File yang dipilih harus PDF.");
+        }
+
+        // max 2MB (sesuaikan kalau mau)
+        if ($size > 2 * 1024 * 1024) {
+            throw new \RuntimeException("Ukuran PDF melebihi 2MB.");
+        }
+
+        // download file
+        $dl = Http::withToken($token)
+            ->withOptions(['stream' => true])
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", ['alt' => 'media']);
+
+        if (!$dl->ok()) {
+            throw new \RuntimeException("Gagal download file dari Google Drive.");
+        }
+
+        $original = $m['name'] ?? ('drive-file-'.$fileId.'.pdf');
+        $base = pathinfo($original, PATHINFO_FILENAME);
+        $filename = Str::slug($base) . '-' . time() . '.pdf';
+
+        $path = "publications/{$filename}";
+        Storage::disk('public')->put($path, $dl->body());
+
+        return $path; // ini yang disimpan ke kolom `file`
+    }
+
+    private function downloadPdfFromDrive(string $fileId): array
+    {
+        /** @var \App\Services\GoogleDriveTokenService $tokenService */
+        $tokenService = app(GoogleDriveTokenService::class);
+
+        $accessToken = $tokenService->getAccessToken(auth()->user());
+
+        if (!$accessToken) {
+            throw new \RuntimeException('Akun Google Drive belum terhubung atau token tidak tersedia.');
+        }
+
+        // Ambil metadata dulu (validasi mime)
+        $metaRes = Http::withToken($accessToken)
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+                'fields' => 'id,name,mimeType,webViewLink'
+            ]);
+
+        if (!$metaRes->successful()) {
+            throw new \RuntimeException('Gagal mengambil metadata file dari Google Drive.');
+        }
+
+        $meta = $metaRes->json();
+        if (($meta['mimeType'] ?? '') !== 'application/pdf') {
+            throw new \RuntimeException('File yang dipilih harus PDF.');
+        }
+
+        // Download konten file
+        $fileRes = Http::withToken($accessToken)
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+                'alt' => 'media'
+            ]);
+
+        if (!$fileRes->successful()) {
+            throw new \RuntimeException('Gagal mengunduh file PDF dari Google Drive.');
+        }
+
+        $filename = Str::uuid()->toString() . '.pdf';
+        $path = 'publications/' . $filename;
+
+        Storage::disk('public')->put($path, $fileRes->body());
+
+        return [
+            'path' => $path,
+            'meta' => [
+                'id' => $meta['id'] ?? $fileId,
+                'name' => $meta['name'] ?? null,
+                'mimeType' => $meta['mimeType'] ?? 'application/pdf',
+                'url' => $meta['webViewLink'] ?? null,
+            ],
+        ];
     }
 }

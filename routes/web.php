@@ -49,22 +49,17 @@ Route::middleware('auth')->group(function () {
 // show publikasi
 Route::get('/publications/{publication}', [PublicationController::class, 'show'])->name('publications.show');
 
-// Tombol login / daftar pakai Google, role dikirim lewat query ?role=dosen / ?role=mahasiswa
+// Google SSO
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
-    ->name('google.redirect');
-
-// Callback dari Google
+    ->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
-    ->name('google.callback');
+    ->name('auth.google.callback');
 
-// Lengkapi data pendaftaran Google (jika perlu)
+// Google register complete
 Route::get('/register/google/complete', [GoogleRegisterController::class, 'showCompleteForm'])
     ->name('register.google.complete');
 Route::post('/register/google/complete', [GoogleRegisterController::class, 'storeComplete'])
     ->name('register.google.store');
-
-// Tombol login / daftar pakai Google, role dikirim lewat query ?role=dosen / ?role=mahasiswa
-Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 
 // Route untuk update status validasi pendaftaran (approve/reject)
 Route::middleware(['auth'])->group(function () {

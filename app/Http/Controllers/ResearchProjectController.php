@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Mail\ResearchProjectSubmittedMail;
 use App\Mail\ResearchProjectStatusChangedMail;
 use Illuminate\Support\Facades\Mail;
+use App\Services\GoogleDriveFileService;
 
 class ResearchProjectController extends Controller
 {
@@ -137,7 +138,7 @@ class ResearchProjectController extends Controller
         return view('projects.create', compact('lecturers','students'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, GoogleDriveFileService $gdriveFiles)
     {
         if (strtolower(auth()->user()->role ?? '') === 'mahasiswa') {
             abort(403, 'Akses ditolak.');
@@ -172,9 +173,31 @@ class ResearchProjectController extends Controller
             'tautan' => 'nullable|url',
             'images' => 'nullable|array',
             'images.*' => 'image|max:10248',
+            'gdrive_images_json' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($request, $data) {
+        // Pre-process Google Drive Images to validate them before transaction
+        $gdriveData = [];
+        $imagesJson = $request->input('gdrive_images_json');
+        if ($imagesJson) {
+            $docs = json_decode($imagesJson, true) ?: [];
+            $allowed = ['image/jpeg','image/png','image/webp'];
+
+            foreach ($docs as $doc) {
+                $fileId = $doc['id'] ?? null;
+                if (!$fileId) continue;
+
+                $meta = $gdriveFiles->getMeta($request->user(), $fileId);
+
+                if (!in_array($meta['mime'], $allowed, true)) {
+                    return back()->with('err', 'Dokumentasi harus gambar (jpg/png/webp).')->withInput();
+                }
+
+                $gdriveData[] = $meta;
+            }
+        }
+
+        return DB::transaction(function () use ($request, $data, $gdriveData) {
             $project = new ResearchProject();
             // Handle file upload for surat_proposal
             $suratProposalPath = null;
@@ -227,6 +250,20 @@ class ResearchProjectController extends Controller
                     $path = $file->store('projects','public');
                     $project->images()->create(['path'=>$path]);
                 }
+            }
+
+            // Insert Google Drive Images
+            foreach ($gdriveData as $meta) {
+                \DB::table('research_project_media')->insert([
+                    'research_project_id' => $project->id,
+                    'gdrive_file_id' => $meta['id'],
+                    'name' => $meta['name'],
+                    'mime_type' => $meta['mime'],
+                    'size' => $meta['size'],
+                    'web_view_link' => $meta['webViewLink'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             // kirim email notifikasi ke admin
