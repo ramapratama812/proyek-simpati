@@ -11,6 +11,10 @@ class Mahasiswa extends Model
 
     protected $table = 'mahasiswa';
 
+    /**
+     * Daftar kolom yang boleh diisi secara massal (create/update).
+     * Pastikan program_studi & perguruan_tinggi ada di sini.
+     */
     protected $fillable = [
         'user_id',
         'nama',
@@ -19,6 +23,8 @@ class Mahasiswa extends Model
         'jenis_kelamin',
         'semester',
         'status_aktivitas',
+        'program_studi',      // <-- TAMBAHAN PENTING
+        'perguruan_tinggi',   // <-- TAMBAHAN PENTING
     ];
 
     /**
@@ -33,7 +39,6 @@ class Mahasiswa extends Model
     /**
      * Relasi Mahasiswa ↔ Kegiatan (Many-to-Many)
      * Mengambil daftar kegiatan yang diikuti mahasiswa.
-     * includes ->withPivot() kalau nanti butuh data tambahan seperti sertifikat, status, dll
      */
     public function kegiatan()
     {

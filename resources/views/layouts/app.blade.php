@@ -113,6 +113,38 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
+    /* STYLE TAMBAHAN UNTUK HEADER */
+    .notification-wrapper {
+        position: relative;
+        cursor: pointer;
+    }
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -3px;
+        font-size: 0.65rem;
+        padding: 0.25em 0.5em;
+        border-radius: 50%;
+        background-color: #dc3545;
+        color: white;
+        border: 2px solid #fff;
+    }
+    
+    /* Avatar Bulat */
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background-color: #e9ecef; /* Abu-abu muda */
+        color: #001F4D; /* Biru tua */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
     main {
       flex: 1;
       padding: 25px 35px;
@@ -191,8 +223,8 @@
 
           {{-- Admin: Validasi Kegiatan --}}
           @if($role === 'admin')
-          <a href="{{ route('projects.validation.index') }}"
-            class="{{ request()->routeIs('projects.validation.*') ? 'active' : '' }}">
+          <a href="{{ route('admin.projects.validation.index') }}"
+             class="{{ request()->routeIs('admin.projects.validation.*') ? 'active' : '' }}">
             <i class="bi bi-clipboard-check"></i>
             <span>Validasi Kegiatan</span>
           </a>
@@ -201,7 +233,7 @@
           {{-- Admin: Validasi Publikasi --}}
           @if($role === 'admin')
           <a href="{{ route('admin.publications.validation.index') }}"
-            class="{{ request()->routeIs('validation.*') ? 'active' : '' }}">
+             class="{{ request()->routeIs('admin.publications.validation.*') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-check"></i>
             <span>Validasi Publikasi</span>
           </a>
@@ -257,72 +289,50 @@
       {{-- Navbar atas (kecuali login & register) --}}
       @if (!in_array(Route::currentRouteName(), ['login', 'register']))
         <nav class="navbar navbar-expand-lg sticky-top">
-          <div class="container-fluid d-flex justify-content-end">
+          <div class="container-fluid d-flex justify-content-end align-items-center gap-3">
             @auth
               @php
-                  // Kalau controller tidak mengirim $notifications, pakai array kosong
-                  $notifItems = $notifications ?? [];
+                  // Data Dummy Notifikasi (bisa diganti data asli)
+                  $notificationCount = 9; 
+                  $notifItems = []; // Isi jika ada data
               @endphp
 
-              <ul class="navbar-nav align-items-center">
-                {{-- Lonceng notifikasi --}}
-                <li class="nav-item dropdown me-3">
-                  <a class="nav-link position-relative"
-                     href="#"
-                     id="notifDropdown"
-                     role="button"
-                     data-bs-toggle="dropdown"
+              {{-- 1. IKON NOTIFIKASI --}}
+              <div class="dropdown notification-wrapper">
+                  <a href="#" class="text-secondary" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-bell fs-4"></i>
+                      @if($notificationCount > 0)
+                          <span class="notification-badge">{{ $notificationCount }}</span>
+                      @endif
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="notifDropdown">
+                      <li><h6 class="dropdown-header">Notifikasi</h6></li>
+                      <li><a class="dropdown-item text-muted small" href="#">Tidak ada notifikasi baru</a></li>
+                  </ul>
+              </div>
+
+              {{-- 2. PROFIL USER (Nama + Avatar, Tanpa Panah) --}}
+              <div class="dropdown">
+                  {{-- Class 'dropdown-toggle' DIHAPUS agar panah hilang --}}
+                  <a class="d-flex align-items-center text-decoration-none" 
+                     href="#" 
+                     id="profileDropdown" 
+                     role="button" 
+                     data-bs-toggle="dropdown" 
                      aria-expanded="false">
-                    <i class="bi bi-bell fs-5"></i>
-                    @if(count($notifItems))
-                      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ count($notifItems) }}
-                      </span>
-                    @endif
+                     
+                     {{-- Nama User --}}
+                     <span class="fw-semibold text-dark me-2 text-uppercase">{{ Auth::user()->name }}</span>
+                     
+                     {{-- Avatar Lingkaran --}}
+                     <div class="user-avatar">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                     </div>
                   </a>
 
-                  <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0"
-                       aria-labelledby="notifDropdown"
-                       style="min-width: 360px; max-height: 420px; overflow-y: auto;">
-                    <div class="px-3 py-2 border-bottom">
-                      <strong>Notifikasi Terbaru</strong>
-                    </div>
-
-                    @if(count($notifItems))
-                      @foreach($notifItems as $item)
-                        <div class="dropdown-item small">
-                          <div class="fw-semibold mb-1" style="white-space: normal;">
-                            {{ $item['message'] ?? $item->message ?? '-' }}
-                          </div>
-                          <div class="text-muted" style="font-size: 0.75rem;">
-                            {{ $item['time'] ?? (($item->created_at ?? null) ? $item->created_at->format('d M Y H:i') : '') }}
-                          </div>
-                        </div>
-                        <div class="dropdown-divider m-0"></div>
-                      @endforeach
-                    @else
-                      <div class="px-3 py-3 small text-muted">
-                        Tidak ada notifikasi.
-                      </div>
-                    @endif
-                  </div>
-                </li>
-
-                {{-- Dropdown profil --}}
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle fw-semibold text-dark"
-                     href="#"
-                     id="profileDropdown"
-                     role="button"
-                     data-bs-toggle="dropdown"
-                     aria-expanded="false">
-                    {{ Auth::user()->name }}
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
-                      aria-labelledby="profileDropdown">
+                  <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0" aria-labelledby="profileDropdown">
                     <li>
-                      <a class="dropdown-item d-flex align-items-center"
-                         href="{{ route('profile.show') }}">
+                      <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
                         <i class="bi bi-person-circle me-2"></i> Lihat Profil
                       </a>
                     </li>
@@ -330,22 +340,21 @@
                     <li>
                       <form action="{{ route('logout') }}" method="POST" class="m-0">
                         @csrf
-                        <button type="submit"
-                                class="dropdown-item d-flex align-items-center text-danger">
+                        <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
                           <i class="bi bi-box-arrow-right me-2"></i> Keluar
                         </button>
                       </form>
                     </li>
                   </ul>
-                </li>
-              </ul>
+              </div>
+
             @endauth
           </div>
         </nav>
       @endif
 
       <main>
-        {{-- Flash message global (misal untuk status setelah redirect) --}}
+        {{-- Flash message global --}}
         @if (session('status'))
             <div class="container mt-3">
                 <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -357,7 +366,7 @@
 
         @if (session('error'))
             <div class="container mt-3">
-                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
                     {!! session('error') !!}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
