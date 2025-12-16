@@ -59,6 +59,17 @@ class RegistrationRequestController extends Controller
         ]);
     }
 
+    /**
+     * Tampilkan detail permohonan.
+     */
+    public function show(RegistrationRequest $registrationRequest)
+    {
+        $this->ensureAdmin();
+        return view('admin.registration_requests_show', [
+            'req' => $registrationRequest
+        ]);
+    }
+
 
     /**
      * Admin menyetujui permohonan → buat akun User + kirim email.
@@ -180,7 +191,9 @@ class RegistrationRequestController extends Controller
 
     protected function ensureAdmin(): void
     {
-        $role = strtolower(auth()->user()->role ?? '');
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $role = strtolower($user->role ?? '');
         abort_unless($role === 'admin', 403);
     }
 }

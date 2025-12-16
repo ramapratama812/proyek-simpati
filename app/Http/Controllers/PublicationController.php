@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Publication;
 use Illuminate\Http\Request;
 use App\Models\ResearchProject;
-use Illuminate\Support\Facades\Schema;
 use App\Mail\PublicationCreatedMail;
-use App\Mail\PublicationStatusChangedMail;
 use Illuminate\Support\Facades\Mail;
-use App\Models\User;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use App\Mail\PublicationStatusChangedMail;
 
 class PublicationController extends Controller
 {
@@ -20,6 +21,7 @@ class PublicationController extends Controller
         $sort = $request->get('sort','latest');
 
         $pubs = Publication::query();
+        $pubs->where('validation_status', 'approved');
 
         if ($q !== '') {
             $pubs->where(function($w) use ($q){
@@ -46,12 +48,14 @@ class PublicationController extends Controller
 
         $chartRows = Publication::selectRaw("$yearExpr AS y, COUNT(*) AS c")
             ->whereRaw("$yearExpr IS NOT NULL")
+            ->where('validation_status', 'approved')
             ->groupBy('y')
             ->orderBy('y')
             ->get();
 
         $years = Publication::selectRaw("DISTINCT $yearExpr AS y")
             ->whereRaw("$yearExpr IS NOT NULL")
+            ->where('validation_status', 'approved')
             ->orderBy('y','desc')
             ->pluck('y');
 
@@ -88,6 +92,7 @@ class PublicationController extends Controller
             'penulis'         => 'nullable|string',
             'doi'             => 'nullable|string|max:255',
             'project_id'      => 'nullable|integer|exists:research_projects,id',
+            'file'            => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
         // Process penulis into array
@@ -208,6 +213,8 @@ class PublicationController extends Controller
             'jumlah_halaman' => 'nullable|integer',
             'penulis'        => 'nullable|string',
             'doi'            => 'nullable|string|max:255',
+            'file'           => 'nullable|file|mimes:pdf|max:2048',
+            'remove_file'    => 'nullable|boolean', // untuk menghapus file
         ]);
 
         // Process penulis into array
@@ -216,6 +223,24 @@ class PublicationController extends Controller
             $validated['penulis'] = array_filter($validated['penulis'], fn($p) => !empty($p));
         } else {
             $validated['penulis'] = [];
+        }
+
+        // kalau user centang hapus file
+        if ($request->boolean('remove_file')) {
+            if (!empty($publication->file)) {
+                Storage::disk('public')->delete($publication->file);
+            }
+            $publication->file = null;
+        }
+
+        // kalau ada file baru, hapus lama lalu simpan baru
+        if ($request->hasFile('file')) {
+            if (!empty($publication->file)) {
+                Storage::disk('public')->delete($publication->file);
+            }
+            $validated['file'] = $request->file('file')->store('publications', 'public');
+        } else {
+            unset($validated['file']); // jangan ngereset file jadi null tanpa sengaja
         }
 
         $publication->update($validated);
