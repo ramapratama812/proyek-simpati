@@ -1,163 +1,261 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-5">
-    <div class="d-flex justify-content-center">
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 800px; width: 100%;">
+    <div class="container py-5">
+        <div class="d-flex justify-content-center">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="max-width: 800px; width: 100%;">
 
-            {{-- Header --}}
-            <div class="py-4 text-center text-white"
-                style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
-                <h3 class="fw-bold mb-0">Profil Saya</h3>
-            </div>
-
-            {{-- Notifikasi Sukses --}}
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show mb-0 text-center" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                {{-- Header --}}
+                <div class="py-4 text-center text-white"
+                    style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+                    <h3 class="fw-bold mb-0">Profil Saya</h3>
                 </div>
-            @endif
 
-            {{-- BODY --}}
-            <div class="card-body bg-white p-5">
-
-                {{-- === MODE VIEW === --}}
-                <div id="viewMode">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Nama</strong><br>{{ $mahasiswa->nama ?? $user->name ?? '-' }}</p>
-                            <p><strong>Email</strong><br>{{ $user->email ?? '-' }}</p>
-                            <p><strong>NIM</strong><br>{{ $mahasiswa->nim ?? '-' }}</p>
-                        </div>
-
-                        <div class="col-md-6">
-                            <p><strong>Jenis Kelamin</strong><br>{{ $mahasiswa->jenis_kelamin ?? '-' }}</p>
-                            <p><strong>Semester</strong><br>{{ $mahasiswa->semester ?? '-' }}</p>
-                            <p><strong>Status Aktivitas</strong><br>
-                                <span class="badge px-3 py-2 {{ ($mahasiswa->status_aktivitas ?? '') == 'Aktif' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                    {{ $mahasiswa->status_aktivitas ?? 'Aktif' }}
-                                </span>
-                            </p>
-                        </div>
+                {{-- Notifikasi Sukses --}}
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show mb-0 text-center" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+                @endif
 
-                    <hr class="my-4">
+                {{-- BODY --}}
+                <div class="card-body bg-white p-5">
 
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <a href="{{ route('dashboard') }}" class="btn btn-outline-primary rounded-pill px-4">
-                            ← Kembali
-                        </a>
+                    {{-- === MODE VIEW === --}}
+                    <div id="viewMode">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nama</strong><br>{{ $mahasiswa->nama ?? ($user->name ?? '-') }}</p>
+                                <p><strong>Email</strong><br>{{ $user->email ?? '-' }}</p>
+                                <p><strong>NIM</strong><br>{{ $mahasiswa->nim ?? '-' }}</p>
+                            </div>
 
-                        <div class="d-flex gap-2">
-                            <button href="{{ route('profile.edit') }}" id="editBtn" type="button" class="btn btn-warning rounded-pill px-4 text-white fw-semibold">
-                                <i class="bi bi-pencil-square"></i> Edit Profil
-                            </button>
+                            <div class="col-md-6">
+                                <p><strong>Jenis Kelamin</strong><br>{{ $mahasiswa->jenis_kelamin ?? '-' }}</p>
+                                <p><strong>Semester</strong><br>{{ $mahasiswa->semester ?? '-' }}</p>
+                                <p><strong>Status Aktivitas</strong><br>
+                                    <span
+                                        class="badge px-3 py-2 {{ ($mahasiswa->status_aktivitas ?? '') == 'Aktif' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                        {{ $mahasiswa->status_aktivitas ?? 'Aktif' }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
 
-                            <form action="{{ route('profile.destroy') }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus akun ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
-                                    <i class="bi bi-trash"></i> Hapus Akun
+                        <hr class="my-5">
+
+                        {{-- ===== INTEGRASI SISTEM ===== --}}
+                        <h4 class="fw-bold mb-4" style="color: #001F4D;">
+                            <i class="bi bi-link-45deg me-2"></i> Integrasi Sistem
+                        </h4>
+
+                        {{-- Google Drive --}}
+                        <div class="col-md-12">
+                            <div class="card border-0 shadow-sm h-100" style="background-color: #f8f9fa;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-white p-3 rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center"
+                                            style="width: 60px; height: 60px;">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                                alt="Google Drive" style="width: 32px; height: 32px;">
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-1 fw-bold text-uppercase">Google Drive</p>
+                                            @if (auth()->user()->google_refresh_token)
+                                                <span
+                                                    class="badge bg-success bg-opacity-10 text-success border border-success">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Terhubung
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                                    <i class="bi bi-exclamation-circle me-1"></i> Belum Terhubung
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    @if (auth()->user()->google_refresh_token)
+                                        <a href="https://drive.google.com/drive/my-drive" target="_blank"
+                                            class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Kelola Drive
+                                        </a>
+                                    @else
+                                        <a href="{{ route('gdrive.connect') }}"
+                                            class="btn btn-primary btn-sm w-100 rounded-pill">
+                                            <i class="bi bi-link-45deg me-1"></i> Hubungkan Sekarang
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary rounded-pill px-4">
+                                ← Kembali
+                            </a>
+
+                            <div class="d-flex gap-2">
+                                <button href="{{ route('profile.edit') }}" id="editBtn" type="button"
+                                    class="btn btn-warning rounded-pill px-4 text-white fw-semibold">
+                                    <i class="bi bi-pencil-square"></i> Edit Profil
                                 </button>
-                            </form>
+
+                                <form action="{{ route('profile.destroy') }}" method="POST"
+                                    onsubmit="return confirm('Yakin ingin menghapus akun ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                                        <i class="bi bi-trash"></i> Hapus Akun
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- === MODE EDIT === --}}
+                    <form id="editMode" action="{{ route('profile.update') }}" method="POST" style="display:none;">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nama</label>
+                                    <input type="text" name="name" class="form-control"
+                                        value="{{ $mahasiswa->nama ?? $user->name }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control" value="{{ $user->email }}"
+                                        disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">NIM</label>
+                                    <input type="text" name="nim" class="form-control"
+                                        value="{{ $mahasiswa->nim ?? '' }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Jenis Kelamin</label>
+                                    <select name="jenis_kelamin" class="form-select">
+                                        <option value="Laki-laki"
+                                            {{ ($mahasiswa->jenis_kelamin ?? '') == 'Laki-laki' ? 'selected' : '' }}>
+                                            Laki-laki</option>
+                                        <option value="Perempuan"
+                                            {{ ($mahasiswa->jenis_kelamin ?? '') == 'Perempuan' ? 'selected' : '' }}>
+                                            Perempuan</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Semester</label>
+                                    <input type="number" name="semester" min="1" class="form-control"
+                                        value="{{ $mahasiswa->semester ?? '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Status Aktivitas</label>
+                                    <select name="status_aktivitas" class="form-select">
+                                        <option value="Aktif"
+                                            {{ ($mahasiswa->status_aktivitas ?? '') == 'Aktif' ? 'selected' : '' }}>Aktif
+                                        </option>
+                                        <option value="Tidak Aktif"
+                                            {{ ($mahasiswa->status_aktivitas ?? '') == 'Tidak Aktif' ? 'selected' : '' }}>
+                                            Tidak Aktif</option>
+                                        <option value="Cuti"
+                                            {{ ($mahasiswa->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>Cuti
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="button" id="cancelEdit"
+                                class="btn btn-outline-secondary rounded-pill px-4">Batal</button>
+                            <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold">
+                                <i class="bi bi-save"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+
                 </div>
-
-                {{-- === MODE EDIT === --}}
-                <form id="editMode" action="{{ route('profile.update') }}" method="POST" style="display:none;">
-                    @csrf
-                    @method('PUT')
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Nama</label>
-                                <input type="text" name="name" class="form-control" value="{{ $mahasiswa->nama ?? $user->name }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" name="email" class="form-control" value="{{ $user->email }}" disabled>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">NIM</label>
-                                <input type="text" name="nim" class="form-control" value="{{ $mahasiswa->nim ?? '' }}">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Jenis Kelamin</label>
-                                <select name="jenis_kelamin" class="form-select">
-                                    <option value="Laki-laki" {{ ($mahasiswa->jenis_kelamin ?? '') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="Perempuan" {{ ($mahasiswa->jenis_kelamin ?? '') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Semester</label>
-                                <input type="number" name="semester" min="1" class="form-control" value="{{ $mahasiswa->semester ?? '' }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Status Aktivitas</label>
-                                <select name="status_aktivitas" class="form-select">
-                                    <option value="Aktif" {{ ($mahasiswa->status_aktivitas ?? '') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                    <option value="Tidak Aktif" {{ ($mahasiswa->status_aktivitas ?? '') == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif</option>
-                                    <option value="Cuti" {{ ($mahasiswa->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>Cuti</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <button type="button" id="cancelEdit" class="btn btn-outline-secondary rounded-pill px-4">Batal</button>
-                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold">
-                            <i class="bi bi-save"></i> Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
-
             </div>
         </div>
     </div>
-</div>
 
-{{-- SCRIPT TOGGLE --}}
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const viewMode = document.getElementById('viewMode');
-    const editMode = document.getElementById('editMode');
-    const editBtn = document.getElementById('editBtn');
-    const cancelBtn = document.getElementById('cancelEdit');
+    {{-- SCRIPT TOGGLE --}}
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const viewMode = document.getElementById('viewMode');
+                const editMode = document.getElementById('editMode');
+                const editBtn = document.getElementById('editBtn');
+                const cancelBtn = document.getElementById('cancelEdit');
 
-    if (editBtn && viewMode && editMode) {
-        editBtn.addEventListener('click', function() {
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
-        });
-    }
+                if (editBtn && viewMode && editMode) {
+                    editBtn.addEventListener('click', function() {
+                        viewMode.style.display = 'none';
+                        editMode.style.display = 'block';
+                    });
+                }
 
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-            editMode.style.display = 'none';
-            viewMode.style.display = 'block';
-        });
-    }
-});
-</script>
-@endpush
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function() {
+                        editMode.style.display = 'none';
+                        viewMode.style.display = 'block';
+                    });
+                }
+            });
+        </script>
+    @endpush
 
-{{-- CSS --}}
-<style>
-body { background-color: #f5f6fa; font-family: 'Poppins', sans-serif; }
-.card { border-radius: 1rem; }
-.btn-outline-primary { border-color: #2575fc; color: #2575fc; }
-.btn-outline-primary:hover { background-color: #2575fc; color: #fff; }
-.btn-warning { background-color: #ffc107; border: none; }
-.btn-warning:hover { background-color: #e0a800; }
-.btn-danger { background-color: #dc3545; border: none; }
-.btn-danger:hover { background-color: #b02a37; }
-.badge { font-size: 0.9rem; border-radius: 10px; }
-</style>
+    {{-- CSS --}}
+    <style>
+        body {
+            background-color: #f5f6fa;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .card {
+            border-radius: 1rem;
+        }
+
+        .btn-outline-primary {
+            border-color: #2575fc;
+            color: #2575fc;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #2575fc;
+            color: #fff;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #b02a37;
+        }
+
+        .badge {
+            font-size: 0.9rem;
+            border-radius: 10px;
+        }
+    </style>
 @endsection

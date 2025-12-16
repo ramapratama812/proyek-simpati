@@ -141,14 +141,70 @@
                                 @endif
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {{-- SINTA ID --}}
-                        <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-globe fs-4 me-3 text-primary"></i>
-                            <div>
-                                <p class="text-muted small mb-0">SINTA ID</p>
-                                <p class="text-dark fw-semibold mb-0">{{ $dosen->sinta_id ?? ($user->sinta_id ?? '-') }}
-                                </p>
+                <hr class="my-5">
+
+                {{-- ===== INTEGRASI SISTEM ===== --}}
+                <h4 class="fw-bold mb-4" style="color: #001F4D;">
+                    <i class="bi bi-link-45deg me-2"></i> Integrasi Sistem
+                </h4>
+
+                <div class="row g-4">
+                    {{-- SINTA ID --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100" style="background-color: #f8f9fa;">
+                            <div class="card-body d-flex align-items-center p-4">
+                                <div class="bg-white p-3 rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center"
+                                    style="width: 60px; height: 60px;">
+                                    <i class="bi bi-globe fs-3 text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted small mb-1 fw-bold text-uppercase">SINTA ID</p>
+                                    <h5 class="fw-bolder text-dark mb-0">
+                                        {{ $dosen->sinta_id ?? ($user->sinta_id ?? '-') }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Google Drive --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100" style="background-color: #f8f9fa;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-white p-3 rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center"
+                                        style="width: 60px; height: 60px;">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                            alt="Google Drive" style="width: 32px; height: 32px;">
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1 fw-bold text-uppercase">Google Drive</p>
+                                        @if (auth()->user()->google_refresh_token)
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Terhubung
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                                <i class="bi bi-exclamation-circle me-1"></i> Belum Terhubung
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if (auth()->user()->google_refresh_token)
+                                    <a href="https://drive.google.com/drive/my-drive" target="_blank"
+                                        class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Kelola Drive
+                                    </a>
+                                @else
+                                    <a href="{{ route('gdrive.connect') }}"
+                                        class="btn btn-primary btn-sm w-100 rounded-pill">
+                                        <i class="bi bi-link-45deg me-1"></i> Hubungkan Sekarang
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Laravel\Socialite\Facades\Socialite;
 use Exception;
+use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class GoogleAuthController extends Controller
 {
@@ -51,39 +53,48 @@ class GoogleAuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-        } catch (\Exception $e) {
+        } catch (InvalidStateException $e) {
+            Log::warning('Google OAuth state mismatch (session hilang)', [
+                'host' => $request->getHost(),
+                'full_url' => $request->fullUrl(),
+                'app_url' => config('app.url'),
+            ]);
+
+            return redirect()->route('login')->with(
+                'error',
+                'Sesi login Google hilang. Pastikan kamu tidak campur localhost dan 127.0.0.1.'
+            );
+        } catch (\Throwable $e) {
+            Log::error('Google OAuth callback error', [
+                'message' => $e->getMessage(),
+            ]);
+
             return redirect()->route('login')->with('error', 'Gagal login dengan Google.');
         }
 
-        $email = $googleUser->getEmail();
-        $name  = $googleUser->getName();
+        $email = strtolower($googleUser->getEmail() ?? '');
+        $name  = $googleUser->getName() ?? 'Pengguna';
         $googleId = $googleUser->getId();
 
-        $user = User::where('email', $email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
-        // Jika user sudah ada, langsung login
         if ($user) {
-            Auth::login($user);
+            Auth::login($user, true);
+            $request->session()->regenerate();
 
             return $this->redirectByRole($user);
         }
 
-        // Jika belum ada, tentukan role otomatis berdasarkan domain
         $domain = substr(strrchr($email, "@"), 1);
-        $role = null;
 
         if ($domain === 'politala.ac.id') {
             $role = 'dosen';
         } elseif ($domain === 'mhs.politala.ac.id') {
             $role = 'mahasiswa';
-        }
-
-        // Jika domain tidak dikenali, kembalikan ke login
-        if (!$role) {
+        } else {
             return redirect()->route('login')->with('error', 'Gunakan email Politala untuk login.');
         }
 
-        // Simpan data sementara di session untuk melengkapi registrasi
         session([
             'google_user' => [
                 'name' => $name,
@@ -93,21 +104,17 @@ class GoogleAuthController extends Controller
             ]
         ]);
 
-        // Arahkan ke form pendaftaran tambahan
         return redirect()->route('register.google.complete');
     }
 
     protected function redirectByRole(User $user)
     {
-        switch ($user->role) {
-            case 'admin':
-                return redirect()->route('dashboard');
-            case 'dosen':
-                return redirect()->route('dashboard');
-            case 'mahasiswa':
-                return redirect()->route('dashboard');
-            default:
-                return redirect()->route('login');
+        $role = strtolower($user->role ?? '');
+
+        if (in_array($role, ['admin','dosen','mahasiswa'])) {
+            return redirect()->route('dashboard');
         }
+
+        return redirect()->route('login')->with('error', 'Role akun tidak dikenali.');
     }
 }

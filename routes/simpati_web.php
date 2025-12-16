@@ -9,11 +9,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\PublicationController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DosenPrestasiController;
 use App\Http\Controllers\ResearchProjectController;
 use App\Http\Controllers\DosenBerprestasiController;
+use App\Http\Controllers\GoogleDriveTokenController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\AhpCriteriaComparisonController;
 use App\Http\Controllers\Admin\PublicationValidationController;
@@ -171,4 +173,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/notifications/{notification}/unread', [UserNotificationController::class, 'markUnread'])
             ->name('notifications.mark_unread');
         });
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/integrations/google-drive/connect', [GoogleDriveController::class, 'redirect'])
+            ->name('gdrive.connect');
+
+        Route::get('/integrations/google-drive/callback', [GoogleDriveController::class, 'callback'])
+            ->name('gdrive.callback');
+
+        // JS Picker butuh access token → kita kasih token short-lived via endpoint ini
+        Route::get('/integrations/google-drive/token', [GoogleDriveTokenController::class, 'show'])
+            ->name('gdrive.token');
+    });
 });
