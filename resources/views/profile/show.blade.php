@@ -180,9 +180,17 @@
                                 </div>
                                 <div>
                                     <p class="text-muted small mb-1 fw-bold text-uppercase">SINTA ID</p>
-                                    <h5 class="fw-bolder text-dark mb-0">
-                                        {{ $dosen->sinta_id ?? ($user->sinta_id ?? '-') }}
+                                    <h5 class="fw-bolder text-dark mb-2">
+                                        {{ $dosen->sinta_id ?? ($user->sinta_id ?? 'Sinta ID belum dihubungkan') }}
                                     </h5>
+                                    @php $sintaId = $dosen->sinta_id ?? $user->sinta_id; @endphp
+                                    @if ($sintaId)
+                                        <a href="https://sinta.kemdiktisaintek.go.id/authors/profile/{{ $sintaId }}"
+                                            target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1"
+                                            style="font-size: 0.75rem;">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Lihat Profil
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -201,7 +209,8 @@
                                     <div>
                                         <p class="text-muted small mb-1 fw-bold text-uppercase">Google Drive</p>
                                         @if (auth()->user()->google_refresh_token)
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                            <span
+                                                class="badge bg-success bg-opacity-10 text-success border border-success">
                                                 <i class="bi bi-check-circle-fill me-1"></i> Terhubung
                                             </span>
                                         @else

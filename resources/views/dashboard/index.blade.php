@@ -188,6 +188,7 @@
                                     </div>
                                     <div>
                                         <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Kegiatan</h6>
+                                        <small class="text-success">Divalidasi</small>
                                         <h2 class="mb-0 fw-bold">{{ $totalKegiatan }}</h2>
                                         <small class="text-muted">Penelitian & Pengabdian</small>
                                     </div>
@@ -228,6 +229,7 @@
                                     </div>
                                     <div>
                                         <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Publikasi</h6>
+                                        <small class="text-success">Divalidasi</small>
                                         <h2 class="mb-0 fw-bold">{{ $totalPublikasi }}</h2>
                                         <small class="text-muted">Jurnal, Prosiding, Buku, dll.</small>
                                     </div>

@@ -67,15 +67,13 @@ class DashboardController extends Controller
             }
 
             // Fokus: tampilan dosen/admin
-            $totalKegiatan = \App\Models\ResearchProject::where(function ($q) use ($user) {
-                    $q->where('ketua_id', $user->id)
-                    ->orWhere('created_by', $user->id)
-                    ->orWhereHas('members', function ($qq) use ($user) {
-                        $qq->where('users.id', $user->id);
-                    });
-                })->count();
+            $totalKegiatan = \App\Models\ResearchProject::where('ketua_id', $user->id)
+                ->where('validation_status', 'approved')
+                ->count();
 
-            $totalPublikasi = \App\Models\Publication::where('owner_id', $user->id)->count();
+            $totalPublikasi = \App\Models\Publication::where('owner_id', $user->id)
+                ->where('validation_status', 'approved')
+                ->count();
 
             // Validasi kegiatan
             $pendingValidation = \App\Models\ResearchProject::where('ketua_id', $user->id)
