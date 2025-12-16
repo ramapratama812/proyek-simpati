@@ -199,6 +199,23 @@
                                     <label for="file" class="form-label">File Artikel (PDF)</label>
                                     <input type="file" name="file" id="file" accept="application/pdf"
                                         class="form-control @error('file') is-invalid @enderror">
+
+                                    <div class="mb-3">
+                                        <input type="hidden" name="gdrive_pdf_json" id="gdrive_pdf_json"
+                                            value="{{ old('gdrive_pdf_json') }}">
+                                        <div id="pdfPreview" class="mt-2"></div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 py-2"
+                                            id="btnPickPdf">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                                alt="Google Drive" style="width: 20px; height: 20px;">
+                                            <span>Unggah dari Google Drive</span>
+                                        </button>
+                                    </div>
+
                                     <div class="form-text small text-muted mt-2">
                                         <i class="bi bi-info-circle me-1"></i> Format PDF, Maksimal 2MB.
                                     </div>
@@ -207,6 +224,9 @@
                                     @enderror
                                 </div>
                             </div>
+
+
+
                         </div>
 
                         {{-- Action Buttons --}}
@@ -228,6 +248,262 @@
 
 {{-- Buat integrasi crossref (impor DOI) --}}
 @push('scripts')
+    <script defer src="https://apis.google.com/js/api.js"></script>
+
+    <script>
+        (() => {
+            let pickerReady = false;
+            const ORIGIN = window.location.origin;
+
+            function loadPicker() {
+                if (!window.gapi) return;
+                gapi.load('picker', {
+                    callback: () => (pickerReady = true)
+                });
+            }
+            window.addEventListener('load', loadPicker);
+
+            async function getPickerAuth() {
+                const res = await fetch("{{ route('gdrive.token') }}", {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error("Token endpoint tidak mengembalikan JSON. Awal response: " + text.slice(0,
+                        120));
+                }
+
+                if (!res.ok) throw new Error(data.message || 'Gagal mengambil token Google Drive.');
+                return data; // { access_token, api_key, app_id }
+            }
+
+            function setPicked(picked) {
+                const input = document.getElementById('gdrive_pdf_json');
+                if (input) input.value = JSON.stringify(picked);
+
+                const preview = document.getElementById('pdfPreview');
+                if (preview) {
+                    if (picked && picked.name) {
+                        preview.innerHTML = `
+                            <div class="card border-primary shadow-sm bg-light-primary">
+                                <div class="card-body p-2 d-flex align-items-center">
+                                    <div class="bg-white rounded p-2 me-3 text-danger shadow-sm">
+                                        <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <h6 class="mb-0 text-primary fw-bold text-truncate" title="${picked.name}">
+                                            ${picked.name}
+                                        </h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="bi bi-google me-1"></i> Google Drive File
+                                        </small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2 rounded-circle" 
+                                            onclick="clearPicked()" title="Hapus file">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        preview.innerHTML = '';
+                    }
+                }
+            }
+
+            window.clearPicked = function() {
+                const input = document.getElementById('gdrive_pdf_json');
+                if (input) input.value = '';
+
+                const preview = document.getElementById('pdfPreview');
+                if (preview) preview.innerHTML = '';
+            };
+
+            // Initialize preview if old value exists
+            window.addEventListener('DOMContentLoaded', () => {
+                const oldInput = document.getElementById('gdrive_pdf_json');
+                if (oldInput && oldInput.value) {
+                    try {
+                        const picked = JSON.parse(oldInput.value);
+                        setPicked(picked);
+                    } catch (e) {
+                        console.error("Invalid JSON in old input", e);
+                    }
+                }
+            });
+
+            function isPdfFile(file) {
+                if (!file) return false;
+                if (file.type === 'application/pdf') return true;
+                return (file.name || '').toLowerCase().endsWith('.pdf');
+            }
+
+            async function openPdfPicker() {
+                if (!pickerReady) {
+                    alert('Google Picker belum siap. Coba refresh halaman lalu klik lagi.');
+                    return;
+                }
+                if (!window.google || !google.picker) {
+                    alert('Library google.picker belum ter-load. Cek apakah api.js keblok / error di console.');
+                    return;
+                }
+
+                try {
+                    const {
+                        access_token,
+                        api_key,
+                        app_id
+                    } = await getPickerAuth();
+
+                    if (!access_token) {
+                        alert(
+                            'Access Token tidak ditemukan. Silakan hubungkan ulang akun Google Drive Anda di menu Profil/Integrasi.'
+                        );
+                        return;
+                    }
+
+                    const docsView = new google.picker.DocsView()
+                        .setIncludeFolders(true)
+                        .setSelectFolderEnabled(false)
+                        .setMimeTypes('application/pdf');
+
+                    // IMPORTANT: jangan panggil setIncludeFolders di DocsUploadView (sering bikin Upload tab hilang)
+                    const uploadView = new google.picker.DocsUploadView();
+                    if (typeof uploadView.setMimeTypes === 'function') {
+                        uploadView.setMimeTypes('application/pdf');
+                    }
+
+                    let picker; // biar bisa di-close dari callback
+
+                    picker = new google.picker.PickerBuilder()
+                        .setDeveloperKey(api_key)
+                        .setAppId(String(app_id))
+                        .setOAuthToken(access_token)
+                        .setOrigin(ORIGIN)
+                        .addView(docsView)
+                        .addView(uploadView)
+                        .setCallback((data) => {
+                            // Versi yang robust: baca ACTION & DOCUMENTS via constant dulu
+                            const action = data[google.picker.Response.ACTION] || data.action;
+
+                            if (action === google.picker.Action.PICKED || action === 'picked') {
+                                const docs = data[google.picker.Response.DOCUMENTS] || data.docs || [];
+                                const d = docs[0];
+                                if (!d) return;
+
+                                const picked = {
+                                    id: d.id,
+                                    name: d.name,
+                                    mimeType: d.mimeType,
+                                    url: d.url || d.webViewLink || null
+                                };
+
+                                setPicked(picked);
+
+                                // Tutup picker supaya UX enak
+                                try {
+                                    picker.setVisible(false);
+                                } catch (e) {}
+                            }
+                        })
+                        .build();
+
+                    picker.setVisible(true);
+
+                } catch (err) {
+                    alert(err.message || 'Terjadi error saat membuka Google Drive Picker.');
+                    console.error(err);
+                }
+            }
+
+            // Drag & drop upload ke Drive lalu otomatis "kepilih"
+            async function uploadPdfToDrive(file) {
+                const {
+                    access_token
+                } = await getPickerAuth();
+                if (!access_token) throw new Error('Access Token tidak ditemukan. Hubungkan ulang Google Drive.');
+
+                const boundary = 'simpati_' + Date.now();
+                const metadata = {
+                    name: file.name,
+                    mimeType: file.type || 'application/pdf'
+                };
+
+                const body = new Blob([
+                    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+                    JSON.stringify(metadata),
+                    `\r\n--${boundary}\r\nContent-Type: ${metadata.mimeType}\r\n\r\n`,
+                    file,
+                    `\r\n--${boundary}--`
+                ], {
+                    type: `multipart/related; boundary=${boundary}`
+                });
+
+                const res = await fetch(
+                    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token,
+                            'Content-Type': `multipart/related; boundary=${boundary}`
+                        },
+                        body
+                    }
+                );
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = data?.error?.message || 'Gagal upload ke Google Drive.';
+                    throw new Error(msg);
+                }
+
+                setPicked({
+                    id: data.id,
+                    name: data.name,
+                    mimeType: data.mimeType,
+                    url: data.webViewLink || null
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('btnPickPdf');
+                if (!btn) return;
+
+                btn.addEventListener('click', openPdfPicker);
+
+                // Drag and drop langsung ke tombol (tanpa ubah tampilan tombol)
+                btn.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                btn.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer?.files?.[0];
+                    if (!isPdfFile(file)) {
+                        alert('Yang bisa di-drag ke sini hanya file PDF.');
+                        return;
+                    }
+
+                    try {
+                        await uploadPdfToDrive(file);
+                        const preview = document.getElementById('pdfPreview');
+                        if (preview) preview.innerText += ' (di-upload ke Drive)';
+                    } catch (err) {
+                        alert(err.message || 'Upload ke Drive gagal.');
+                        console.error(err);
+                    }
+                });
+            });
+        })();
+    </script>
+
     <script>
         (function() {
             function normDOI(s) {

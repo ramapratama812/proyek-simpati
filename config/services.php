@@ -35,17 +35,21 @@ return [
         ],
     ],
 
+    // setting untuk PDDIKTI (belum digunakan)
     'pddikti'=>[
         'base'=>env('PDDIKTI_BASE','http://localhost:3003'),
         'username'=>env('PDDIKTI_USER'),
         'password'=>env('PDDIKTI_PASS'),
     ],
 
-    // setting untuk google oauth
+    // setting untuk google oauth dan drive
     'google' => [
-    'client_id'     => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('GOOGLE_REDIRECT_URL'),
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+
+        // NOTE: jangan dipakai mentah kalau callback login dan callback drive beda.
+        // Nanti di controller Drive kita override pakai redirectUrl().
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
     ],
 
     // setting untuk SINTA

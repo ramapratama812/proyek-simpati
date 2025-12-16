@@ -36,6 +36,12 @@ class User extends Authenticatable
         'status',
     ];
 
+    protected $casts = [
+        'google_access_token' => 'encrypted',
+        'google_refresh_token' => 'encrypted',
+        'google_token_expires_at' => 'datetime',
+    ];
+
     protected $hidden = ['password','remember_token'];
 
     // Relasi ke profil dosen

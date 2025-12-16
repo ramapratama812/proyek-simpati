@@ -27,6 +27,11 @@ class Publication extends Model
         'validation_status',
         'validation_note',
         'validated_by',
+        'gdrive_pdf_id',
+        'gdrive_pdf_name',
+        'gdrive_pdf_mime',
+        'gdrive_pdf_size',
+        'gdrive_pdf_view_link',
     ];
 
     protected $casts = ['penulis'=>'array','sumber'=>'array'];

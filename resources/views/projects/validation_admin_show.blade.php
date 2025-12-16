@@ -292,8 +292,32 @@
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold text-dark">Surat Persetujuan P3M (PDF) <span
                                                 class="text-danger">*</span></label>
-                                        <input type="file" name="surat_persetujuan"
-                                            class="form-control form-control-sm" accept="application/pdf" required>
+
+                                        <!-- Local Upload -->
+                                        <div class="mb-2">
+                                            <input type="file" name="surat_persetujuan" id="inputLocalProposal"
+                                                class="form-control form-control-sm" accept="application/pdf" required>
+                                        </div>
+
+                                        <div class="text-center text-muted small my-2" style="font-size: 0.75rem;">
+                                            <span class="bg-white px-2 text-uppercase fw-bold">atau</span>
+                                        </div>
+
+                                        <!-- Google Drive -->
+                                        <input type="hidden" name="gdrive_pdf_persetujuan_json"
+                                            id="gdrive_pdf_persetujuan_json"
+                                            value="{{ old('gdrive_pdf_persetujuan_json') }}">
+
+                                        <div class="d-grid">
+                                            <button type="button"
+                                                class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                id="btnPickPdf">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                                    alt="Google Drive" style="width: 16px; height: 16px;">
+                                                <span>Pilih dari Google Drive</span>
+                                            </button>
+                                        </div>
+                                        <div id="pdfPreview" class="mt-2"></div>
                                     </div>
                                     <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm"
                                         onclick="return confirm('Setujui usulan kegiatan ini?');">
@@ -351,4 +375,508 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script defer src="https://apis.google.com/js/api.js"></script>
+
+        <script>
+            (() => {
+                let pickerReady = false;
+                const ORIGIN = window.location.origin;
+
+                function loadPicker() {
+                    if (!window.gapi) return;
+                    gapi.load('picker', {
+                        callback: () => (pickerReady = true)
+                    });
+                }
+                window.addEventListener('load', loadPicker);
+
+                async function getPickerAuth() {
+                    const res = await fetch("{{ route('gdrive.token') }}", {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const text = await res.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error("Token endpoint tidak mengembalikan JSON. Awal response: " + text.slice(0,
+                            120));
+                    }
+
+                    if (!res.ok) throw new Error(data.message || 'Gagal mengambil token Google Drive.');
+                    return data; // { access_token, api_key, app_id }
+                }
+
+                // --- UI Logic for Proposal ---
+                const localInput = document.getElementById('inputLocalProposal');
+                const driveInput = document.getElementById('gdrive_pdf_persetujuan_json');
+                const preview = document.getElementById('pdfPreview');
+
+                function updateRequiredState() {
+                    if (!localInput || !driveInput) return;
+
+                    if (driveInput.value) {
+                        // Kalau ada file Drive, local input jadi optional
+                        localInput.removeAttribute('required');
+                        localInput.classList.remove('is-invalid'); // cleanup visual
+                    } else {
+                        // Kalau Drive kosong, local input wajib (kecuali kalau user sudah pilih file local, tapi required tetap ada biar browser cek)
+                        localInput.setAttribute('required', 'required');
+                    }
+                }
+
+                function setPicked(picked) {
+                    if (driveInput) driveInput.value = JSON.stringify(picked);
+
+                    // Clear local input karena user pilih Drive
+                    if (localInput) localInput.value = '';
+
+                    updateRequiredState();
+
+                    if (preview) {
+                        if (picked && picked.name) {
+                            preview.innerHTML = `
+                            <div class="card border-primary shadow-sm bg-white mt-2">
+                                <div class="card-body p-2 d-flex align-items-center">
+                                    <div class="bg-light-primary rounded p-2 me-3 text-danger">
+                                        <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <h6 class="mb-0 text-primary fw-bold text-truncate" title="${picked.name}">
+                                            ${picked.name}
+                                        </h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="bi bi-google me-1"></i> Google Drive File
+                                        </small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2 rounded-circle"
+                                            onclick="clearPicked()" title="Hapus file">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        } else {
+                            preview.innerHTML = '';
+                        }
+                    }
+                }
+
+                window.clearPicked = function() {
+                    if (driveInput) driveInput.value = '';
+                    if (preview) preview.innerHTML = '';
+                    updateRequiredState();
+                };
+
+                // Initialize
+                window.addEventListener('DOMContentLoaded', () => {
+                    // Check old value
+                    if (driveInput && driveInput.value) {
+                        try {
+                            const picked = JSON.parse(driveInput.value);
+                            setPicked(picked);
+                        } catch (e) {
+                            console.error("Invalid JSON in old input", e);
+                        }
+                    }
+
+                    // Listener for local input
+                    if (localInput) {
+                        localInput.addEventListener('change', () => {
+                            if (localInput.files.length > 0) {
+                                // Kalau user pilih file local, hapus pilihan Drive
+                                clearPicked();
+                            }
+                        });
+                    }
+                });
+
+                function isPdfFile(file) {
+                    if (!file) return false;
+                    if (file.type === 'application/pdf') return true;
+                    return (file.name || '').toLowerCase().endsWith('.pdf');
+                }
+
+                async function openPdfPicker() {
+                    if (!pickerReady) {
+                        alert('Google Picker belum siap. Coba refresh halaman lalu klik lagi.');
+                        return;
+                    }
+                    if (!window.google || !google.picker) {
+                        alert('Library google.picker belum ter-load. Cek apakah api.js keblok / error di console.');
+                        return;
+                    }
+
+                    try {
+                        const {
+                            access_token,
+                            api_key,
+                            app_id
+                        } = await getPickerAuth();
+
+                        if (!access_token) {
+                            alert(
+                                'Access Token tidak ditemukan. Silakan hubungkan ulang akun Google Drive Anda di menu Profil/Integrasi.'
+                            );
+                            return;
+                        }
+
+                        const docsView = new google.picker.DocsView()
+                            .setIncludeFolders(true)
+                            .setSelectFolderEnabled(false)
+                            .setMimeTypes('application/pdf');
+
+                        // IMPORTANT: jangan panggil setIncludeFolders di DocsUploadView (sering bikin Upload tab hilang)
+                        const uploadView = new google.picker.DocsUploadView();
+                        if (typeof uploadView.setMimeTypes === 'function') {
+                            uploadView.setMimeTypes('application/pdf');
+                        }
+
+                        let picker; // biar bisa di-close dari callback
+
+                        picker = new google.picker.PickerBuilder()
+                            .setDeveloperKey(api_key)
+                            .setAppId(String(app_id))
+                            .setOAuthToken(access_token)
+                            .setOrigin(ORIGIN)
+                            .addView(docsView)
+                            .addView(uploadView)
+                            .setCallback((data) => {
+                                // Versi yang robust: baca ACTION & DOCUMENTS via constant dulu
+                                const action = data[google.picker.Response.ACTION] || data.action;
+
+                                if (action === google.picker.Action.PICKED || action === 'picked') {
+                                    const docs = data[google.picker.Response.DOCUMENTS] || data.docs || [];
+                                    const d = docs[0];
+                                    if (!d) return;
+
+                                    const picked = {
+                                        id: d.id,
+                                        name: d.name,
+                                        mimeType: d.mimeType,
+                                        url: d.url || d.webViewLink || null
+                                    };
+
+                                    setPicked(picked);
+
+                                    // Tutup picker supaya UX enak
+                                    try {
+                                        picker.setVisible(false);
+                                    } catch (e) {}
+                                }
+                            })
+                            .build();
+
+                        picker.setVisible(true);
+
+                    } catch (err) {
+                        alert(err.message || 'Terjadi error saat membuka Google Drive Picker.');
+                        console.error(err);
+                    }
+                }
+
+                // Drag & drop upload ke Drive lalu otomatis "kepilih"
+                async function uploadPdfToDrive(file) {
+                    const {
+                        access_token
+                    } = await getPickerAuth();
+                    if (!access_token) throw new Error('Access Token tidak ditemukan. Hubungkan ulang Google Drive.');
+
+                    const boundary = 'simpati_' + Date.now();
+                    const metadata = {
+                        name: file.name,
+                        mimeType: file.type || 'application/pdf'
+                    };
+
+                    const body = new Blob([
+                        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+                        JSON.stringify(metadata),
+                        `\r\n--${boundary}\r\nContent-Type: ${metadata.mimeType}\r\n\r\n`,
+                        file,
+                        `\r\n--${boundary}--`
+                    ], {
+                        type: `multipart/related; boundary=${boundary}`
+                    });
+
+                    const res = await fetch(
+                        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token,
+                                'Content-Type': `multipart/related; boundary=${boundary}`
+                            },
+                            body
+                        }
+                    );
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const msg = data?.error?.message || 'Gagal upload ke Google Drive.';
+                        throw new Error(msg);
+                    }
+
+                    setPicked({
+                        id: data.id,
+                        name: data.name,
+                        mimeType: data.mimeType,
+                        url: data.webViewLink || null
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const btn = document.getElementById('btnPickPdf');
+                    if (!btn) return;
+
+                    btn.addEventListener('click', openPdfPicker);
+
+                    // Drag and drop langsung ke tombol (tanpa ubah tampilan tombol)
+                    btn.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                    });
+                    btn.addEventListener('drop', async (e) => {
+                        e.preventDefault();
+                        const file = e.dataTransfer?.files?.[0];
+                        if (!isPdfFile(file)) {
+                            alert('Yang bisa di-drag ke sini hanya file PDF.');
+                            return;
+                        }
+
+                        try {
+                            await uploadPdfToDrive(file);
+                            const preview = document.getElementById('pdfPreview');
+                            if (preview) preview.innerText += ' (di-upload ke Drive)';
+                        } catch (err) {
+                            alert(err.message || 'Upload ke Drive gagal.');
+                            console.error(err);
+                        }
+                    });
+                });
+                // --- UI Logic for Image Picker ---
+                const imageInput = document.getElementById('gdrive_image_json');
+                const imagePreview = document.getElementById('imagePreview');
+                let selectedImages = [];
+
+                function updateImagePreview() {
+                    if (!imagePreview) return;
+                    imagePreview.innerHTML = '';
+
+                    selectedImages.forEach((img, index) => {
+                        const col = document.createElement('div');
+                        col.className = 'col-6 col-md-4 position-relative';
+                        col.innerHTML = `
+                            <div class="card border shadow-sm h-100">
+                                <div class="card-body p-2 d-flex flex-column align-items-center justify-content-center text-center">
+                                    <div class="text-primary mb-2">
+                                        <i class="bi bi-image fs-1"></i>
+                                    </div>
+                                    <small class="text-truncate w-100 fw-bold" title="${img.name}">${img.name}</small>
+                                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-1 lh-1" 
+                                            onclick="removeImage(${index})" style="width: 24px; height: 24px;">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        imagePreview.appendChild(col);
+                    });
+
+                    if (imageInput) {
+                        imageInput.value = selectedImages.length ? JSON.stringify(selectedImages) : '';
+                    }
+                }
+
+                window.removeImage = function(index) {
+                    selectedImages.splice(index, 1);
+                    updateImagePreview();
+                };
+
+                // Initialize Image Preview
+                window.addEventListener('DOMContentLoaded', () => {
+                    if (imageInput && imageInput.value) {
+                        try {
+                            selectedImages = JSON.parse(imageInput.value);
+                            updateImagePreview();
+                        } catch (e) {
+                            console.error("Invalid JSON in image input", e);
+                        }
+                    }
+                });
+
+                async function openImagePicker() {
+                    if (!pickerReady) {
+                        alert('Google Picker belum siap. Coba refresh halaman.');
+                        return;
+                    }
+
+                    try {
+                        const {
+                            access_token,
+                            api_key,
+                            app_id
+                        } = await getPickerAuth();
+
+                        const docsView = new google.picker.DocsView()
+                            .setIncludeFolders(true)
+                            .setSelectFolderEnabled(false)
+                            .setMimeTypes('image/jpeg,image/png,image/webp')
+                            .setMode(google.picker.DocsViewMode.GRID);
+
+                        const uploadView = new google.picker.DocsUploadView();
+                        if (typeof uploadView.setMimeTypes === 'function') {
+                            uploadView.setMimeTypes('image/jpeg,image/png,image/webp');
+                        }
+
+                        const picker = new google.picker.PickerBuilder()
+                            .setDeveloperKey(api_key)
+                            .setAppId(String(app_id))
+                            .setOAuthToken(access_token)
+                            .setOrigin(ORIGIN)
+                            .addView(docsView)
+                            .addView(uploadView) // Add Upload View
+                            .enableFeature(google.picker.Feature.MULTISELECT_ENABLED) // Enable multi-select
+                            .setCallback((data) => {
+                                if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+                                    const docs = data[google.picker.Response.DOCUMENTS] || [];
+
+                                    // Append new selections to existing ones
+                                    docs.forEach(d => {
+                                        // Avoid duplicates based on ID
+                                        if (!selectedImages.find(img => img.id === d.id)) {
+                                            selectedImages.push({
+                                                id: d.id,
+                                                name: d.name,
+                                                mimeType: d.mimeType,
+                                                url: d.url || d.webViewLink || null
+                                            });
+                                        }
+                                    });
+
+                                    updateImagePreview();
+                                }
+                            })
+                            .build();
+
+                        picker.setVisible(true);
+
+                    } catch (err) {
+                        alert('Gagal membuka Google Picker: ' + err.message);
+                    }
+                }
+
+                // Drag & drop upload ke Drive untuk Image
+                async function uploadImageToDrive(file) {
+                    const {
+                        access_token
+                    } = await getPickerAuth();
+                    if (!access_token) throw new Error('Access Token tidak ditemukan. Hubungkan ulang Google Drive.');
+
+                    const boundary = 'simpati_' + Date.now();
+                    const metadata = {
+                        name: file.name,
+                        mimeType: file.type || 'image/jpeg'
+                    };
+
+                    const body = new Blob([
+                        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+                        JSON.stringify(metadata),
+                        `\r\n--${boundary}\r\nContent-Type: ${metadata.mimeType}\r\n\r\n`,
+                        file,
+                        `\r\n--${boundary}--`
+                    ], {
+                        type: `multipart/related; boundary=${boundary}`
+                    });
+
+                    const res = await fetch(
+                        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token,
+                                'Content-Type': `multipart/related; boundary=${boundary}`
+                            },
+                            body
+                        }
+                    );
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const msg = data?.error?.message || 'Gagal upload ke Google Drive.';
+                        throw new Error(msg);
+                    }
+
+                    // Add to selected images
+                    if (!selectedImages.find(img => img.id === data.id)) {
+                        selectedImages.push({
+                            id: data.id,
+                            name: data.name,
+                            mimeType: data.mimeType,
+                            url: data.webViewLink || null
+                        });
+                        updateImagePreview();
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const btnImage = document.getElementById('btnPickImage');
+                    if (btnImage) {
+                        btnImage.addEventListener('click', openImagePicker);
+
+                        // Drag and drop listeners
+                        btnImage.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            btnImage.classList.add('bg-light'); // Visual feedback
+                        });
+                        btnImage.addEventListener('dragleave', (e) => {
+                            e.preventDefault();
+                            btnImage.classList.remove('bg-light');
+                        });
+                        btnImage.addEventListener('drop', async (e) => {
+                            e.preventDefault();
+                            btnImage.classList.remove('bg-light');
+
+                            const files = e.dataTransfer?.files;
+                            if (!files || files.length === 0) return;
+
+                            // Upload all dropped images
+                            let successCount = 0;
+                            const originalButtonContent = btnImage.innerHTML; // Store original content
+                            for (let i = 0; i < files.length; i++) {
+                                const file = files[i];
+                                if (!file.type.startsWith('image/')) {
+                                    alert(`File ${file.name} bukan gambar.`);
+                                    continue;
+                                }
+
+                                try {
+                                    // Optional: Show loading indicator
+                                    btnImage.innerHTML =
+                                        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading ${file.name}...`;
+
+                                    await uploadImageToDrive(file);
+                                    successCount++;
+                                } catch (err) {
+                                    console.error(`Gagal upload ${file.name}:`, err);
+                                    alert(`Gagal upload ${file.name}: ${err.message}`);
+                                }
+                            }
+
+                            // Restore button text
+                            btnImage.innerHTML = originalButtonContent;
+
+                            if (successCount > 0) {
+                                // Optional: success message
+                            }
+                        });
+                    }
+                });
+            })();
+        </script>
+    @endpush
 @endsection
