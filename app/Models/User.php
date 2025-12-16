@@ -58,6 +58,12 @@ class User extends Authenticatable
         return $this->hasOne(Mahasiswa::class);
     }
 
+    // Alias untuk studentProfile, digunakan di MahasiswaController
+    public function mahasiswa()
+    {
+        return $this->hasOne(Mahasiswa::class);
+    }
+
     // Relasi ke proyek penelitian yang diketuai
     public function projectsLed()
     {
@@ -68,6 +74,13 @@ class User extends Authenticatable
     public function userNotifications()
     {
         return $this->hasMany(UserNotification::class, 'user_id');
-}
+    }
+
+    // [FIX] Menambahkan relasi projectMembers untuk memperbaiki error RelationNotFoundException
+    // Relasi ke anggota proyek (ProjectMember)
+    public function projectMembers()
+    {
+        return $this->hasMany(ProjectMember::class, 'user_id');
+    }
 
 }

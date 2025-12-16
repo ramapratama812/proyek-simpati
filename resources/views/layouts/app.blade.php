@@ -644,7 +644,7 @@
 
                                             {{-- LOGIKA FOTO/INISIAL NAVBAR (MENGGUNAKAN $user_photo_path) --}}
                                             @if ($user_photo_path)
-                                                <img src="{{ asset('storage/' . $user_photo_path) }}"
+                                                <img src="{{ Str::startsWith($user_photo_path, 'storage/') ? asset($user_photo_path) : asset('storage/' . $user_photo_path) }}"
                                                     alt="{{ $user->name }}" class="rounded-circle navbar-avatar">
                                             @else
                                                 <div
