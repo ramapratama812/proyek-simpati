@@ -26,6 +26,9 @@ Route::post('projects/{project}/images', [ResearchProjectController::class, 'sto
 Route::delete('projects/{project}/images/{image}', [ResearchProjectController::class, 'destroyImage'])
     ->name('projects.images.destroy');
 
+Route::delete('projects/{project}/media/{media}', [ResearchProjectController::class, 'destroyMedia'])
+    ->name('projects.media.destroy');
+
 Route::get('projects/{project}/publications', [ProjectPublicationController::class, 'index'])
     ->name('projects.publications.index');
 

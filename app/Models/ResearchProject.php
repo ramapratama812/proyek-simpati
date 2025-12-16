@@ -18,6 +18,11 @@ class ResearchProject extends Model
         'skema',
         'abstrak',
         'surat_proposal',
+        'gdrive_proposal_id',      // BARU
+        'gdrive_proposal_name',    // BARU
+        'gdrive_proposal_mime',    // BARU
+        'gdrive_proposal_size',    // BARU
+        'gdrive_proposal_view_link', // BARU
         'surat_persetujuan',       // BARU
 
         'mulai',
@@ -66,6 +71,11 @@ class ResearchProject extends Model
     public function images()
     {
         return $this->hasMany(ProjectImage::class,'project_id');
+    }
+
+    public function media()
+    {
+        return $this->hasMany(ResearchProjectMedia::class, 'research_project_id');
     }
 
     // public function publications(){ return $this->hasMany(Publication::class,'project_id'); }

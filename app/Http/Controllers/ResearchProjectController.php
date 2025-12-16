@@ -13,6 +13,11 @@ use App\Mail\ResearchProjectSubmittedMail;
 use App\Mail\ResearchProjectStatusChangedMail;
 use Illuminate\Support\Facades\Mail;
 use App\Services\GoogleDriveFileService;
+use App\Services\GoogleDriveTokenService;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ResearchProjectController extends Controller
 {
@@ -155,7 +160,8 @@ class ResearchProjectController extends Controller
             'sumber_dana' => 'nullable|string|max:255',
             'biaya' => 'nullable|numeric|min:0',
             'abstrak' => 'nullable|string',
-            'surat_proposal' => 'required|file|mimes:pdf|max:10240',
+            'surat_proposal' => 'nullable|file|mimes:pdf|max:10240',
+            'gdrive_pdf_proposal_json' => 'nullable|string',
             'ketua_user_id' => 'nullable|exists:users,id',
             'anggota_user_ids' => 'nullable|array',
             'anggota_user_ids.*' => 'exists:users,id',
@@ -173,7 +179,9 @@ class ResearchProjectController extends Controller
             'tautan' => 'nullable|url',
             'images' => 'nullable|array',
             'images.*' => 'image|max:10248',
+            'images.*' => 'image|max:10248',
             'gdrive_images_json' => 'nullable|string',
+            'gdrive_image_json' => 'nullable|string', // Add this new field
         ]);
 
         // Pre-process Google Drive Images to validate them before transaction
@@ -205,6 +213,74 @@ class ResearchProjectController extends Controller
                 $suratProposalPath = $request->file('surat_proposal')->store('proposals', 'public');
             }
 
+            // Handle Google Drive Proposal
+            $gdriveProposalData = [];
+            if ($request->filled('gdrive_pdf_proposal_json')) {
+                $picked = json_decode($request->input('gdrive_pdf_proposal_json'), true);
+                if (is_array($picked) && !empty($picked['id'])) {
+                    try {
+                        $dl = $this->downloadPdfFromDrive($picked['id']);
+                        // If local file was uploaded, overwrite it (Drive takes priority if both present, though UI should prevent this)
+                        if ($suratProposalPath) {
+                            Storage::disk('public')->delete($suratProposalPath);
+                        }
+                        $suratProposalPath = $dl['path'];
+                        $gdriveProposalData = [
+                            'gdrive_proposal_id'        => $dl['meta']['id'],
+                            'gdrive_proposal_name'      => $dl['meta']['name'],
+                            'gdrive_proposal_mime'      => $dl['meta']['mimeType'],
+                            'gdrive_proposal_size'      => null, // Size not always available from simple meta fetch unless requested
+                            'gdrive_proposal_view_link' => $dl['meta']['url'],
+                        ];
+                    } catch (\Throwable $e) {
+                         // Log error or handle gracefully? For now, maybe just ignore or let it fail?
+                         // Ideally we should probably throw to rollback transaction, but let's just log
+                         \Log::error("Failed to download proposal from Drive: " . $e->getMessage());
+                         throw $e; // Re-throw to trigger rollback
+                    }
+                }
+            }
+
+            if (!$suratProposalPath) {
+                throw new \Illuminate\Validation\ValidationException(\Illuminate\Validation\Validator::make([], []), [
+                    'surat_proposal' => ['Dokumen proposal wajib diunggah (lokal atau Google Drive).']
+                ]);
+            }
+
+            // Handle Google Drive Proposal
+            $gdriveProposalData = [];
+            if ($request->filled('gdrive_pdf_proposal_json')) {
+                $picked = json_decode($request->input('gdrive_pdf_proposal_json'), true);
+                if (is_array($picked) && !empty($picked['id'])) {
+                    try {
+                        $dl = $this->downloadPdfFromDrive($picked['id']);
+                        // If local file was uploaded, overwrite it (Drive takes priority if both present, though UI should prevent this)
+                        if ($suratProposalPath) {
+                            Storage::disk('public')->delete($suratProposalPath);
+                        }
+                        $suratProposalPath = $dl['path'];
+                        $gdriveProposalData = [
+                            'gdrive_proposal_id'        => $dl['meta']['id'],
+                            'gdrive_proposal_name'      => $dl['meta']['name'],
+                            'gdrive_proposal_mime'      => $dl['meta']['mimeType'],
+                            'gdrive_proposal_size'      => null, // Size not always available from simple meta fetch unless requested
+                            'gdrive_proposal_view_link' => $dl['meta']['url'],
+                        ];
+                    } catch (\Throwable $e) {
+                         // Log error or handle gracefully? For now, maybe just ignore or let it fail?
+                         // Ideally we should probably throw to rollback transaction, but let's just log
+                         \Log::error("Failed to download proposal from Drive: " . $e->getMessage());
+                         throw $e; // Re-throw to trigger rollback
+                    }
+                }
+            }
+
+            if (!$suratProposalPath) {
+                throw new \Illuminate\Validation\ValidationException(\Illuminate\Validation\Validator::make([], []), [
+                    'surat_proposal' => ['Dokumen proposal wajib diunggah (lokal atau Google Drive).']
+                ]);
+            }
+
             $project->fill([
                 'jenis'             => $data['jenis'],
                 'judul'             => $data['judul'],
@@ -231,6 +307,11 @@ class ResearchProjectController extends Controller
                 'tautan'            => $data['tautan'] ?? null,
                 'created_by'        => auth()->id(),
                 'validation_status' => 'draft',   // BARU
+                'gdrive_proposal_id'        => $gdriveProposalData['gdrive_proposal_id'] ?? null,
+                'gdrive_proposal_name'      => $gdriveProposalData['gdrive_proposal_name'] ?? null,
+                'gdrive_proposal_mime'      => $gdriveProposalData['gdrive_proposal_mime'] ?? null,
+                'gdrive_proposal_size'      => $gdriveProposalData['gdrive_proposal_size'] ?? null,
+                'gdrive_proposal_view_link' => $gdriveProposalData['gdrive_proposal_view_link'] ?? null,
             ]);
 
             $project->save();
@@ -252,7 +333,7 @@ class ResearchProjectController extends Controller
                 }
             }
 
-            // Insert Google Drive Images
+            // Insert Google Drive Images (Old Logic - if any)
             foreach ($gdriveData as $meta) {
                 \DB::table('research_project_media')->insert([
                     'research_project_id' => $project->id,
@@ -264,6 +345,32 @@ class ResearchProjectController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+            }
+
+            // Insert Google Drive Images (New Logic from gdrive_image_json)
+            if ($request->filled('gdrive_image_json')) {
+                $gdriveImages = json_decode($request->input('gdrive_image_json'), true);
+                if (is_array($gdriveImages)) {
+                    foreach ($gdriveImages as $img) {
+                        if (empty($img['id'])) continue;
+
+                        // Validasi mime type sederhana (opsional, karena di frontend sudah filter)
+                        // Kalau mau ketat, bisa fetch metadata lagi via service, tapi boros API call.
+                        // Kita percaya data dari picker (frontend) dulu, atau minimal cek mimeType string.
+                        if (isset($img['mimeType']) && !str_starts_with($img['mimeType'], 'image/')) {
+                            continue;
+                        }
+
+                        \App\Models\ResearchProjectMedia::create([
+                            'research_project_id' => $project->id,
+                            'gdrive_file_id' => $img['id'],
+                            'name' => $img['name'] ?? 'Untitled',
+                            'mime_type' => $img['mimeType'] ?? null,
+                            'size' => null, // Size gak selalu ada di picker response standard kecuali diminta fields
+                            'web_view_link' => $img['url'] ?? null,
+                        ]);
+                    }
+                }
             }
 
             // kirim email notifikasi ke admin
@@ -284,13 +391,44 @@ class ResearchProjectController extends Controller
         }
 
         $request->validate([
-            'images' => 'required|array',
+            'images' => 'nullable|array',
             'images.*' => 'image|max:10248', // max 10MB per image
+            'gdrive_image_json' => 'nullable|string',
         ]);
 
-        foreach ($request->file('images') as $file) {
-            $path = $file->store('projects','public');
-            $project->images()->create(['path'=>$path]);
+        if (!$request->hasFile('images') && !$request->filled('gdrive_image_json')) {
+            return back()->with('err', 'Pilih minimal satu gambar (lokal atau Google Drive).');
+        }
+
+        // Handle Local Images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('projects','public');
+                $project->images()->create(['path'=>$path]);
+            }
+        }
+
+        // Handle Google Drive Images
+        if ($request->filled('gdrive_image_json')) {
+            $gdriveImages = json_decode($request->input('gdrive_image_json'), true);
+            if (is_array($gdriveImages)) {
+                foreach ($gdriveImages as $img) {
+                    if (empty($img['id'])) continue;
+
+                    if (isset($img['mimeType']) && !str_starts_with($img['mimeType'], 'image/')) {
+                        continue;
+                    }
+
+                    \App\Models\ResearchProjectMedia::create([
+                        'research_project_id' => $project->id,
+                        'gdrive_file_id' => $img['id'],
+                        'name' => $img['name'] ?? 'Untitled',
+                        'mime_type' => $img['mimeType'] ?? null,
+                        'size' => null,
+                        'web_view_link' => $img['url'] ?? null,
+                    ]);
+                }
+            }
         }
 
         return redirect()->route('projects.show',$project)->with('ok','Gambar berhasil diunggah.');
@@ -307,6 +445,21 @@ class ResearchProjectController extends Controller
         $image->delete();
 
         return redirect()->route('projects.show',$project)->with('ok','Gambar berhasil dihapus.');
+    }
+
+    public function destroyMedia(ResearchProject $project, $mediaId)
+    {
+        if (!$this->isParticipant($project)) {
+            abort(403);
+        }
+
+        $media = \App\Models\ResearchProjectMedia::where('research_project_id', $project->id)
+                    ->where('id', $mediaId)
+                    ->firstOrFail();
+
+        $media->delete();
+
+        return redirect()->route('projects.show',$project)->with('ok','Dokumentasi Google Drive berhasil dihapus.');
     }
 
     public function show(ResearchProject $project)
@@ -347,7 +500,8 @@ class ResearchProjectController extends Controller
             'sumber_dana' => 'nullable|string|max:255',
             'biaya' => 'nullable|numeric|min:0',
             'abstrak' => 'nullable|string',
-            'surat_proposal' => 'required|file|mimes:pdf|max:10240',
+            'surat_proposal' => 'nullable|file|mimes:pdf|max:10240',
+            'gdrive_pdf_proposal_json' => 'nullable|string',
             'ketua_user_id' => 'nullable|exists:users,id',
             'anggota_user_ids' => 'nullable|array',
             'anggota_user_ids.*' => 'exists:users,id',
@@ -363,6 +517,8 @@ class ResearchProjectController extends Controller
             'target_luaran.*' => 'string',
             'keywords' => 'nullable|string|max:255',
             'tautan' => 'nullable|url',
+            'gdrive_pdf_proposal_json' => 'nullable|string',
+            'gdrive_image_json' => 'nullable|string',
         ]);
 
         // Handle file upload for surat_proposal if provided
@@ -374,6 +530,32 @@ class ResearchProjectController extends Controller
             $suratProposalPath = $request->file('surat_proposal')->store('proposals', 'public');
         } else {
             $suratProposalPath = $project->surat_proposal;
+        }
+
+        // Handle Google Drive Proposal
+        $gdriveProposalData = [];
+        if ($request->filled('gdrive_pdf_proposal_json')) {
+            $picked = json_decode($request->input('gdrive_pdf_proposal_json'), true);
+            if (is_array($picked) && !empty($picked['id'])) {
+                try {
+                    $dl = $this->downloadPdfFromDrive($picked['id']);
+                    // If local file was uploaded or existing file exists, overwrite/delete it
+                    if ($suratProposalPath) {
+                        \Storage::disk('public')->delete($suratProposalPath);
+                    }
+                    $suratProposalPath = $dl['path'];
+                    $gdriveProposalData = [
+                        'gdrive_proposal_id'        => $dl['meta']['id'],
+                        'gdrive_proposal_name'      => $dl['meta']['name'],
+                        'gdrive_proposal_mime'      => $dl['meta']['mimeType'],
+                        'gdrive_proposal_size'      => null,
+                        'gdrive_proposal_view_link' => $dl['meta']['url'],
+                    ];
+                } catch (\Throwable $e) {
+                     \Log::error("Failed to download proposal from Drive: " . $e->getMessage());
+                     return back()->with('err', 'Gagal mengunduh proposal dari Google Drive: ' . $e->getMessage())->withInput();
+                }
+            }
         }
 
         $project->update([
@@ -400,7 +582,12 @@ class ResearchProjectController extends Controller
             'target_luaran' => $data['target_luaran'] ?? null,
             'keywords' => $data['keywords'] ?? null,
             'tautan' => $data['tautan'] ?? null,
-    ]);
+            'gdrive_proposal_id'        => $gdriveProposalData['gdrive_proposal_id'] ?? $project->gdrive_proposal_id,
+            'gdrive_proposal_name'      => $gdriveProposalData['gdrive_proposal_name'] ?? $project->gdrive_proposal_name,
+            'gdrive_proposal_mime'      => $gdriveProposalData['gdrive_proposal_mime'] ?? $project->gdrive_proposal_mime,
+            'gdrive_proposal_size'      => $gdriveProposalData['gdrive_proposal_size'] ?? $project->gdrive_proposal_size,
+            'gdrive_proposal_view_link' => $gdriveProposalData['gdrive_proposal_view_link'] ?? $project->gdrive_proposal_view_link,
+        ]);
 
         // sync full members set: ketua + anggota
         $sync = [];
@@ -594,23 +781,69 @@ class ResearchProjectController extends Controller
     {
         $this->ensureAdmin();
 
-        $data = $request->validate([
+        $request->validate([
             'note'              => 'nullable|string',
-            'surat_persetujuan' => 'required|file|mimes:pdf|max:10240',
+            'surat_persetujuan' => 'nullable|file|mimes:pdf|max:10240',
+            'gdrive_pdf_persetujuan_json' => 'nullable|string',
         ]);
 
-        // upload surat persetujuan
+        if (!$request->hasFile('surat_persetujuan') && !$request->filled('gdrive_pdf_persetujuan_json')) {
+            return back()->withErrors(['surat_persetujuan' => 'Surat Persetujuan wajib diunggah (Lokal atau Google Drive).']);
+        }
+
+        // Handle Google Drive File
+        if ($request->filled('gdrive_pdf_persetujuan_json')) {
+            $picked = json_decode($request->input('gdrive_pdf_persetujuan_json'), true);
+            if (is_array($picked) && !empty($picked['id'])) {
+                try {
+                    /** @var \App\Services\GoogleDriveTokenService $tokenService */
+                    $tokenService = app(GoogleDriveTokenService::class);
+                    $accessToken = $tokenService->getAccessToken(auth()->user());
+
+                    if (!$accessToken) {
+                        throw new \RuntimeException('Akun Google Drive belum terhubung.');
+                    }
+
+                    // Download content
+                    $fileRes = Http::withToken($accessToken)
+                        ->get("https://www.googleapis.com/drive/v3/files/{$picked['id']}", [
+                            'alt' => 'media'
+                        ]);
+
+                    if (!$fileRes->successful()) {
+                        throw new \RuntimeException('Gagal mengunduh file dari Google Drive.');
+                    }
+
+                    $filename = 'approval_' . time() . '_' . Str::slug($picked['name']);
+                    if (!str_ends_with($filename, '.pdf')) $filename .= '.pdf';
+                    
+                    $path = 'surat_persetujuan/' . $filename;
+                    Storage::disk('public')->put($path, $fileRes->body());
+
+                    // Delete old file
+                    if ($project->surat_persetujuan) {
+                        Storage::disk('public')->delete($project->surat_persetujuan);
+                    }
+                    $project->surat_persetujuan = $path;
+
+                } catch (\Exception $e) {
+                    return back()->withErrors(['gdrive_pdf_persetujuan_json' => 'Gagal download dari GDrive: ' . $e->getMessage()]);
+                }
+            }
+        }
+
+        // Handle Local File (Priority over GDrive if both present)
         if ($request->hasFile('surat_persetujuan')) {
             // hapus file lama jika ada
             if ($project->surat_persetujuan) {
-                \Storage::disk('public')->delete($project->surat_persetujuan);
+                Storage::disk('public')->delete($project->surat_persetujuan);
             }
             $path = $request->file('surat_persetujuan')->store('surat_persetujuan', 'public');
             $project->surat_persetujuan = $path;
         }
 
         $project->validation_status = 'approved';
-        $project->validation_note   = $data['note'] ?? null;
+        $project->validation_note   = $request->input('note');
         $project->validated_by      = auth()->id();
         $project->validated_at      = now();
         $project->save();
@@ -735,4 +968,55 @@ class ResearchProjectController extends Controller
         ]);
     }
 
+    private function downloadPdfFromDrive(string $fileId): array
+    {
+        /** @var \App\Services\GoogleDriveTokenService $tokenService */
+        $tokenService = app(GoogleDriveTokenService::class);
+
+        $accessToken = $tokenService->getAccessToken(auth()->user());
+
+        if (!$accessToken) {
+            throw new \RuntimeException('Akun Google Drive belum terhubung atau token tidak tersedia.');
+        }
+
+        // Ambil metadata dulu (validasi mime)
+        $metaRes = Http::withToken($accessToken)
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+                'fields' => 'id,name,mimeType,webViewLink'
+            ]);
+
+        if (!$metaRes->successful()) {
+            throw new \RuntimeException('Gagal mengambil metadata file dari Google Drive.');
+        }
+
+        $meta = $metaRes->json();
+        if (($meta['mimeType'] ?? '') !== 'application/pdf') {
+            throw new \RuntimeException('File yang dipilih harus PDF.');
+        }
+
+        // Download konten file
+        $fileRes = Http::withToken($accessToken)
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+                'alt' => 'media'
+            ]);
+
+        if (!$fileRes->successful()) {
+            throw new \RuntimeException('Gagal mengunduh file PDF dari Google Drive.');
+        }
+
+        $filename = Str::uuid()->toString() . '.pdf';
+        $path = 'proposals/' . $filename;
+
+        Storage::disk('public')->put($path, $fileRes->body());
+
+        return [
+            'path' => $path,
+            'meta' => [
+                'id' => $meta['id'] ?? $fileId,
+                'name' => $meta['name'] ?? null,
+                'mimeType' => $meta['mimeType'] ?? 'application/pdf',
+                'url' => $meta['webViewLink'] ?? null,
+            ],
+        ];
+    }
 }
