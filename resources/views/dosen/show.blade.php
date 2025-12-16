@@ -1,520 +1,496 @@
 @extends('layouts.app')
-
 @section('content')
     <div class="container py-5">
-        <div class="card border-0 rounded-4 overflow-hidden gradient-shadow" style="max-width: 1200px; margin: 0 auto;">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 1200px; margin: 0 auto;">
 
             {{-- ================= HEADER ================= --}}
+            {{-- Pastikan ada class text-center di sini --}}
             <div class="card-header text-center text-white py-4 header-dosen position-relative">
-                {{-- Tombol Kembali (Kiri Atas) --}}
-                <a href="{{ route('dosen.index') }}"
-                    class="btn btn-header-action position-absolute top-0 start-0 m-3 text-decoration-none"
-                    data-bs-toggle="tooltip" title="Kembali">
-                    <i class="bi bi-arrow-left fs-4"></i>
-                </a>
 
-                <i class="bi bi-person-circle display-5 mb-2 d-block"></i>
-                <h2 class="fw-bolder mb-0 text-uppercase">Biodata Dosen</h2>
-                <p class="text-white-50 small mb-0">
-                    Informasi Lengkap Dosen (NIDN: {{ $dosen->nidn ?? ($dosen->nip ?? '-') }})
-                </p>
+                {{-- ❗ LOGIKA AVATAR/FOTO DI ATAS NAMA (PATH KOREKSI) ❗ --}}
+                @php
+                    // Asumsi $dosen->nama tersedia di controller
+                    $initial = strtoupper(substr($dosen->nama ?? '', 0, 1));
+                @endphp
+
+                {{-- Tambahkan d-inline-block untuk memastikan mx-auto berfungsi dengan baik --}}
+                <div class="dosen-avatar-wrapper mb-3 d-inline-block">
+                    @if ($dosen->foto)
+                        {{-- ❗ KOREKSI: $dosen->photo -> $dosen->foto ❗ --}}
+                        <img src="{{ asset('storage/' . $dosen->foto) }}" alt="{{ $dosen->nama }}"
+                            class="dosen-profile-photo rounded-circle">
+                    @else
+                        <div
+                            class="dosen-profile-initials rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                            {{ $initial }}
+                        </div>
+                    @endif
+                </div>
+
+                <h2 class="fw-bolder mb-0 text-uppercase">{{ $dosen->nama ?? 'Nama Dosen' }}</h2>
+                <p class="text-white-50 small mb-0">Detail Dosen | NIDN: {{ $dosen->nidn ?? '-' }}</p>
             </div>
 
-            {{-- ================= BODY ================= --}}
-            <div class="card-body px-5 py-5" style="background-color: #fbfbff;">
+            <div class="card-body px-4 px-md-5 py-5" style="background-color: #fbfbff;">
 
-                <h4 class="fw-bold mb-4" style="color: #001F4D;">
-                    <i class="bi bi-person-lines-fill me-2"></i> Detail Informasi
+                {{-- NOTIFIKASI --}}
+                @if (session('success'))
+                    <div class="alert alert-success text-center mb-5 rounded-3 shadow-sm py-2">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                {{-- ================= SECTION UTAMA: BIODATA & AKSI ================= --}}
+                <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: #001F4D;">
+                    <i class="bi bi-info-circle-fill me-2 text-primary-dark"></i> Data Personal & Kepegawaian
                 </h4>
 
-                {{-- ================= BIODATA ================= --}}
                 <div class="row g-4 mb-5">
-                    {{-- Kolom kiri (data pribadi) --}}
+                    {{-- KOLOM KIRI (Data Utama) --}}
                     <div class="col-md-6">
-
-                        {{-- Nama --}}
                         <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-person-fill fs-4 me-3 text-primary"></i>
+                            <i class="bi bi-person-fill fs-4 me-3 text-primary-dark"></i>
                             <div>
                                 <p class="text-muted small mb-0">Nama Lengkap</p>
-                                <p class="text-dark fw-bold mb-0">{{ $dosen->nama }}</p>
+                                <p class="text-dark fw-bold mb-0 text-uppercase">{{ $dosen->nama ?? '-' }}</p>
                             </div>
                         </div>
 
-                        {{-- Email --}}
                         <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-envelope-fill fs-4 me-3 text-primary"></i>
-                            <div>
-                                <p class="text-muted small mb-0">Email</p>
-                                <p class="text-dark fw-semibold mb-0">{{ $dosen->email }}</p>
-                            </div>
-                        </div>
-
-                        {{-- Nomor HP --}}
-                        <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-phone-fill fs-4 me-3 text-primary"></i>
-                            <div>
-                                <p class="text-muted small mb-0">Nomor HP</p>
-                                <p class="text-dark fw-semibold mb-0">{{ $dosen->nomor_hp ?? '-' }}</p>
-                            </div>
-                        </div>
-
-                        {{-- NIDN / NIP --}}
-                        <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-qr-code-scan fs-4 me-3 text-primary"></i>
+                            <i class="bi bi-qr-code-scan fs-4 me-3 text-primary-dark"></i>
                             <div>
                                 <p class="text-muted small mb-0">NIDN / NIP</p>
                                 <p class="text-dark fw-semibold mb-0">{{ $dosen->nidn ?? ($dosen->nip ?? '-') }}</p>
                             </div>
                         </div>
-                    </div>
 
-                    {{-- Kolom kanan (data akademik) --}}
-                    <div class="col-md-6">
-
-                        {{-- Jenis Kelamin --}}
                         <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-gender-ambiguous fs-4 me-3 text-primary"></i>
-                            <div>
-                                <p class="text-muted small mb-0">Jenis Kelamin</p>
-                                <p class="text-dark fw-semibold mb-0">{{ $dosen->jenis_kelamin ?? '-' }}</p>
-                            </div>
-                        </div>
-
-                        {{-- Pendidikan Terakhir --}}
-                        <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-mortarboard-fill fs-4 me-3 text-primary"></i>
+                            <i class="bi bi-mortarboard-fill fs-4 me-3 text-primary-dark"></i>
                             <div>
                                 <p class="text-muted small mb-0">Pendidikan Terakhir</p>
                                 <p class="text-dark fw-semibold mb-0">{{ $dosen->pendidikan_terakhir ?? '-' }}</p>
                             </div>
                         </div>
 
-                        {{-- Status Ikatan Kerja --}}
                         <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-briefcase-fill fs-4 me-3 text-primary"></i>
+                            <i class="bi bi-lightning-charge-fill fs-4 me-3 text-primary-dark"></i>
+                            <div>
+                                <p class="text-muted small mb-0">Status Aktivitas</p>
+                                @php $status = $dosen->status_aktivitas ?? ''; @endphp
+                                @if ($status === 'Aktif')
+                                    <span class="badge status-aktif"><i class="bi bi-check-circle-fill me-1"></i>
+                                        Aktif</span>
+                                @elseif($status === 'Cuti')
+                                    <span class="badge status-cuti"><i class="bi bi-pause-circle-fill me-1"></i> Cuti</span>
+                                @elseif($status === 'Tidak Aktif')
+                                    <span class="badge status-tidak-aktif"><i class="bi bi-x-circle-fill me-1"></i> Non
+                                        Aktif</span>
+                                @else
+                                    <span class="badge bg-light text-dark border">Belum Diatur</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- KOLOM KANAN (Kontak & Ikatan Kerja) --}}
+                    <div class="col-md-6">
+                        <div class="bio-box d-flex align-items-center mb-3">
+                            <i class="bi bi-envelope-fill fs-4 me-3 text-primary-dark"></i>
+                            <div>
+                                <p class="text-muted small mb-0">Email</p>
+                                <p class="text-dark fw-semibold mb-0">{{ $dosen->email ?? ($user->email ?? '-') }}</p>
+                            </div>
+                        </div>
+
+                        <div class="bio-box d-flex align-items-center mb-3">
+                            <i class="bi bi-phone-fill fs-4 me-3 text-primary-dark"></i>
+                            <div>
+                                <p class="text-muted small mb-0">Nomor HP</p>
+                                <p class="text-dark fw-semibold mb-0">{{ $dosen->nomor_hp ?? '-' }}</p>
+                            </div>
+                        </div>
+
+                        {{-- ID SINTA --}}
+                        <div class="bio-box d-flex align-items-center mb-3">
+                            <i class="bi bi-journal-bookmark-fill fs-4 me-3 text-sinta"></i>
+                            <div>
+                                <p class="text-muted small mb-0">ID SINTA</p>
+                                <p class="text-dark fw-semibold mb-0">
+                                    {{ $dosen->id_sinta ?? ($dosen->sinta_id ?? '-') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bio-box d-flex align-items-center mb-3">
+                            <i class="bi bi-briefcase-fill fs-4 me-3 text-primary-dark"></i>
                             <div>
                                 <p class="text-muted small mb-0">Status Ikatan Kerja</p>
                                 <p class="text-dark fw-semibold mb-0">{{ $dosen->status_ikatan_kerja ?? '-' }}</p>
                             </div>
                         </div>
 
-                        {{-- Status Aktivitas --}}
                         <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-lightning-charge-fill fs-4 me-3 text-primary"></i>
+                            <i class="bi bi-gender-ambiguous fs-4 me-3 text-primary-dark"></i>
                             <div>
-                                <p class="text-muted small mb-0">Status Aktivitas</p>
-                                @php $status = $dosen->status_aktivitas ?? ''; @endphp
-                                @if ($status === 'Aktif')
-                                    <span class="badge bg-success px-3 py-2">Aktif</span>
-                                @elseif($status === 'Cuti')
-                                    <span class="badge bg-warning text-dark px-3 py-2">Cuti</span>
-                                @elseif($status === 'Tidak Aktif')
-                                    <span class="badge bg-secondary px-3 py-2">Tidak Aktif</span>
-                                @else
-                                    <span class="badge bg-light text-dark px-3 py-2 border">Belum Diatur</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- SINTA ID --}}
-                        <div class="bio-box d-flex align-items-center mb-3">
-                            <i class="bi bi-globe fs-4 me-3 text-primary"></i>
-                            <div>
-                                <p class="text-muted small mb-0">SINTA ID</p>
-                                <p class="text-dark fw-semibold mb-0">{{ $dosen->sinta_id ?? '-' }}</p>
+                                <p class="text-muted small mb-0">Jenis Kelamin</p>
+                                <p class="text-dark fw-semibold mb-0">{{ $dosen->jenis_kelamin ?? '-' }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <hr class="my-5">
 
-                {{-- ===== LINK PROFIL PDDIKTI ===== --}}
-                <h4 class="fw-bold mb-4" style="color: #001F4D;">
-                    <i class="bi bi-link-45deg me-2 text-dark"></i> Profil PDDIKTI
+                {{-- ================= SECTION DOKUMENTASI (TAB) ================= --}}
+                <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: #001F4D;">
+                    <i class="bi bi-journal-check me-2 text-primary-dark"></i> Riwayat Kegiatan & Publikasi
                 </h4>
-                <div class="d-flex align-items-center mb-4">
-                    @if (!empty($dosen->link_pddikti))
-                        <a href="{{ $dosen->link_pddikti }}" target="_blank"
-                            class="btn btn-primary rounded-pill px-4 me-3">
-                            <i class="bi bi-box-arrow-up-right me-1"></i> Lihat Profil PDDIKTI
-                        </a>
 
-                        @php
-                            $fullLink = $dosen->link_pddikti;
-                            $linkPendek = strlen($fullLink) > 60 ? substr($fullLink, 0, 60) . '...' : $fullLink;
-                        @endphp
-                        <span class="text-muted small d-none d-md-inline" data-bs-toggle="tooltip"
-                            title="{{ $fullLink }}">
-                            Tautan: {{ $linkPendek }}
-                        </span>
-                    @else
-                        <p class="text-muted mb-0">Link profil PDDIKTI belum tersedia.</p>
-                    @endif
-                </div>
+                {{-- Navigasi Tab --}}
+                <ul class="nav nav-tabs custom-tabs mb-4" id="dosenTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="kegiatan-tab" data-bs-toggle="tab" data-bs-target="#kegiatan"
+                            type="button" role="tab" aria-controls="kegiatan" aria-selected="true">
+                            <i class="bi bi-person-workspace me-1 text-warning"></i> Kegiatan
+                            ({{ count($dosen->kegiatanDiketuai ?? []) + count($dosen->anggotaProyek ?? []) }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="publikasi-tab" data-bs-toggle="tab" data-bs-target="#publikasi"
+                            type="button" role="tab" aria-controls="publikasi" aria-selected="false">
+                            <i class="bi bi-journal-text me-1 text-danger"></i> Publikasi
+                            ({{ $dosen->publikasi->count() }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pddikti-tab" data-bs-toggle="tab" data-bs-target="#pddikti"
+                            type="button" role="tab" aria-controls="pddikti" aria-selected="false">
+                            <i class="bi bi-globe me-1 text-info"></i> Profil PDDIKTI
+                        </button>
+                    </li>
+                </ul>
 
-                <hr class="my-5">
+                {{-- Konten Tab --}}
+                <div class="tab-content" id="dosenTabContent">
 
-                {{-- ================= KEGIATAN DIKETUAI ================= --}}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold mb-0" style="color: #001F4D;">
-                        <i class="bi bi-person-workspace me-2 text-warning"></i> Kegiatan yang Diketuai
-                    </h4>
-                    <div class="btn-group" role="group" aria-label="Filter Kegiatan Diketuai">
-                        <button type="button" class="btn btn-outline-primary btn-sm active"
-                            onclick="filterList('diketuai', 'all', this)">Semua</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="filterList('diketuai', 'Penelitian', this)">Penelitian</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="filterList('diketuai', 'Pengabdian', this)">Pengabdian</button>
-                    </div>
-                </div>
+                    {{-- TAB 1: KEGIATAN --}}
+                    <div class="tab-pane fade show active" id="kegiatan" role="tabpanel"
+                        aria-labelledby="kegiatan-tab">
 
-                <div id="list-diketuai" class="scrollable-list">
-                    @php
-                        $kegiatanDiketuai = $dosen->kegiatanDiketua ?? ($dosen->kegiatanDiketuai ?? collect());
-                    @endphp
-                    @forelse($kegiatanDiketuai as $k)
-                        @if ($k->validation_status == 'approved')
-                            <a href="{{ route('projects.show', $k->id) }}"
-                                class="text-decoration-none text-dark item-kegiatan" data-jenis="{{ $k->jenis }}">
-                                <div class="kegiatan-box mb-3">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>{{ $k->judul ?? '-' }}</strong>
-                                        <span
-                                            class="badge badge-jenis {{ strtolower($k->jenis) == 'penelitian' ? 'badge-penelitian' : 'badge-pengabdian' }}">
-                                            {{ $k->jenis }}
-                                        </span>
+                        <h5 class="fw-bold mb-3 mt-3 text-primary-dark">
+                            <i class="bi bi-person-fill-gear me-2"></i> Kegiatan yang Diketuai
+                        </h5>
+                        <div class="scroll-list-container mb-5">
+                            @forelse($dosen->kegiatanDiketuai ?? [] as $k)
+                                <a href="{{ url('/projects/' . $k->id) }}" class="text-decoration-none text-dark d-block">
+                                    <div class="kegiatan-box mb-3 transition-shadow">
+                                        <strong>{{ $k->judul }}</strong><br>
+                                        <span class="text-muted small">Tahun:
+                                            {{ $k->tanggal ?? ($k->tahun_usulan ?? '-') }}</span>
                                     </div>
-                                    <span class="text-muted small d-block mb-2">
-                                        Tahun: {{ $k->tanggal ?? ($k->tahun_usulan ?? '-') }}
-                                    </span>
-                                    {{-- Peserta --}}
-                                    <div class="small text-muted border-top pt-2 mt-2">
-                                        <i class="bi bi-people me-1"></i> Peserta:
-                                        @if ($k->members && $k->members->count() > 0)
-                                            {{ $k->members->pluck('name')->join(', ') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                </div>
-                            </a>
-                        @endif
-                    @empty
-                        <p class="text-muted">Tidak ada kegiatan diketuai yang disetujui.</p>
-                    @endforelse
-                </div>
+                                </a>
+                            @empty
+                                <p class="text-muted">Tidak ada kegiatan yang diketuai.</p>
+                            @endforelse
+                        </div>
 
-                <hr class="my-5">
-
-                {{-- ================= KEGIATAN DIIKUTI ================= --}}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold mb-0" style="color: #001F4D;">
-                        <i class="bi bi-people-fill me-2 text-info"></i> Kegiatan yang Diikuti
-                    </h4>
-                    <div class="btn-group" role="group" aria-label="Filter Kegiatan Diikuti">
-                        <button type="button" class="btn btn-outline-primary btn-sm active"
-                            onclick="filterList('diikuti', 'all', this)">Semua</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="filterList('diikuti', 'Penelitian', this)">Penelitian</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="filterList('diikuti', 'Pengabdian', this)">Pengabdian</button>
-                    </div>
-                </div>
-
-                <div id="list-diikuti" class="scrollable-list">
-                    @php
-                        $kegiatanDiikuti = $dosen->kegiatanDiikuti ?? ($dosen->anggotaProyek ?? collect());
-                    @endphp
-                    @forelse($kegiatanDiikuti as $ka)
-                        @php
-                            $project = $ka->project ?? $ka;
-                        @endphp
-                        @if ($project->validation_status == 'approved')
-                            <a href="{{ route('projects.show', $project->id) }}"
-                                class="text-decoration-none text-dark item-kegiatan" data-jenis="{{ $project->jenis }}">
-                                <div class="kegiatan-box mb-3">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>{{ $project->judul ?? '-' }}</strong>
-                                        <span
-                                            class="badge badge-jenis {{ strtolower($project->jenis) == 'penelitian' ? 'badge-penelitian' : 'badge-pengabdian' }}">
-                                            {{ $project->jenis }}
-                                        </span>
-                                    </div>
-                                    <span class="text-muted small d-block mb-2">
-                                        Tahun: {{ $project->tanggal ?? ($project->tahun_usulan ?? '-') }}
-                                    </span>
-                                    {{-- Peserta --}}
-                                    <div class="small text-muted border-top pt-2 mt-2">
-                                        <i class="bi bi-people me-1"></i> Peserta:
-                                        @if ($project->members && $project->members->count() > 0)
-                                            {{ $project->members->pluck('name')->join(', ') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                </div>
-                            </a>
-                        @endif
-                    @empty
-                        <p class="text-muted">Belum mengikuti kegiatan yang disetujui.</p>
-                    @endforelse
-                </div>
-
-                <hr class="my-5">
-
-                {{-- ================= PUBLIKASI ================= --}}
-                <h4 class="fw-bold mb-3" style="color: #001F4D;">
-                    <i class="bi bi-journal-text me-2 text-danger"></i> Publikasi Terbaru
-                </h4>
-                <div class="scrollable-list">
-                    @forelse($dosen->publikasi ?? [] as $p)
-                        @if ($p->validation_status == 'approved')
-                            <a href="{{ route('publications.show', $p->id) }}" class="text-decoration-none text-dark">
-                                <div class="kegiatan-box mb-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong>{{ $p->judul }}</strong><br>
-                                            <span
-                                                class="text-primary small fw-semibold">{{ $p->jurnal ?? 'Jurnal Tidak Diketahui' }}</span><br>
-                                            <span class="text-muted small">Tahun: {{ $p->tahun ?? '-' }}</span>
+                        <h5 class="fw-bold mb-3 text-primary-dark">
+                            <i class="bi bi-people-fill me-2"></i> Kegiatan sebagai Anggota
+                        </h5>
+                        <div class="scroll-list-container">
+                            @forelse($dosen->anggotaProyek ?? [] as $a)
+                                @if ($a->project)
+                                    <a href="{{ url('/projects/' . $a->project->id) }}"
+                                        class="text-decoration-none text-dark d-block">
+                                        <div class="kegiatan-box mb-3 transition-shadow">
+                                            <strong>{{ $a->project->judul }}</strong><br>
+                                            <span class="text-muted small">Ketua:
+                                                {{ $a->project->ketua->nama ?? '-' }}</span>
                                         </div>
-                                        @if ($p->file)
-                                            <object class="d-none">
-                                                {{-- Dummy object to prevent link nesting issue if needed, but here we just want the button to work --}}
-                                            </object>
-                                            <span class="badge bg-secondary">Approved</span>
-                                        @endif
+                                    </a>
+                                @endif
+                            @empty
+                                <p class="text-muted">Belum mengikuti kegiatan sebagai anggota.</p>
+                            @endforelse
+                        </div>
+
+                    </div>
+
+                    {{-- TAB 2: PUBLIKASI --}}
+                    <div class="tab-pane fade" id="publikasi" role="tabpanel" aria-labelledby="publikasi-tab">
+                        <div class="scroll-list-container pt-3">
+                            @if ($dosen->publikasi->count() > 0)
+                                @foreach ($dosen->publikasi as $pub)
+                                    <div class="card mb-3 shadow-sm border-0 publication-card">
+                                        <div class="card-body py-3">
+                                            <p class="mb-1 fw-bold">
+                                                {{-- PERBAIKAN DI SINI: Mengubah warna tautan judul menjadi HITAM --}}
+                                                <a href="{{ route('publications.show', $pub->id) }}"
+                                                    class="text-decoration-none text-dark" style="font-size: 1.05rem;">
+                                                    {{ $pub->judul }}
+                                                </a>
+                                            </p>
+
+                                            <div class="d-flex align-items-center flex-wrap mt-2">
+                                                <span class="text-muted small me-3">
+                                                    <i class="bi bi-calendar me-1"></i> Tahun: {{ $pub->tahun ?? '-' }}
+                                                </span>
+
+                                                <span class="text-muted small me-3">
+                                                    <i class="bi bi-tags-fill me-1"></i> Jenis: {{ $pub->jenis ?? '-' }}
+                                                </span>
+
+                                                @if ($pub->link ?? false)
+                                                    <a href="{{ $pub->link }}" target="_blank"
+                                                        class="btn btn-link btn-sm p-0 mt-1 mt-sm-0 text-primary-dark"
+                                                        style="font-size: 0.85rem; text-decoration: none;">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i> Link Eksternal
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                        @endif
-                    @empty
-                        <p class="text-muted">Belum ada publikasi yang disetujui.</p>
-                    @endforelse
+                                @endforeach
+                            @else
+                                <p class="text-muted pt-3">Tidak ada data publikasi yang ditemukan.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- TAB 3: PDDIKTI --}}
+                    <div class="tab-pane fade" id="pddikti" role="tabpanel" aria-labelledby="pddikti-tab">
+                        <h5 class="fw-bold mb-3 mt-3 text-primary-dark">Akses Profil Resmi PDDIKTI</h5>
+                        <div class="d-flex align-items-center mb-4 pddikti-box">
+                            @if ($dosen->link_pddikti)
+                                <a href="{{ $dosen->link_pddikti }}" target="_blank"
+                                    class="btn btn-primary rounded-pill px-4 py-2 me-3 pddikti-btn">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Buka Profil PDDIKTI
+                                </a>
+
+                                @php
+                                    $linkPendek =
+                                        strlen($dosen->link_pddikti) > 50
+                                            ? substr($dosen->link_pddikti, 0, 50) . '...'
+                                            : $dosen->link_pddikti;
+                                @endphp
+
+                                <span class="text-muted small d-none d-md-inline" title="{{ $dosen->link_pddikti }}">
+                                    Tautan: {{ $linkPendek }}
+                                </span>
+                            @else
+                                <p class="text-muted pt-2">Link profil PDDIKTI belum tersedia untuk dosen ini.</p>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
                 <hr class="my-5">
+
+                {{-- ================= TOMBOL AKSI ================= --}}
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('dosen.index') }}" class="btn btn-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Dosen
+                    </a>
+                </div>
 
             </div>
         </div>
     </div>
 
-    {{-- STYLE --}}
     <style>
-        body {
-            background-color: #f5f6fa;
+        /* Palet Warna & Font */
+        :root {
+            --primary-color: #0050a0;
+            --primary-dark: #001F4D;
+            --secondary-bg: #f7f9fc;
+            --border-color: #e6e7ee;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --sinta-color: #6c5ce7;
+            /* Warna Ungu untuk SINTA */
+            --light-blue: #e8f0ff;
         }
 
+        .text-sinta {
+            color: var(--sinta-color) !important;
+        }
+
+        /* 1. Header & Card Styling */
         .header-dosen {
-            background: linear-gradient(135deg, #001F4D 0%, #0a3d62 100%);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #0a3d62 100%);
             box-shadow: 0 5px 15px rgba(0, 31, 77, 0.4);
-            border-bottom: 5px solid #ffc107;
-            padding-top: 2rem !important;
-            padding-bottom: 2rem !important;
-            position: relative;
+            border-bottom: 5px solid var(--warning-color);
         }
 
-        /* Header Action Buttons */
-        .btn-header-action {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
+        .text-primary-dark {
+            color: var(--primary-dark) !important;
+        }
+
+        /* ❗ AVATAR STYLING (KOREKSI) ❗ */
+        .dosen-avatar-wrapper {
+            display: inline-block;
+        }
+
+        .dosen-profile-photo {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .dosen-profile-initials {
+            width: 120px;
+            height: 120px;
+            background-color: #e8f0ff;
+            color: var(--primary-dark);
+            font-size: 3rem;
+            line-height: 1;
+            border: 5px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-header-action:hover {
-            background: #fff;
-            color: #001F4D;
-            transform: scale(1.15) rotate(5deg);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            border-color: #fff;
-        }
 
+        /* 2. Biodata Boxes */
         .bio-box {
             background: #ffffff;
-            border: 1px solid #e6e7ee;
+            border: 1px solid var(--border-color);
             padding: 12px 16px;
             border-radius: 14px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, .04);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .bio-box:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, .08);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, .1);
         }
 
-        .kegiatan-box {
+        .bio-box .text-primary-dark {
+            color: var(--primary-color) !important;
+        }
+
+        /* Status Badges (Diperkuat) */
+        .badge {
+            font-size: 0.8em;
+            padding: 0.5em 0.8em;
+        }
+
+        .status-aktif {
+            background-color: var(--success-color);
+            color: #fff;
+        }
+
+        .status-cuti {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .status-tidak-aktif {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+
+        /* 3. Kegiatan & Publikasi List Items */
+        .kegiatan-box,
+        .publication-card {
             background: white;
             border-radius: 12px;
             padding: 15px 20px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border-color);
             box-shadow: 0 2px 5px rgba(0, 0, 0, .04);
-            transition: all 0.2s ease;
+            transition: all 0.2s ease-in-out;
         }
 
-        .kegiatan-box:hover {
-            border-color: #001F4D;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
-        }
-
-        label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #6c757d;
-        }
-
-        span.fw-semibold {
-            font-size: 1rem;
-            color: #212121;
-        }
-
-        .badge {
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-        /* Badge Jenis Kegiatan yang lebih rapi */
-        .badge-jenis {
-            font-size: 0.75rem;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 100px;
-            /* Optional: agar lebar badge seragam */
-        }
-
-        .badge-penelitian {
-            background-color: #e3f2fd;
-            /* Light Blue */
-            color: #0d47a1;
-            border: 1px solid #bbdefb;
-        }
-
-        .badge-pengabdian {
-            background-color: #f3e5f5;
-            /* Light Purple */
-            color: #4a148c;
-            border: 1px solid #e1bee7;
-        }
-
-        .btn-animated {
-            transition: all 0.25s ease-in-out;
-        }
-
-        .btn-animated:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-outline-primary {
-            border-width: 2px;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: #001F4D;
-            color: #fff;
-            border-color: #001F4D;
-        }
-
-        .gradient-shadow {
-            box-shadow:
-                0 10px 30px rgba(0, 31, 77, 0.2),
-                0 20px 50px rgba(0, 53, 128, 0.1);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .gradient-shadow:hover {
-            box-shadow:
-                0 15px 45px rgba(0, 31, 77, 0.25),
-                0 25px 70px rgba(0, 53, 128, 0.15);
+        .kegiatan-box:hover,
+        .publication-card:hover {
+            background-color: var(--secondary-bg);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
             transform: translateY(-2px);
         }
 
-        .btn-primary {
-            background-color: #001F4D;
-            border-color: #001F4D;
+        .publication-card {
+            border-radius: 12px !important;
         }
 
-        .btn-primary:hover {
-            background-color: #001533;
-            border-color: #001533;
-        }
-
-        .scrollable-list {
-            max-height: 400px;
-            /* Approx 3-4 items depending on height */
+        /* Scroll List Container */
+        .scroll-list-container {
+            max-height: 350px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 15px;
         }
 
-        /* Custom Scrollbar */
-        .scrollable-list::-webkit-scrollbar {
+        .scroll-list-container::-webkit-scrollbar {
             width: 6px;
         }
 
-        .scrollable-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .scroll-list-container::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 10px;
         }
 
-        .scrollable-list::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 3px;
+        .scroll-list-container::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+            border-radius: 10px;
         }
 
-        .scrollable-list::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
+        /* 4. Custom Tabs Styling */
+        .custom-tabs .nav-link {
+            color: var(--primary-dark);
+            font-weight: 600;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            padding: 10px 15px;
+        }
+
+        .custom-tabs .nav-link:hover {
+            color: var(--primary-color);
+            border-bottom-color: #d0e6ff;
+            background-color: #f5f5f5;
+        }
+
+        .custom-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: transparent;
+        }
+
+        /* PDDIKTI Link Button Smoothness */
+        .pddikti-btn,
+        .edit-btn-smooth {
+            transition: all 0.3s ease;
+        }
+
+        .pddikti-btn:hover,
+        .edit-btn-smooth:hover {
+            box-shadow: 0 4px 10px rgba(0, 80, 160, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .pddikti-box {
+            background: #e8f0ff;
+            border: 1px dashed var(--primary-color);
+            padding: 20px;
+            border-radius: 12px;
         }
     </style>
-
+    {{-- Memastikan Bootstrap JS untuk Tabs berfungsi (asumsi layout.app sudah memuatnya) --}}
     <script>
-        // Inisialisasi Tooltips Bootstrap untuk link PDDIKTI
+        // Hanya untuk memastikan tab aktif pada refresh, jika diperlukan
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                tooltipTriggerList.map(function(tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl)
+            const triggerTabList = document.querySelectorAll('#dosenTab button')
+            triggerTabList.forEach(triggerEl => {
+                const tabTrigger = new bootstrap.Tab(triggerEl)
+                triggerEl.addEventListener('click', event => {
+                    event.preventDefault()
+                    tabTrigger.show()
                 })
-            }
+            })
         });
-
-        function filterList(listType, filterJenis, btn) {
-            // Update active button state
-            let btnGroup = btn.parentElement;
-            let buttons = btnGroup.querySelectorAll('.btn');
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // Filter items (Case Insensitive)
-            let listContainer = document.getElementById('list-' + listType);
-            let items = listContainer.querySelectorAll('.item-kegiatan');
-            let filterLower = filterJenis.toLowerCase();
-
-            items.forEach(item => {
-                let jenis = (item.getAttribute('data-jenis') || '').toLowerCase();
-
-                if (filterLower === 'all' || jenis === filterLower) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
     </script>
 @endsection

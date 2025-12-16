@@ -6,9 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserNotification extends Model
 {
-    protected $fillable = ['user_id','project_id','type','message','is_shown'];
-    protected $casts = ['is_shown'=>'boolean','read_at' => 'datetime'];
+    // update susunannya + tambah read_at
+    protected $fillable = [
+        'user_id',
+        'project_id',
+        'type',
+        'message',
+        'is_shown',
+        'read_at'
+    ];
 
+    protected $casts = [
+        'is_shown' => 'boolean',
+        'read_at' => 'datetime'
+    ];
     public function project(){
         return $this->belongsTo(ResearchProject::class,'project_id');
     }

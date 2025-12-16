@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Dosen;
+use App\Models\Mahasiswa;
 
 class User extends Authenticatable
 {
@@ -45,16 +47,16 @@ class User extends Authenticatable
     protected $hidden = ['password','remember_token'];
 
     // Relasi ke profil dosen
-    // public function lecturerProfile()
-    // {
-    //     return $this->hasOne(LecturerProfile::class);
-    // }
+    public function lecturerProfile()
+    {
+        return $this->hasOne(Dosen::class);
+    }
 
-    // // Relasi ke profil mahasiswa
-    // public function studentProfile()
-    // {
-    //     return $this->hasOne(StudentProfile::class);
-    // }
+    // Relasi ke profil mahasiswa
+    public function studentProfile()
+    {
+        return $this->hasOne(Mahasiswa::class);
+    }
 
     // Relasi ke proyek penelitian yang diketuai
     public function projectsLed()

@@ -1,385 +1,390 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container py-5">
-        {{-- Card Kontainer Utama --}}
-        <div class="card border-0 shadow-lg rounded-4 mx-auto form-main-card-vertical">
+    <div class="container py-4">
 
-            {{-- Header Form Utama --}}
-            <header class="text-center pt-4 pb-4 mb-4 header-simpati-style">
+        {{-- Main Card --}}
+        {{-- ❗ LEBAR MAKSIMUM DIUBAH KE 1100PX ❗ --}}
+        <div class="card border-0 shadow-lg rounded-4 mx-auto form-main-card-vertical" style="max-width: 1100px !important;">
+
+            {{-- Header (Gaya Modern) --}}
+            <header class="text-center pt-4 pb-4 header-simpati-style">
                 <i class="bi bi-person-circle mb-2 header-icon-lg-white"></i>
-                <h3 class="fw-bold mb-1 text-white">Edit Profil Dosen</h3>
+                <h3 class="fw-bold mb-1 text-white">Edit Profile Dosen</h3>
                 <p class="text-light form-subtitle">
                     Perbarui informasi pribadi dan akademik Anda.
                 </p>
             </header>
 
-            {{-- Form Edit Profil --}}
-            <form action="{{ route('profile.update') }}" method="POST">
+            {{-- FORM --}}
+            <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
-                {{-- Menggunakan g-4 untuk jarak vertikal section --}}
-                <div class="row g-4 px-4 pb-0">
+                <div class="card-body p-5">
 
-                    {{-- === SECTION 1: DATA PERSONAL (FULL WIDTH) === --}}
-                    <div class="col-12 pt-4">
-                        <h4 class="fw-bold mb-4 pb-2 section-title-custom">
-                            <i class="bi bi-person me-2 title-icon"></i> Data Personal
-                        </h4>
+                    {{-- ================= BAGIAN 1: FOTO PROFIL ================= --}}
+                    <h4 class="fw-bold mb-4 section-title-custom text-primary-dark">
+                        <i class="bi bi-camera me-2 title-icon"></i> Foto Profile
+                    </h4>
 
-                        {{-- Menggunakan g-4 untuk jarak antar input yang lega --}}
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                {{-- Nama Lengkap --}}
-                                <div class="form-item">
-                                    <label for="name" class="form-label-custom"><i class="bi bi-person-vcard me-2"></i>
-                                        Nama Lengkap</label>
-                                    <input type="text" id="name" name="name" class="form-control input-fancy"
-                                        value="{{ old('name', $user->name) }}" required
-                                        placeholder="Masukkan Nama Lengkap Anda">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                {{-- Email (Non-editable) --}}
-                                <div class="form-item">
-                                    <label for="email" class="form-label-custom"><i class="bi bi-envelope me-2"></i>
-                                        Email (Akun)</label>
-                                    <input type="email" id="email" class="form-control input-fancy bg-light"
-                                        value="{{ $user->email }}" disabled>
-                                    <div class="form-text text-danger">Email tidak dapat diubah di halaman ini.</div>
-                                </div>
-                            </div>
+                    <div class="col-12 text-center mb-4 pt-2">
+                        <img src="{{ $dosen->foto ? asset('storage/' . $dosen->foto) : asset('images/default-user.png') }}"
+                            class="avatar mb-3 shadow-lg">
 
-                            <div class="col-md-6">
-                                {{-- Nomor HP --}}
-                                <div class="form-item">
-                                    <label for="nomor_hp" class="form-label-custom"><i class="bi bi-telephone me-2"></i>
-                                        Nomor HP</label>
-                                    <input type="text" id="nomor_hp" name="nomor_hp" class="form-control input-fancy"
-                                        value="{{ old('nomor_hp', $dosen->nomor_hp ?? '') }}"
-                                        placeholder="Contoh: 081234567890">
-                                </div>
-                            </div>
+                        <input type="file" name="foto" class="form-control input-fancy input-file-custom mx-auto"
+                            style="max-width: 350px;" accept="image/*">
 
-                            <div class="col-md-6">
-                                {{-- Jenis Kelamin --}}
-                                <div class="form-item">
-                                    <label for="jenis_kelamin" class="form-label-custom"><i
-                                            class="bi bi-gender-ambiguous me-2"></i> Jenis Kelamin</label>
-                                    <select id="jenis_kelamin" name="jenis_kelamin" class="form-select input-fancy">
-                                        <option value="" disabled
-                                            {{ old('jenis_kelamin', $dosen->jenis_kelamin ?? '') == '' ? 'selected' : '' }}>
-                                            Pilih Jenis Kelamin</option>
-                                        <option value="Laki-laki"
-                                            {{ old('jenis_kelamin', $dosen->jenis_kelamin ?? '') == 'Laki-laki' ? 'selected' : '' }}>
-                                            Laki-laki</option>
-                                        <option value="Perempuan"
-                                            {{ old('jenis_kelamin', $dosen->jenis_kelamin ?? '') == 'Perempuan' ? 'selected' : '' }}>
-                                            Perempuan</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <div class="form-text small text-muted mt-2">
+                            JPG / PNG
+                        </div>
+                        @error('foto')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <hr class="section-divider-bold my-5">
+
+                    {{-- ================= BAGIAN 2: DATA PERSONAL ================= --}}
+                    <h4 class="fw-bold mb-4 section-title-custom text-primary-dark">
+                        <i class="bi bi-person me-2 title-icon"></i> Data Personal
+                    </h4>
+
+                    <div class="row g-4">
+                        {{-- NAMA --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Nama Lengkap</label>
+                            <input type="text" name="name" class="form-control input-fancy"
+                                value="{{ old('name', $user->name) }}" required>
+                            @error('name')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- EMAIL (DISABLED) --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Email</label>
+                            <input type="email" class="form-control input-fancy bg-light" value="{{ $user->email }}"
+                                disabled>
+                            <div class="form-text small text-muted">Email tidak dapat diubah.</div>
+                        </div>
+
+                        {{-- NOMOR HP --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Nomor HP</label>
+                            <input type="text" name="nomor_hp" class="form-control input-fancy"
+                                value="{{ old('nomor_hp', $dosen->nomor_hp ?? '') }}">
+                            @error('nomor_hp')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- JENIS KELAMIN --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Jenis Kelamin</label>
+                            <select name="jenis_kelamin" class="form-select input-fancy">
+                                <option value="">Pilih</option>
+                                <option value="Laki-laki" {{ ($dosen->jenis_kelamin ?? '') == 'Laki-laki' ? 'selected' : '' }}>
+                                    Laki-laki</option>
+                                <option value="Perempuan" {{ ($dosen->jenis_kelamin ?? '') == 'Perempuan' ? 'selected' : '' }}>
+                                    Perempuan</option>
+                            </select>
+                            @error('jenis_kelamin')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
-                    {{-- *** Akhir Section Data Personal *** --}}
 
-                    {{-- PENTING: Mengurangi margin-top di CSS untuk menaikkan posisi section berikutnya --}}
-                    <hr class="section-divider-tight">
+                    <hr class="section-divider-bold my-5">
 
-                    {{-- === SECTION 2: DATA AKADEMIK & LINK EKSTERNAL (FULL WIDTH) === --}}
-                    <div class="col-12 pt-2">
-                        <h4 class="fw-bold mb-4 pb-2 section-title-custom">
-                            <i class="bi bi-mortarboard me-2 title-icon"></i> Data Akademik
-                        </h4>
+                    {{-- ================= BAGIAN 3: DATA AKADEMIK ================= --}}
+                    <h4 class="fw-bold mb-4 section-title-custom text-primary-dark">
+                        <i class="bi bi-mortarboard me-2 title-icon"></i> Data Akademik
+                    </h4>
 
-                        {{-- Menggunakan g-4 untuk konsistensi jarak --}}
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                {{-- NIDN / NIP --}}
-                                <div class="form-item">
-                                    <label for="nidn" class="form-label-custom"><i class="bi bi-card-heading me-2"></i>
-                                        NIDN / NIP</label>
-                                    <input type="text" id="nidn" name="nidn" class="form-control input-fancy"
-                                        value="{{ old('nidn', optional($dosen)->nidn ?? ($user->nidn ?? '')) }}"
-                                        placeholder="Masukkan NIDN atau NIP">
-                                </div>
-                            </div>
+                    <div class="row g-4">
 
-                            <div class="col-md-6">
-                                {{-- Status Ikatan Kerja --}}
-                                <div class="form-item">
-                                    <label for="status_ikatan_kerja" class="form-label-custom"><i
-                                            class="bi bi-briefcase me-2"></i> Status Ikatan Kerja</label>
-                                    <select id="status_ikatan_kerja" name="status_ikatan_kerja"
-                                        class="form-select input-fancy">
-                                        <option value="" disabled
-                                            {{ old('status_ikatan_kerja', $dosen->status_ikatan_kerja ?? '') == '' ? 'selected' : '' }}>
-                                            Pilih Status</option>
-                                        <option value="Dosen Tetap"
-                                            {{ old('status_ikatan_kerja', $dosen->status_ikatan_kerja ?? '') == 'Dosen Tetap' ? 'selected' : '' }}>
-                                            Dosen Tetap</option>
-                                        <option value="Dosen Tidak Tetap"
-                                            {{ old('status_ikatan_kerja', $dosen->status_ikatan_kerja ?? '') == 'Dosen Tidak Tetap' ? 'selected' : '' }}>
-                                            Dosen Tidak Tetap</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                {{-- Pendidikan Terakhir --}}
-                                <div class="form-item">
-                                    <label for="pendidikan_terakhir" class="form-label-custom"><i
-                                            class="bi bi-book me-2"></i> Pendidikan Terakhir</label>
-                                    <select id="pendidikan_terakhir" name="pendidikan_terakhir"
-                                        class="form-select input-fancy">
-                                        <option value="" disabled
-                                            {{ old('pendidikan_terakhir', $dosen->pendidikan_terakhir ?? '') == '' ? 'selected' : '' }}>
-                                            Pilih Jenjang</option>
-                                        <option value="S1"
-                                            {{ old('pendidikan_terakhir', $dosen->pendidikan_terakhir ?? '') == 'S1' ? 'selected' : '' }}>
-                                            S1</option>
-                                        <option value="S2"
-                                            {{ old('pendidikan_terakhir', $dosen->pendidikan_terakhir ?? '') == 'S2' ? 'selected' : '' }}>
-                                            S2</option>
-                                        <option value="S3"
-                                            {{ old('pendidikan_terakhir', $dosen->pendidikan_terakhir ?? '') == 'S3' ? 'selected' : '' }}>
-                                            S3</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                {{-- Status Aktivitas --}}
-                                <div class="form-item">
-                                    <label for="status_aktivitas" class="form-label-custom"><i
-                                            class="bi bi-check-circle me-2"></i> Status Aktivitas</label>
-                                    <select id="status_aktivitas" name="status_aktivitas"
-                                        class="form-select input-fancy">
-                                        <option value="Aktif"
-                                            {{ old('status_aktivitas', $dosen->status_aktivitas ?? '') == 'Aktif' ? 'selected' : '' }}>
-                                            Aktif</option>
-                                        <option value="Tidak Aktif"
-                                            {{ old('status_aktivitas', $dosen->status_aktivitas ?? '') == 'Tidak Aktif' ? 'selected' : '' }}>
-                                            Tidak Aktif</option>
-                                        <option value="Cuti"
-                                            {{ old('status_aktivitas', $dosen->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>
-                                            Cuti</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                {{-- Perguruan Tinggi (Non-editable) --}}
-                                <div class="form-item">
-                                    <label class="form-label-custom"><i class="bi bi-bank me-2"></i> Perguruan
-                                        Tinggi</label>
-                                    <input type="text" class="form-control input-fancy bg-light"
-                                        value="{{ $dosen->perguruan_tinggi ?? 'Politeknik Negeri Tanah Laut' }}" disabled>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                {{-- Program Studi (Non-editable) --}}
-                                <div class="form-item">
-                                    <label class="form-label-custom"><i class="bi bi-book-half me-2"></i> Program
-                                        Studi</label>
-                                    <input type="text" class="form-control input-fancy bg-light"
-                                        value="{{ $dosen->program_studi ?? 'Teknologi Informasi' }}" disabled>
-                                </div>
-                            </div>
-
-                            {{-- Link PDDIKTI --}}
-                            <div class="col-md-6">
-                                <div class="form-item">
-                                    <label for="link_pddikti" class="form-label-custom"><i
-                                            class="bi bi-link-45deg me-2"></i> Link Profil PDDIKTI</label>
-                                    <input type="url" name="link_pddikti" id="link_pddikti"
-                                        class="form-control input-fancy"
-                                        value="{{ old('link_pddikti', optional($dosen)->link_pddikti ?? '') }}"
-                                        placeholder="Masukkan URL Profil PDDIKTI Anda">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                {{-- SINTA ID --}}
-                                <div class="form-item">
-                                    <label for="sinta_id" class="form-label-custom"><i class="bi bi-globe me-2"></i>
-                                        SINTA ID</label>
-                                    <input type="text" name="sinta_id" id="sinta_id"
-                                        class="form-control input-fancy"
-                                        value="{{ old('sinta_id', optional($dosen)->sinta_id ?? ($user->sinta_id ?? '')) }}"
-                                        placeholder="Cth: 665313 (Opsional)">
-                                </div>
-                            </div>
+                        {{-- NIDN / NIP --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">NIDN / NIP</label>
+                            <input type="text" name="nidn" class="form-control input-fancy"
+                                value="{{ old('nidn', $dosen->nidn ?? '') }}">
+                            @error('nidn')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
+
+                        {{-- STATUS IKATAN KERJA --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Status Ikatan Kerja</label>
+                            <select name="status_ikatan_kerja" class="form-select input-fancy">
+                                <option value="">Pilih</option>
+                                <option value="Dosen Tetap"
+                                    {{ ($dosen->status_ikatan_kerja ?? '') == 'Dosen Tetap' ? 'selected' : '' }}>Dosen Tetap
+                                </option>
+                                <option value="Dosen Tidak Tetap"
+                                    {{ ($dosen->status_ikatan_kerja ?? '') == 'Dosen Tidak Tetap' ? 'selected' : '' }}>Dosen
+                                    Tidak Tetap</option>
+                            </select>
+                            @error('status_ikatan_kerja')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- PENDIDIKAN TERAKHIR --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Pendidikan Terakhir</label>
+                            <select name="pendidikan_terakhir" class="form-select input-fancy">
+                                <option value="">Pilih</option>
+                                <option value="S1" {{ ($dosen->pendidikan_terakhir ?? '') == 'S1' ? 'selected' : '' }}>S1
+                                </option>
+                                <option value="S2" {{ ($dosen->pendidikan_terakhir ?? '') == 'S2' ? 'selected' : '' }}>S2
+                                </option>
+                                <option value="S3" {{ ($dosen->pendidikan_terakhir ?? '') == 'S3' ? 'selected' : '' }}>S3
+                                </option>
+                            </select>
+                            @error('pendidikan_terakhir')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- STATUS AKTIVITAS --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Status Aktivitas</label>
+                            <select name="status_aktivitas" class="form-select input-fancy">
+                                <option value="Aktif" {{ ($dosen->status_aktivitas ?? '') == 'Aktif' ? 'selected' : '' }}>Aktif
+                                </option>
+                                <option value="Tidak Aktif"
+                                    {{ ($dosen->status_aktivitas ?? '') == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif
+                                </option>
+                                <option value="Cuti" {{ ($dosen->status_aktivitas ?? '') == 'Cuti' ? 'selected' : '' }}>Cuti
+                                </option>
+                            </select>
+                            @error('status_aktivitas')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- LINK PDDIKTI --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">Link PDDIKTI</label>
+                            <input type="url" name="link_pddikti" class="form-control input-fancy"
+                                value="{{ old('link_pddikti', $dosen->link_pddikti ?? '') }}">
+                            @error('link_pddikti')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- SINTA ID --}}
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-primary-dark">SINTA ID</label>
+                            <input type="text" name="sinta_id" class="form-control input-fancy"
+                                value="{{ old('sinta_id', $dosen->sinta_id ?? ($dosen->id_sinta ?? '')) }}">
+                            @error('sinta_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                     </div>
-                    {{-- *** Akhir Section Data Akademik *** --}}
                 </div>
 
-                <div>
-                    <p></p>
-                    <p></p>
-                </div>
-
-                {{-- Tombol Aksi --}}
-                <div class="d-flex justify-content-between pt-4 pb-4 px-4 border-top">
+                {{-- BUTTON --}}
+                <div class="d-flex justify-content-between pt-4 pb-4 px-5 border-top footer-button-area">
                     <a href="{{ route('profile.show') }}"
-                        class="btn btn-secondary-custom px-4 rounded-pill fw-semibold btn-cancel">
-                        <i class="bi bi-arrow-left me-2"></i> Kembali ke Profil
+                        class="btn btn-secondary-custom rounded-pill btn-smooth-action">
+                        <i class="bi bi-arrow-left me-2"></i> Kembali
                     </a>
-                    <button type="submit" class="btn btn-primary-custom px-4 rounded-pill fw-bold shadow-lg-hover">
+                    <button type="submit" class="btn btn-primary-custom rounded-pill btn-smooth-action">
                         <i class="bi bi-save me-2"></i> Simpan Perubahan
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
 
     <style>
-        /* Variabel Warna */
+        /* ===== PALET WARNA ===== */
         :root {
-            --primary-color: #007bff;
-            /* Biru primer */
-            --dark-blue: #1A237E;
-            /* Warna teks utama & header */
-            --input-border-color: #ced4da;
-            --accent-color: #FFC107;
-            /* Kuning/Gold untuk highlight */
+            --primary-color: #0050a0;
+            --primary-dark: #001F4D;
+            --header-bg: linear-gradient(135deg, var(--primary-dark) 0%, #0a3d62 100%);
+            --accent-color: #ffc107;
+            /* Kuning */
+            --input-border-color: #e6e7ee;
+            --button-primary: var(--primary-color);
+            --button-secondary: #6c757d;
+            --text-color: #333;
+            --divider-color: #c7d2e0;
+            /* Warna untuk pemisah yang lebih jelas */
         }
 
-        /* General & Body */
+        /* ===== GLOBAL STYLING ===== */
         body {
-            background-color: #f0f3f8;
+            background: #f4f7fc;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Card Styling */
         .form-main-card-vertical {
-            max-width: 1000px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 0;
+            transition: box-shadow 0.3s ease;
+            border: 1px solid #e0e5ee;
         }
 
-        /* === Header Styling (Biru Tua) === */
+        .form-main-card-vertical:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== HEADER STYLING ===== */
         .header-simpati-style {
-            background-color: var(--dark-blue);
-            color: #fff;
-            border-top-left-radius: calc(0.5rem - 1px);
-            border-top-right-radius: calc(0.5rem - 1px);
+            background: var(--header-bg);
             border-bottom: 5px solid var(--accent-color);
-            /* Garis Kuning Pemisah */
+            box-shadow: 0 4px 15px rgba(0, 31, 77, 0.4);
+            border-radius: 0;
             margin-bottom: 0 !important;
         }
 
         .header-icon-lg-white {
-            font-size: 3rem;
-            color: #fff !important;
+            font-size: 2.5rem;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .form-subtitle {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
 
-        /* Section Title & Separator */
+        /* ===== AVATAR & UPLOAD ===== */
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-file-custom {
+            max-width: 300px;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            /* Menyesuaikan input file agar seragam */
+            border: 1px solid var(--input-border-color);
+            border-radius: 10px;
+        }
+
+        .input-file-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 80, 160, 0.2);
+        }
+
+
+        /* ===== FORM ELEMENTS ===== */
+        .text-primary-dark {
+            color: var(--primary-dark) !important;
+        }
+
+        /* Judul Bagian Utama */
         .section-title-custom {
-            font-size: 1.25rem;
-            font-weight: 700 !important;
-            margin-bottom: 1.5rem;
-            /* Jarak section title ke input */
-            color: var(--dark-blue);
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 8px !important;
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem !important;
+            /* Jarak yang konsisten */
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 0.5rem;
         }
 
-        .title-icon {
+        .section-title-custom .title-icon {
             color: var(--primary-color);
-        }
-
-        .section-divider-tight {
-            border-top: 1px solid #e0e0e0;
-            margin-top: 2rem;
-            /* Memberikan jarak yang cukup */
-            margin-bottom: 2rem;
-            width: 100%;
-            opacity: 0.5;
-        }
-
-        /* Layout: Konten */
-        .row.g-4 {
-            /* Jarak vertikal antar input */
-            --bs-gutter-x: 1.5rem;
-            --bs-gutter-y: 1.5rem;
-        }
-
-        .col-12 {
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-        }
-
-
-        /* Input Field Customization */
-        .form-item {
-            margin-bottom: 0;
+            font-size: 1.8rem;
         }
 
         .form-label-custom {
-            font-size: 0.9rem;
             font-weight: 600;
-            color: var(--dark-blue);
-            margin-bottom: 0.4rem;
+            color: var(--primary-dark);
+            /* Label lebih jelas */
             display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
         }
 
         .input-fancy {
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 1rem;
             border: 1px solid var(--input-border-color);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease-in-out;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #fff;
+            color: var(--primary-dark);
+            font-size: 0.95rem;
         }
 
         .input-fancy:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.2), 0 0 10px rgba(0, 123, 255, 0.1);
+            box-shadow: 0 0 0 0.2rem rgba(0, 80, 160, 0.2);
         }
 
-        .input-fancy.bg-light {
-            background-color: #f7f9fc !important;
-            color: #777;
+        /* ❗ KOREKSI: BATAS TEBAL HORIZONTAL ANTAR BAGIAN FORM ❗ */
+        .section-divider-bold {
+            border: 0;
+            height: 3px;
+            /* Ditebalkan agar lebih jelas */
+            background-color: var(--divider-color);
         }
 
-        .form-text {
-            margin-top: 0.3rem;
+
+        /* ===== BUTTONS ===== */
+        .footer-button-area {
+            padding-left: 2.5rem !important;
+            padding-right: 2.5rem !important;
+            border-top: 1px solid var(--divider-color) !important;
+            /* Batas atas button footer diperjelas */
+            background: #fcfcfc;
         }
 
-
-        /* Button Styling */
-        .btn-primary-custom {
-            background-color: var(--primary-color);
-            border: none;
+        .btn-primary-custom,
+        .btn-secondary-custom {
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
             transition: all 0.3s ease;
-            padding: 10px 25px;
-            font-size: 1rem;
+            border: none;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .shadow-lg-hover:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        .btn-primary-custom {
+            background-color: var(--button-primary);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         }
 
         .btn-secondary-custom {
-            border: 1px solid var(--dark-blue);
-            color: var(--dark-blue);
-            background-color: #fff;
-            transition: all 0.3s;
-            padding: 10px 25px;
+            background-color: var(--button-secondary);
+            color: white;
         }
 
         .btn-secondary-custom:hover {
-            background-color: var(--dark-blue);
-            color: #fff;
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-smooth-action {
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+
+            /* Menyesuaikan padding di mobile agar tidak terlalu ketat */
+            .card-body,
+            .footer-button-area {
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
         }
     </style>
 @endsection

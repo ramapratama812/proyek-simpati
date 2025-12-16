@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -122,6 +123,7 @@ class ProfileController extends Controller
         $rules = [
             'name'     => 'required|string|max:255',
             'nomor_hp' => 'nullable|string|max:20',
+            'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ];
 
         // Validasi khusus dosen (upgrade dari commit temanmu)
@@ -160,6 +162,14 @@ class ProfileController extends Controller
                     'sinta_id'             => $request->input('sinta_id'),
                     'link_pddikti'         => $request->input('link_pddikti'),
                 ]);
+
+                // ===== FOTO DOSEN LOGIC =====
+                if ($request->hasFile('foto')) {
+                    if ($dosen->foto && Storage::disk('public')->exists($dosen->foto)) {
+                        Storage::disk('public')->delete($dosen->foto);
+                    }
+                    $dosen->foto = $request->file('foto')->store('foto-dosen', 'public');
+                }
 
                 if (Schema::hasColumn($dosen->getTable(), 'email')) {
                     $dosen->email = $user->email;
@@ -207,7 +217,7 @@ class ProfileController extends Controller
             DB::rollBack();
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => 'Gagal memperbarui profil.']);
+                ->withErrors(['error' => 'Gagal memperbarui profil: ' . $e->getMessage()]);
         }
 
         return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
@@ -223,12 +233,22 @@ class ProfileController extends Controller
 
         if ($role === 'dosen') {
             $dosen = $this->findDosenFor($user->id, $user->email);
-            if ($dosen) $dosen->delete();
+            if ($dosen) {
+                if ($dosen->foto && Storage::disk('public')->exists($dosen->foto)) {
+                    Storage::disk('public')->delete($dosen->foto);
+                }
+                $dosen->delete();
+            }
         }
 
         if ($role === 'mahasiswa') {
             $mahasiswa = $this->findMahasiswaFor($user->id, $user->email);
-            if ($mahasiswa) $mahasiswa->delete();
+            if ($mahasiswa) {
+                if (Schema::hasColumn($mahasiswa->getTable(), 'foto') && $mahasiswa->foto && Storage::disk('public')->exists($mahasiswa->foto)) {
+                    Storage::disk('public')->delete($mahasiswa->foto);
+                }
+                $mahasiswa->delete();
+            }
         }
 
         Auth::logout();

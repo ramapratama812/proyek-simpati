@@ -31,8 +31,26 @@
                     </form>
                 </div>
 
-                <i class="bi bi-person-circle display-5 mb-2 d-block"></i>
-                <h2 class="fw-bolder mb-0 text-uppercase">Profile Dosen</h2>
+                {{-- ❗ LOGIKA AVATAR/FOTO (UKURAN 120PX) ❗ --}}
+                @php
+                    // Menggunakan $dosen->nama atau fallback ke $user->name jika diperlukan
+                    $initial = strtoupper(substr($dosen->nama ?? $user->name, 0, 1));
+                @endphp
+
+                <div class="dosen-avatar-in-header mb-3 mx-auto">
+                    @if ($dosen->foto)
+                        <img src="{{ asset('storage/' . $dosen->foto) }}" alt="{{ $dosen->nama ?? $user->name }}"
+                            class="dosen-profile-photo-in-header rounded-circle">
+                    @else
+                        <div
+                            class="dosen-profile-initials-in-header rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                            {{ $initial }}
+                        </div>
+                    @endif
+                </div>
+                {{-- ❗ AKHIR LOGIKA AVATAR ❗ --}}
+
+                <h2 class="fw-bolder mb-0 text-uppercase">{{ $dosen->nama ?? ($user->name ?? 'Profile Dosen') }}</h2>
                 <p class="text-white-50 small mb-0">
                     Informasi Lengkap Dosen (NIDN: {{ $dosen->nidn ?? ($dosen->nip ?? '-') }})
                 </p>
@@ -187,7 +205,8 @@
                                                 <i class="bi bi-check-circle-fill me-1"></i> Terhubung
                                             </span>
                                         @else
-                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                            <span
+                                                class="badge bg-warning bg-opacity-10 text-warning border border-warning">
                                                 <i class="bi bi-exclamation-circle me-1"></i> Belum Terhubung
                                             </span>
                                         @endif
@@ -397,6 +416,33 @@
             padding-bottom: 2rem !important;
             position: relative;
             /* Added position relative */
+        }
+
+        /* ❗ KOREKSI UKURAN AVATAR/INISIAL DI HEADER ❗ */
+        .dosen-avatar-in-header {
+            display: inline-block;
+        }
+
+        .dosen-profile-photo-in-header {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .dosen-profile-initials-in-header {
+            width: 120px;
+            height: 120px;
+            background-color: #e8f0ff;
+            color: #001F4D;
+            font-size: 3rem;
+            line-height: 1;
+            border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Header Action Buttons */

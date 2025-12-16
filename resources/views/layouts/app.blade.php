@@ -15,10 +15,8 @@
     <style>
         * {
             box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
+            /* Menambahkan transisi global yang halus pada properti tertentu */
+            transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
         html,
@@ -37,21 +35,27 @@
             /* Supaya gak ikut ke-scroll */
         }
 
+        /* WARNA UTAMA SESUAI TEMA */
+        :root {
+            --blue-dark: #001F4D;
+            --blue-medium: #0050a0;
+            --blue-light: #e8f0ff;
+        }
+
         /* ===== Sidebar ===== */
         .sidebar {
             width: 270px;
-            background-color: #001F4D;
-            padding: 20px 15px;
+            background-color: var(--blue-dark);
+            padding: 35px 24px;
             color: #fff;
             display: flex;
             flex-direction: column;
             border-top-right-radius: 14px;
             border-bottom-right-radius: 14px;
-            box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
             flex-shrink: 0;
-            /* Removed white-space: nowrap to allow wrapping */
             overflow-y: auto;
             /* Allow sidebar scroll */
             overflow-x: hidden;
@@ -83,22 +87,20 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            margin-bottom: 40px;
-            padding: 0 10px;
-            height: 50px;
+            margin-bottom: 50px;
+            padding-left: 8px;
         }
 
         .sidebar .logo i {
-            font-size: 1.8rem;
-            margin-right: 12px;
+            font-size: 2rem;
+            margin-right: 10px;
             color: #ffffff;
-            min-width: 30px;
         }
 
         .sidebar .logo span {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.7px;
             color: #ffffff;
         }
 
@@ -122,52 +124,39 @@
         .sidebar a {
             display: flex;
             align-items: center;
-            /* Keep centered vertically for single lines, or use flex-start if multi-line looks better */
             gap: 12px;
-            padding: 12px 15px;
-            color: rgba(255, 255, 255, 0.85);
+            padding: 12px 18px;
+            color: #ffffff;
             text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 8px;
+            border-radius: 12px;
+            margin-bottom: 12px;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 1rem;
             position: relative;
-            transition: all 0.2s ease;
-            white-space: normal;
-            /* Allow text to wrap */
-            line-height: 1.4;
-            /* Improve readability for wrapped text */
-        }
-
-        .sidebar a i {
-            font-size: 1.2rem;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transform: translateX(4px);
-        }
-
-        .sidebar a.active {
-            background: linear-gradient(90deg, rgba(0, 194, 255, 0.15) 0%, rgba(0, 194, 255, 0.05) 100%);
-            color: #00c2ff;
-            font-weight: 600;
+            /* Hapus transisi di sini karena sudah ada di selector * */
         }
 
         .sidebar a.active::before {
             content: "";
             position: absolute;
             left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 60%;
+            top: 0;
+            height: 100%;
             width: 4px;
             background-color: #00c2ff;
-            border-radius: 0 4px 4px 0;
-            box-shadow: 0 0 10px rgba(0, 194, 255, 0.5);
+            border-top-right-radius: 2px;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 0 8px #00c2ff;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(6px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.25);
+            font-weight: 600;
         }
 
         /* ===== Konten ===== */
@@ -185,12 +174,56 @@
         }
 
         nav.navbar {
-            border-bottom: 1px solid #eaeaea;
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 0.8rem 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid #e5e5e5;
+            background-color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             z-index: 999;
+        }
+
+        /* Styling untuk Avatar di Navbar */
+        .profile-avatar-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 8px;
+            border-radius: 50px;
+            /* Hapus transisi di sini */
+        }
+
+        /* Efek Hover/Klik */
+        .profile-avatar-container:hover,
+        .profile-avatar-container[aria-expanded="true"] {
+            background-color: #f0f4f8;
+            box-shadow: 0 0 5px rgba(0, 80, 160, 0.2);
+        }
+
+        /* UKURAN AVATAR */
+        .navbar-avatar {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        .navbar-initial {
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+            background-color: var(--blue-light);
+            color: var(--blue-medium);
+            border: 1px solid #cce0ff;
+        }
+
+        /* Style untuk nama di Navbar */
+        .navbar-user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--blue-dark);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .toggle-btn {
@@ -215,12 +248,25 @@
             color: #001F4D;
         }
 
+        /* Hilangkan panah dropdown jika hanya ikon */
+        .nav-link.no-caret::after {
+            display: inline-block;
+            margin-left: 0.255em;
+            vertical-align: 0.255em;
+            content: "";
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-bottom: 0;
+            border-left: 0.3em solid transparent;
+        }
+
         main {
             flex: 1;
-            padding: 30px 40px;
+            padding: 25px 35px;
             overflow-y: auto;
-            /* Main content scrolls */
+            /* Terapkan animasi saat halaman dimuat */
             animation: fadeIn 0.4s ease-out;
+            /* Ditingkatkan durasinya */
         }
 
         @keyframes fadeIn {
@@ -229,6 +275,7 @@
                 transform: translateY(10px);
             }
 
+            /* Jarak start lebih besar */
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -236,7 +283,7 @@
         }
 
         .required-asterisk {
-            color: #dc3545;
+            color: red;
         }
 
         /* Back to Top Button */
@@ -329,7 +376,32 @@
                 </div>
 
                 @auth
-                    @php $role = strtolower(auth()->user()->role ?? ''); @endphp
+                    @php
+                        $user = Auth::user();
+                        $role = strtolower($user->role ?? '');
+
+                        $user_photo_path = null;
+
+                        // LOGIC AMBIL FOTO DARI MODEL TERKAIT
+                        if ($role === 'dosen' && method_exists($user, 'lecturerProfile')) {
+                            $modelData = $user->lecturerProfile;
+                            if ($modelData && isset($modelData->foto) && $modelData->foto) {
+                                $user_photo_path = $modelData->foto;
+                            }
+                        } elseif ($role === 'mahasiswa' && method_exists($user, 'studentProfile')) {
+                            $modelData = $user->studentProfile;
+                            if ($modelData && isset($modelData->foto) && $modelData->foto) {
+                                $user_photo_path = $modelData->foto;
+                            }
+                        }
+
+                        // Fallback ke kolom 'foto' tabel users
+                        if (!$user_photo_path && isset($user->foto) && $user->foto) {
+                            $user_photo_path = $user->foto;
+                        }
+
+                        $initial = strtoupper(substr($user->name, 0, 1));
+                    @endphp
 
                     <div class="sidebar-divider">
                         <hr><span>Menu Awal</span>
@@ -374,17 +446,14 @@
 
                     <a href="{{ route('tpk.dosen_berprestasi.index') }}"
                         class="{{ request()->is('tpk/dosen_berprestasi*') ? 'active' : '' }}">
-                        <i class="bi bi-trophy-fill"></i>
-                        <span>Ranking Dosen Berprestasi</span>
+                        <i class="bi bi-trophy-fill"></i> Ranking Dosen Berprestasi
                     </a>
 
                     @if ($role === 'admin')
-                        @if ($role === 'admin')
-                            <div class="sidebar-divider">
-                                <hr><span>Zona Admin</span>
-                                <hr>
-                            </div>
-                        @endif
+                        <div class="sidebar-divider">
+                            <hr><span>Zona Admin</span>
+                            <hr>
+                        </div>
                     @endif
 
                     {{-- Adimn: kelola tpk ahp --}}
@@ -430,7 +499,7 @@
         <div class="content">
             {{-- Navbar atas (kecuali login & register) --}}
             @if (!in_array(Route::currentRouteName(), ['login', 'register']))
-                <nav class="navbar navbar-expand-lg">
+                <nav class="navbar navbar-expand-lg sticky-top">
                     <div class="container-fluid">
                         <button class="toggle-btn" id="sidebarToggle" title="Toggle Sidebar">
                             <i class="bi bi-list"></i>
@@ -452,6 +521,28 @@
                                         (method_exists($notifItems, 'where')
                                             ? $notifItems->where('read_at', null)->count()
                                             : 0);
+
+                                    // --- LOGIC FOTO PROFIL UNTUK NAVBAR ---
+                                    $user = Auth::user();
+                                    $role = strtolower($user->role ?? '');
+                                    $user_photo_path = null;
+                                    $initial = strtoupper(substr($user->name, 0, 1));
+
+                                    if ($role === 'dosen' && method_exists($user, 'lecturerProfile')) {
+                                        $modelData = $user->lecturerProfile;
+                                        if ($modelData && isset($modelData->foto) && $modelData->foto) {
+                                            $user_photo_path = $modelData->foto;
+                                        }
+                                    } elseif ($role === 'mahasiswa' && method_exists($user, 'studentProfile')) {
+                                        $modelData = $user->studentProfile;
+                                        if ($modelData && isset($modelData->foto) && $modelData->foto) {
+                                            $user_photo_path = $modelData->foto;
+                                        }
+                                    }
+
+                                    if (!$user_photo_path && isset($user->foto) && $user->foto) {
+                                        $user_photo_path = $user->foto;
+                                    }
                                 @endphp
 
                                 <ul class="navbar-nav align-items-center">
@@ -460,7 +551,6 @@
                                         <a class="nav-link position-relative" href="#" id="notifDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-bell fs-5"></i>
-
                                             @if ($unreadNotificationCount > 0)
                                                 <span
                                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -500,9 +590,9 @@
                                                             {{ $message }}
                                                         </div>
                                                         <div class="d-flex justify-content-between align-items-center">
-                                                            <span class="text-muted" style="font-size: 0.75rem;">
+                                                            <div class="text-muted" style="font-size: 0.75rem;">
                                                                 {{ $created }}
-                                                            </span>
+                                                            </div>
 
                                                             {{-- Tombol tandai dibaca / belum dibaca hanya kalau ini instance model --}}
                                                             @if ($item instanceof \App\Models\UserNotification)
@@ -545,45 +635,62 @@
                                             @endif
                                         </div>
                                     </li>
-                                </ul>
 
-                                {{-- Dropdown profil --}}
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#"
-                                        id="profileDropdown" role="button" data-bs-toggle="dropdown"
-                                        aria-expanded="false">
-                                        {{ Auth::user()->name }}
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
-                                        aria-labelledby="profileDropdown">
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center"
-                                                href="{{ route('profile.show') }}">
-                                                <i class="bi bi-person-circle me-2"></i> Lihat Profil
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li>
-                                            <form action="{{ route('logout') }}" method="POST" class="m-0">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="dropdown-item d-flex align-items-center text-danger">
-                                                    <i class="bi bi-box-arrow-right me-2"></i> Keluar
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </li>
+                                    {{-- Dropdown profil DENGAN NAMA --}}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link profile-avatar-container" href="#" id="profileDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                            title="{{ $user->name }}">
+
+                                            {{-- LOGIKA FOTO/INISIAL NAVBAR (MENGGUNAKAN $user_photo_path) --}}
+                                            @if ($user_photo_path)
+                                                <img src="{{ asset('storage/' . $user_photo_path) }}"
+                                                    alt="{{ $user->name }}" class="rounded-circle navbar-avatar">
+                                            @else
+                                                <div
+                                                    class="rounded-circle d-flex align-items-center justify-content-center fw-bold navbar-initial">
+                                                    {{ $initial }}
+                                                </div>
+                                            @endif
+
+                                            {{-- NAMA PENGGUNA DI SAMPING AVATAR --}}
+                                            <span class="navbar-user-name d-none d-md-inline">{{ $user->name }}</span>
+
+                                        </a>
+
+                                        {{-- Dropdown Menu --}}
+                                        <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-sm border-0"
+                                            aria-labelledby="profileDropdown">
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center"
+                                                    href="{{ route('profile.show') }}">
+                                                    <i class="bi bi-person-circle me-2"></i> Lihat Profil
+                                                    ({{ $user->name }})
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    <button type="submit"
+                                                        class="dropdown-item d-flex align-items-center text-danger">
+                                                        <i class="bi bi-box-arrow-right me-2"></i> Keluar
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </li>
                                 </ul>
                             @endauth
                         </div>
+                    </div>
                 </nav>
             @endif
 
             <main>
-                {{-- Flash message global (misal untuk status setelah redirect) --}}
+                {{-- Flash message global (tidak diubah) --}}
                 @if (session('status'))
                     <div class="container mt-3">
                         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -593,17 +700,15 @@
                         </div>
                     </div>
                 @endif
-
                 @if (session('error'))
                     <div class="container mt-3">
-                        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
                             {!! session('error') !!}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"
                                 aria-label="Close"></button>
                         </div>
                     </div>
                 @endif
-
                 @if (session('ok'))
                     <div class="container mt-3">
                         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -613,7 +718,6 @@
                         </div>
                     </div>
                 @endif
-
                 @if (session('popup_error'))
                     <div class="container mt-3">
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
