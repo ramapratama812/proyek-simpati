@@ -37,7 +37,15 @@ class ProfileController extends Controller
                 $dosen = (object) $this->getDefaultDosenProperties();
             }
 
-            return view('profile.show', compact('user', 'dosen', 'role'));
+            // Ambil data metrics SINTA tahun ini
+            $sintaMetrics = null;
+            if ($dosen instanceof \App\Models\Dosen) {
+                $sintaMetrics = \App\Models\DosenPerformanceMetric::where('user_id', $dosen->id)
+                    ->where('tahun', now()->year)
+                    ->first();
+            }
+
+            return view('profile.show', compact('user', 'dosen', 'role', 'sintaMetrics'));
         }
 
         // ====================== MAHASISWA ======================
@@ -221,6 +229,70 @@ class ProfileController extends Controller
         }
 
         return redirect()->route('profile.show')->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    /**
+     * Sync data SINTA untuk user yang sedang login (Dosen).
+     */
+    public function syncSinta(
+        Request $request,
+        \App\Services\DosenMetricsAggregationService $metricsService,
+        \App\Services\SintaCrawler $crawler
+    ) {
+        $user = Auth::user();
+        $role = strtolower($user->role ?? '');
+
+        if ($role !== 'dosen') {
+            return redirect()->back()->with('error', 'Fitur ini hanya untuk Dosen.');
+        }
+
+        $dosen = $this->findDosenFor($user->id, $user->email);
+        if (!$dosen || !$dosen->sinta_id) {
+            return redirect()->back()->with('error', 'SINTA ID belum diatur. Silakan edit profil Anda.');
+        }
+
+        // Rate Limiting: Cek log terakhir
+        $lastSync = \App\Models\SintaSyncLog::where('triggered_by', $user->id)
+            ->where('source', 'profile')
+            ->where('status', 'success')
+            ->latest()
+            ->first();
+
+        if ($lastSync && $lastSync->created_at->diffInMinutes(now()) < 5) {
+            $minutesLeft = 5 - $lastSync->created_at->diffInMinutes(now());
+            return redirect()->back()->with('error', "Mohon tunggu {$minutesLeft} menit lagi sebelum melakukan sinkronisasi ulang.");
+        }
+
+        try {
+            $tahun = now()->year;
+            $metric = $metricsService->aggregateFromSintaForDosen($tahun, $dosen, $crawler);
+
+            if ($metric) {
+                \App\Models\SintaSyncLog::create([
+                    'tahun'         => $tahun,
+                    'triggered_by'  => $user->id,
+                    'source'        => 'profile',
+                    'total_metrics' => 1,
+                    'status'        => 'success',
+                    'message'       => null,
+                ]);
+
+                return redirect()->back()->with('success', 'Data SINTA berhasil disinkronisasi.');
+            } else {
+                throw new \Exception('Gagal mengambil data SINTA (mungkin ID tidak valid atau server SINTA down).');
+            }
+        } catch (\Throwable $e) {
+            \App\Models\SintaSyncLog::create([
+                'tahun'         => now()->year,
+                'triggered_by'  => $user->id,
+                'source'        => 'profile',
+                'total_metrics' => 0,
+                'status'        => 'failed',
+                'message'       => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Gagal sinkronisasi: ' . $e->getMessage());
+        }
     }
 
     /**

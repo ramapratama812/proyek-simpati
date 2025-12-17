@@ -90,39 +90,51 @@ class DosenMetricsAggregationService
         $result = collect();
 
         foreach ($dosens as $dosen) {
-            $sintaId = trim($dosen->sinta_id ?? '');
-            $dosenId = (int) $dosen->id;
-
-            if ($sintaId === '') {
-                continue;
+            $metric = $this->aggregateFromSintaForDosen($tahun, $dosen, $crawler);
+            if ($metric) {
+                $result->push($metric);
             }
-
-            try {
-                $scores      = $crawler->fetchScores($sintaId);
-                $jumlahHibah = $crawler->countHibahFromMatricsOverall($sintaId);
-                $pubGs1Th    = $crawler->countGoogleScholarPublicationsByYear($sintaId, $tahun);
-            } catch (\Throwable $e) {
-                // TODO: log kalau perlu
-                continue;
-            }
-
-            /** @var DosenPerformanceMetric $metric */
-            $metric = DosenPerformanceMetric::firstOrNew([
-                'user_id' => $dosenId,   // FK ke dosens.id
-                'tahun'   => $tahun,
-            ]);
-
-            $metric->sinta_score           = $scores['sinta_score_overall'] ?? 0.0;
-            $metric->sinta_score_3yr       = $scores['sinta_score_3yr'] ?? 0.0;
-            $metric->jumlah_hibah          = $jumlahHibah;
-            $metric->publikasi_scholar_1th = $pubGs1Th;
-
-            $metric->save();
-            $result->push($metric);
 
             usleep(300000);
         }
 
         return $result;
+    }
+
+    /**
+     * Tarik data SINTA untuk SATU dosen pada tahun tertentu.
+     */
+    public function aggregateFromSintaForDosen(int $tahun, Dosen $dosen, SintaCrawler $crawler): ?DosenPerformanceMetric
+    {
+        $sintaId = trim($dosen->sinta_id ?? '');
+        $dosenId = (int) $dosen->id;
+
+        if ($sintaId === '') {
+            return null;
+        }
+
+        try {
+            $scores      = $crawler->fetchScores($sintaId);
+            $jumlahHibah = $crawler->countHibahFromMatricsOverall($sintaId);
+            $pubGs1Th    = $crawler->countGoogleScholarPublicationsByYear($sintaId, $tahun);
+        } catch (\Throwable $e) {
+            // TODO: log kalau perlu
+            return null;
+        }
+
+        /** @var DosenPerformanceMetric $metric */
+        $metric = DosenPerformanceMetric::firstOrNew([
+            'user_id' => $dosenId,   // FK ke dosens.id
+            'tahun'   => $tahun,
+        ]);
+
+        $metric->sinta_score           = $scores['sinta_score_overall'] ?? 0.0;
+        $metric->sinta_score_3yr       = $scores['sinta_score_3yr'] ?? 0.0;
+        $metric->jumlah_hibah          = $jumlahHibah;
+        $metric->publikasi_scholar_1th = $pubGs1Th;
+
+        $metric->save();
+
+        return $metric;
     }
 }

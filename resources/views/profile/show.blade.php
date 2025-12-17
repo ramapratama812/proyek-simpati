@@ -185,11 +185,23 @@
                                     </h5>
                                     @php $sintaId = $dosen->sinta_id ?? $user->sinta_id; @endphp
                                     @if ($sintaId)
-                                        <a href="https://sinta.kemdiktisaintek.go.id/authors/profile/{{ $sintaId }}"
-                                            target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1"
-                                            style="font-size: 0.75rem;">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> Lihat Profil
-                                        </a>
+                                        <div class="d-flex gap-2">
+                                            <a href="https://sinta.kemdiktisaintek.go.id/authors/profile/{{ $sintaId }}"
+                                                target="_blank"
+                                                class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1"
+                                                style="font-size: 0.75rem;">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i> Lihat Profil
+                                            </a>
+
+                                            <form action="{{ route('profile.sync_sinta') }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 py-1"
+                                                    style="font-size: 0.75rem;"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menarik data terbaru dari SINTA? Proses ini dibatasi 5 menit sekali.')">
+                                                    <i class="bi bi-arrow-repeat me-1"></i> Sync Data
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -237,6 +249,73 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- ===== SINTA METRICS ===== --}}
+                @if ($sintaId && isset($sintaMetrics))
+                    <h4 class="fw-bold mb-4 mt-5" style="color: #001F4D;">
+                        <i class="bi bi-bar-chart-line me-2"></i> Statistik SINTA (Tahun {{ $sintaMetrics->tahun }})
+                    </h4>
+
+                    <div class="row g-4">
+                        {{-- SINTA Score Overall --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4"
+                                style="background-color: #e7f1ff;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-primary">
+                                        <i class="bi bi-trophy fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">SINTA Score</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ number_format($sintaMetrics->sinta_score, 2) }}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- SINTA Score 3Yr --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4"
+                                style="background-color: #fff3cd;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-warning">
+                                        <i class="bi bi-star fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">SINTA 3Yr</h6>
+                                    <h3 class="fw-bold text-dark mb-0">
+                                        {{ number_format($sintaMetrics->sinta_score_3yr, 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Jumlah Hibah --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4"
+                                style="background-color: #d1e7dd;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-success">
+                                        <i class="bi bi-cash-coin fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Jumlah Hibah</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ $sintaMetrics->jumlah_hibah }}</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Publikasi Scholar 1 Thn --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4"
+                                style="background-color: #f8d7da;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-danger">
+                                        <i class="bi bi-journal-text fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Publikasi (1 Thn)</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ $sintaMetrics->publikasi_scholar_1th }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 <hr class="my-5">
 

@@ -109,4 +109,71 @@ class DosenBerprestasiController extends Controller
                 ->with('error', 'Gagal sync data SINTA: ' . $e->getMessage());
         }
     }
+    /**
+     * Export data ranking ke Excel (CSV).
+     */
+    public function exportExcel(Request $request, DosenRankingService $rankingService)
+    {
+        $tahun = (int) ($request->input('tahun') ?: now()->year);
+
+        try {
+            $result  = $rankingService->hitungRanking($tahun);
+            $ranking = $result['ranking'] ?? collect();
+        } catch (\Throwable $e) {
+            $ranking = collect();
+        }
+
+        $filename = "ranking-dosen-berprestasi-{$tahun}.csv";
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function () use ($ranking) {
+            $file = fopen('php://output', 'w');
+
+            // Header CSV
+            fputcsv($file, [
+                'Peringkat',
+                'Nama Dosen',
+                'NIDN',
+                'SINTA Score',
+                'SINTA 3Yr',
+                'Jumlah Hibah',
+                'Publikasi Scholar (1 Thn)',
+                'Jumlah Penelitian',
+                'Jumlah P3M',
+                'Jumlah Publikasi',
+                'Skor Akhir'
+            ], ';');
+
+            // Data Rows
+            foreach ($ranking as $row) {
+                $nama = optional($row->dosen)->nama ?? (optional($row->user)->name ?? 'N/A');
+                $nidn = optional($row->dosen)->nidn ?? 'N/A';
+
+                fputcsv($file, [
+                    $row->peringkat,
+                    $nama,
+                    $nidn,
+                    $row->sinta_score,
+                    $row->sinta_score_3yr,
+                    $row->jumlah_hibah,
+                    $row->publikasi_scholar_1th,
+                    $row->jumlah_penelitian,
+                    $row->jumlah_p3m,
+                    $row->jumlah_publikasi,
+                    number_format($row->skor_akhir, 6)
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

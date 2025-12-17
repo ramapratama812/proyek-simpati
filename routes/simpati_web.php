@@ -130,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/edit', 'edit')->name('edit');   // Edit profil
             Route::put('/', 'update')->name('update');   // Simpan perubahan
             Route::delete('/', 'destroy')->name('destroy'); // Hapus akun
+            Route::post('/sync-sinta', 'syncSinta')->name('sync_sinta'); // Sync SINTA
         });
 
     // ==================================================
@@ -160,6 +161,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/tpk/dosen-berprestasi/sync-sinta', [DosenBerprestasiController::class, 'syncSinta'])
             ->name('tpk.dosen_berprestasi.sync_sinta');
+        Route::get('/tpk/dosen-berprestasi/export', [DosenBerprestasiController::class, 'exportExcel'])
+            ->name('tpk.dosen_berprestasi.export');
         });
 
     // ==================================================

@@ -307,27 +307,30 @@
                             </form>
                         </div>
 
-                        @if ($role === 'admin')
-                            <div class="col-md-8 text-md-end">
-                                <div class="d-flex justify-content-md-end gap-2">
-                                    <form action="{{ route('tpk.dosen_berprestasi.sync_internal') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="tahun" value="{{ $tahun }}">
-                                        <button type="submit" class="btn btn-light text-secondary border fw-bold">
-                                            <i class="bi bi-arrow-repeat me-2"></i> Sync Internal
-                                        </button>
-                                    </form>
+                        <div class="col-md-8 text-md-end">
+                            <div class="d-flex justify-content-md-end gap-2">
+                                <form action="{{ route('tpk.dosen_berprestasi.sync_internal') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="tahun" value="{{ $tahun }}">
+                                    <button type="submit" class="btn btn-light text-secondary border fw-bold">
+                                        <i class="bi bi-arrow-repeat me-2"></i> Sync Internal
+                                    </button>
+                                </form>
 
-                                    <form action="{{ route('tpk.dosen_berprestasi.sync_sinta') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="tahun" value="{{ $tahun }}">
-                                        <button type="submit" class="btn btn-outline-primary fw-bold">
-                                            <i class="bi bi-cloud-download me-2"></i> Sync SINTA
-                                        </button>
-                                    </form>
-                                </div>
+                                <form action="{{ route('tpk.dosen_berprestasi.sync_sinta') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="tahun" value="{{ $tahun }}">
+                                    <button type="submit" class="btn btn-outline-primary fw-bold">
+                                        <i class="bi bi-cloud-download me-2"></i> Sync SINTA
+                                    </button>
+                                </form>
+
+                                <a href="{{ route('tpk.dosen_berprestasi.export', ['tahun' => $tahun]) }}"
+                                    class="btn btn-success fw-bold text-white">
+                                    <i class="bi bi-file-earmark-excel me-2"></i> Export Excel
+                                </a>
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
             </div>
