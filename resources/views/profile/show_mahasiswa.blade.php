@@ -27,8 +27,8 @@
                 @endphp
 
                 <div class="dosen-avatar-in-header mb-3 mx-auto">
-                    @if ($mahasiswa->user && $mahasiswa->user->foto)
-                        <img src="{{ asset($mahasiswa->user->foto) }}" alt="{{ $mahasiswa->nama ?? $user->name }}"
+                    @if ($user->foto)
+                        <img src="{{ asset($user->foto) }}" alt="{{ $mahasiswa->nama ?? $user->name }}"
                             class="dosen-profile-photo-in-header rounded-circle">
                     @else
                         <div
@@ -67,7 +67,7 @@
                         <div class="bio-box bio-box-smooth">
                             <i class="bi bi-envelope-fill fs-4 me-3 text-primary-color"></i>
                             <p class="text-muted small mb-0">Email</p>
-                            <p class="text-dark fw-semibold mb-0">{{ $mahasiswa->email ?? ($user->email ?? '-') }}</p>
+                            <p class="text-dark fw-semibold mb-0">{{ $user->email ?? '-' }}</p>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -204,7 +204,7 @@
 
                 <div class="scroll-list-container mb-5">
                     @php
-                        $memberships = $mahasiswa->user->projectMembers ?? collect();
+                        $memberships = $user->projectMembers ?? collect();
                     @endphp
 
                     @forelse($memberships as $member)
@@ -289,8 +289,8 @@
 
     <style>
         /* =========================================
-                           STYLE SAMA PERSIS DENGAN DOSEN (FINAL)
-                           ========================================= */
+                               STYLE SAMA PERSIS DENGAN DOSEN (FINAL)
+                               ========================================= */
 
         :root {
             --primary-color: #0050a0;

@@ -55,6 +55,20 @@ class GoogleRegisterController extends Controller
 
         $sintaId = ($role === 'dosen') ? ($validated['sinta_id'] ?? null) : null;
 
+        // 🔹 Cek duplikasi permohonan (status != rejected)
+        $existingRequest = RegistrationRequest::where(function ($q) use ($googleData, $validated) {
+            $q->where('email', $googleData['email'])
+              ->orWhere('identity', $validated['identity']);
+        })
+        ->where('status', '!=', 'rejected')
+        ->first();
+
+        if ($existingRequest) {
+            return redirect()->back()
+                ->withErrors(['identity' => 'Permohonan dengan Email atau Identitas ini sudah ada dan belum ditolak.'])
+                ->withInput();
+        }
+
         $req = RegistrationRequest::create([
             'name'      => $googleData['name'],
             'email'     => $googleData['email'],

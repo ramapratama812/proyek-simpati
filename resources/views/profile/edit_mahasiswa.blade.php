@@ -16,7 +16,7 @@
             </header>
 
             {{-- FORM --}}
-            <form action="{{ route('mahasiswa.update', $mahasiswa->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -31,9 +31,7 @@
 
                         {{-- Avatar Image (Pastikan path ke storage/ ) --}}
                         <img id="avatar-preview"
-                            src="{{ $mahasiswa->user && $mahasiswa->user->foto
-                                ? asset('storage/' . $mahasiswa->user->foto)
-                                : asset('images/default-user.png') }}"
+                            src="{{ $user->foto ? asset($user->foto) : asset('images/default-user.png') }}"
                             class="avatar mb-3 shadow-lg">
 
                         {{-- Input File (Tambahkan ID untuk JS) --}}
@@ -60,9 +58,9 @@
                         {{-- NAMA --}}
                         <div class="col-md-6">
                             <label class="form-label-custom text-primary-dark">Nama Lengkap</label>
-                            <input type="text" name="nama" class="form-control input-fancy"
-                                value="{{ old('nama', $mahasiswa->nama) }}" required>
-                            @error('nama')
+                            <input type="text" name="name" class="form-control input-fancy"
+                                value="{{ old('name', $mahasiswa?->nama ?? $user->name) }}" required>
+                            @error('name')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
@@ -72,7 +70,7 @@
                             <label class="form-label-custom text-primary-dark">Email</label>
                             {{-- Mengambil email dari relasi user --}}
                             <input type="email" name="email" class="form-control input-fancy"
-                                value="{{ old('email', $mahasiswa->user->email ?? $mahasiswa->email) }}" disabled>
+                                value="{{ old('email', $user->email) }}" disabled>
                             @error('email')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -84,10 +82,10 @@
                             <select name="jenis_kelamin" class="form-select input-fancy">
                                 <option value="">Pilih</option>
                                 <option value="Laki-laki"
-                                    {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>
+                                    {{ old('jenis_kelamin', $mahasiswa?->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>
                                     Laki-laki</option>
                                 <option value="Perempuan"
-                                    {{ old('jenis_kelamin', $mahasiswa->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>
+                                    {{ old('jenis_kelamin', $mahasiswa?->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>
                                     Perempuan</option>
                             </select>
                             @error('jenis_kelamin')
@@ -109,7 +107,7 @@
                         <div class="col-md-6">
                             <label class="form-label-custom text-primary-dark">NIM</label>
                             <input type="text" name="nim" class="form-control input-fancy"
-                                value="{{ old('nim', $mahasiswa->nim) }}" required>
+                                value="{{ old('nim', $mahasiswa?->nim ?? $user->nim) }}" required>
                             @error('nim')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -119,7 +117,7 @@
                         <div class="col-md-6">
                             <label class="form-label-custom text-primary-dark">Semester</label>
                             <input type="number" name="semester" class="form-control input-fancy" min="1"
-                                max="12" value="{{ old('semester', $mahasiswa->semester) }}">
+                                max="12" value="{{ old('semester', $mahasiswa?->semester) }}">
                             @error('semester')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -130,19 +128,19 @@
                             <label class="form-label-custom text-primary-dark">Status Aktivitas</label>
                             <select name="status_aktivitas" class="form-select input-fancy">
                                 <option value="Aktif"
-                                    {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Aktif' ? 'selected' : '' }}>
+                                    {{ old('status_aktivitas', $mahasiswa?->status_aktivitas) == 'Aktif' ? 'selected' : '' }}>
                                     Aktif</option>
                                 <option value="Cuti"
-                                    {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Cuti' ? 'selected' : '' }}>
+                                    {{ old('status_aktivitas', $mahasiswa?->status_aktivitas) == 'Cuti' ? 'selected' : '' }}>
                                     Cuti</option>
                                 <option value="Lulus"
-                                    {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Lulus' ? 'selected' : '' }}>
+                                    {{ old('status_aktivitas', $mahasiswa?->status_aktivitas) == 'Lulus' ? 'selected' : '' }}>
                                     Lulus</option>
                                 <option value="Non-Aktif"
-                                    {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Non-Aktif' ? 'selected' : '' }}>
+                                    {{ old('status_aktivitas', $mahasiswa?->status_aktivitas) == 'Non-Aktif' ? 'selected' : '' }}>
                                     Non-Aktif</option>
                                 <option value="Keluar"
-                                    {{ old('status_aktivitas', $mahasiswa->status_aktivitas) == 'Keluar' ? 'selected' : '' }}>
+                                    {{ old('status_aktivitas', $mahasiswa?->status_aktivitas) == 'Keluar' ? 'selected' : '' }}>
                                     Keluar (DO)</option>
                             </select>
                             @error('status_aktivitas')
@@ -154,7 +152,7 @@
                         <div class="col-md-6">
                             <label class="form-label-custom text-primary-dark">Program Studi</label>
                             <input type="text" name="program_studi" class="form-control input-fancy"
-                                value="{{ old('program_studi', $mahasiswa->program_studi) }}">
+                                value="{{ old('program_studi', $mahasiswa?->program_studi) }}">
                             @error('program_studi')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -164,7 +162,7 @@
                         <div class="col-md-6">
                             <label class="form-label-custom text-primary-dark">Perguruan Tinggi</label>
                             <input type="text" name="perguruan_tinggi" class="form-control input-fancy"
-                                value="{{ old('perguruan_tinggi', $mahasiswa->perguruan_tinggi) }}">
+                                value="{{ old('perguruan_tinggi', $mahasiswa?->perguruan_tinggi) }}">
                             @error('perguruan_tinggi')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror

@@ -139,6 +139,69 @@
                     </div>
                 </div>
 
+                {{-- ===== SINTA METRICS ===== --}}
+                @if (isset($sintaMetrics))
+                    <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: #001F4D;">
+                        <i class="bi bi-bar-chart-line me-2 text-primary-dark"></i> Statistik SINTA (Tahun
+                        {{ $sintaMetrics->tahun }})
+                    </h4>
+
+                    <div class="row g-4 mb-5">
+                        {{-- SINTA Score Overall --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4" style="background-color: #e7f1ff;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-primary">
+                                        <i class="bi bi-trophy fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">SINTA Score</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ number_format($sintaMetrics->sinta_score, 2) }}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- SINTA Score 3Yr --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4" style="background-color: #fff3cd;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-warning">
+                                        <i class="bi bi-star fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">SINTA 3Yr</h6>
+                                    <h3 class="fw-bold text-dark mb-0">
+                                        {{ number_format($sintaMetrics->sinta_score_3yr, 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Jumlah Hibah --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4" style="background-color: #d1e7dd;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-success">
+                                        <i class="bi bi-cash-coin fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Jumlah Hibah</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ $sintaMetrics->jumlah_hibah }}</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Publikasi Scholar 1 Thn --}}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card border-0 shadow-sm h-100 text-center py-4" style="background-color: #f8d7da;">
+                                <div class="card-body">
+                                    <div class="mb-3 text-danger">
+                                        <i class="bi bi-journal-text fs-1"></i>
+                                    </div>
+                                    <h6 class="text-muted text-uppercase small fw-bold mb-2">Publikasi (1 Thn)</h6>
+                                    <h3 class="fw-bold text-dark mb-0">{{ $sintaMetrics->publikasi_scholar_1th }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- ================= SECTION DOKUMENTASI (TAB) ================= --}}
                 <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: #001F4D;">
@@ -148,8 +211,9 @@
                 {{-- Navigasi Tab --}}
                 <ul class="nav nav-tabs custom-tabs mb-4" id="dosenTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="kegiatan-tab" data-bs-toggle="tab" data-bs-target="#kegiatan"
-                            type="button" role="tab" aria-controls="kegiatan" aria-selected="true">
+                        <button class="nav-link active" id="kegiatan-tab" data-bs-toggle="tab"
+                            data-bs-target="#kegiatan" type="button" role="tab" aria-controls="kegiatan"
+                            aria-selected="true">
                             <i class="bi bi-person-workspace me-1 text-warning"></i> Kegiatan
                             ({{ count($dosen->kegiatanDiketuai ?? []) + count($dosen->anggotaProyek ?? []) }})
                         </button>
@@ -181,7 +245,8 @@
                         </h5>
                         <div class="scroll-list-container mb-5">
                             @forelse($dosen->kegiatanDiketuai ?? [] as $k)
-                                <a href="{{ url('/projects/' . $k->id) }}" class="text-decoration-none text-dark d-block">
+                                <a href="{{ url('/projects/' . $k->id) }}"
+                                    class="text-decoration-none text-dark d-block">
                                     <div class="kegiatan-box mb-3 transition-shadow">
                                         <strong>{{ $k->judul }}</strong><br>
                                         <span class="text-muted small">Tahun:

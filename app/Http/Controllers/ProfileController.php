@@ -198,6 +198,20 @@ class ProfileController extends Controller
             if ($role === 'mahasiswa') {
                 $mahasiswa = $this->findMahasiswaFor($user->id, $user->email, true);
 
+                // ===== FOTO MAHASISWA LOGIC (Simpan ke User) =====
+                if ($request->hasFile('foto')) {
+                    // Hapus foto lama jika ada
+                    if ($user->foto) {
+                        $oldPath = str_replace('storage/', '', $user->foto);
+                        if (Storage::disk('public')->exists($oldPath)) {
+                            Storage::disk('public')->delete($oldPath);
+                        }
+                    }
+                    // Simpan foto baru
+                    $path = $request->file('foto')->store('fotos', 'public');
+                    $userData['foto'] = 'storage/' . $path;
+                }
+
                 $this->safeFill($mahasiswa, [
                     'nama'             => $validated['name'],
                     'nim'              => $request->input('nim'),
@@ -205,6 +219,8 @@ class ProfileController extends Controller
                     'semester'         => $request->input('semester'),
                     'status_aktivitas' => $request->input('status_aktivitas'),
                     'nomor_hp'         => $request->input('nomor_hp') ?? $request->input('no_hp'),
+                    'program_studi'    => $request->input('program_studi'),
+                    'perguruan_tinggi' => $request->input('perguruan_tinggi'),
                 ]);
 
                 if (Schema::hasColumn($mahasiswa->getTable(), 'user_id')) {

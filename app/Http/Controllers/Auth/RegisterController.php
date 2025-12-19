@@ -65,6 +65,21 @@ class RegisterController extends Controller
                 ->withInput();
         }
 
+        // 🔹 Cek apakah ada permohonan yang SEDANG DIPROSES atau SUDAH DISETUJUI (status != rejected)
+        //    Supaya user tidak spam daftar kalau belum ditolak.
+        $existingRequest = RegistrationRequest::where(function ($q) use ($validated, $identity) {
+            $q->where('email', $validated['email'])
+              ->orWhere('identity', $identity);
+        })
+        ->where('status', '!=', 'rejected')
+        ->first();
+
+        if ($existingRequest) {
+            return back()
+                ->withErrors(['email' => 'Permohonan pendaftaran dengan Email atau Identitas ini sudah ada dan sedang diproses (atau sudah disetujui).'])
+                ->withInput();
+        }
+
         // 🔹 Normalisasi sinta_id: hanya dosen yang boleh isi, lainnya dibuat null
         $sintaId = $validated['role'] === 'dosen'
             ? ($validated['sinta_id'] ?? null)

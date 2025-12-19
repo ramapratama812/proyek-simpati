@@ -62,7 +62,7 @@ class GoogleAuthController extends Controller
 
             return redirect()->route('login')->with(
                 'error',
-                'Sesi login Google hilang. Pastikan kamu tidak campur localhost dan 127.0.0.1.'
+                'Sesi login Google hilang.'
             );
         } catch (\Throwable $e) {
             Log::error('Google OAuth callback error', [
@@ -83,6 +83,16 @@ class GoogleAuthController extends Controller
             $request->session()->regenerate();
 
             return $this->redirectByRole($user);
+        }
+
+        // 🔹 Cek apakah ada permohonan pendaftaran yang pending/approved (belum jadi user tapi sudah request)
+        //    Jika ada dan status != rejected, tolak login/register ulang.
+        $existingReq = \App\Models\RegistrationRequest::where('email', $email)
+            ->where('status', '!=', 'rejected')
+            ->first();
+
+        if ($existingReq) {
+            return redirect()->route('login')->with('error', 'Permohonan pendaftaran akun Anda sedang diproses (atau sudah disetujui). Silakan tunggu konfirmasi admin.');
         }
 
         $domain = substr(strrchr($email, "@"), 1);

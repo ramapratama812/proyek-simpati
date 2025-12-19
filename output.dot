@@ -1,0 +1,800 @@
+digraph G {
+	graph [bb="0,0,1902.8,6638.5",
+		bgcolor="#F4F6F6",
+		concentrate=1,
+		fontname=Arial,
+		fontsize=12,
+		labelloc=t,
+		nodesep=1.2,
+		overlap="",
+		pad=0.5,
+		rankdir=TB,
+		ranksep=1.5,
+		sep="+25",
+		splines=ortho,
+		style=filled
+	];
+	node [label="\N"];
+	appmodelsahpcriteria	[fontname=Arial,
+		height=4.2083,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">AhpCriteria</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="kode" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >kode (varchar)</font></td></tr>
+<tr width="100%"><td port="nama" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nama (varchar)</font></td></tr>
+<tr width="100%"><td port="bobot" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >bobot (decimal)</font></td></tr>
+<tr width="100%"><td port="is_benefit" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >is_benefit (tinyint)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="143,6260.5",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsahpcriteriacomparison	[fontname=Arial,
+		height=3.684,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">AhpCriteriaComparison</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="row_criteria_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >row_criteria_id (bigint)</font></td></tr>
+<tr width="100%"><td port="col_criteria_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >col_criteria_id (bigint)</font></td></tr>
+<tr width="100%"><td port="value" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >value (decimal)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="126,5475.1",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsahpcriteria:id -> appmodelsahpcriteriacomparison:row_criteria_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1.875,5820.6",
+		penwidth=1.2,
+		pos="e,134.5,5607.5 134.5,6109.1 134.5,6109.1 134.5,5618 134.5,5618",
+		style=solid,
+		xlabel="HasMany
+rowComparisons",
+		xlp="83.5,5879.3"];
+	appmodelsahpcriteria:id -> appmodelsahpcriteriacomparison:col_criteria_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="HasMany
+colComparisons"];
+	appmodelsahpcriteriacomparison:row_criteria_id -> appmodelsahpcriteria:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+rowCriteria"];
+	appmodelsahpcriteriacomparison:col_criteria_id -> appmodelsahpcriteria:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+colCriteria"];
+	appmodelsdosen	[fontname=Arial,
+		height=10.5,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">Dosen</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="foto" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >foto (varchar)</font></td></tr>
+<tr width="100%"><td port="link_pddikti" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >link_pddikti (varchar)</font></td></tr>
+<tr width="100%"><td port="nama" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nama (varchar)</font></td></tr>
+<tr width="100%"><td port="email" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >email (varchar)</font></td></tr>
+<tr width="100%"><td port="nomor_hp" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nomor_hp (varchar)</font></td></tr>
+<tr width="100%"><td port="nidn" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nidn (varchar)</font></td></tr>
+<tr width="100%"><td port="sinta_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sinta_id (varchar)</font></td></tr>
+<tr width="100%"><td port="nip" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nip (varchar)</font></td></tr>
+<tr width="100%"><td port="perguruan_tinggi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >perguruan_tinggi (varchar)</font></td></tr>
+<tr width="100%"><td port="status_ikatan_kerja" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status_ikatan_kerja (varchar)</font></td></tr>
+<tr width="100%"><td port="jenis_kelamin" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jenis_kelamin (varchar)</font></td></tr>
+<tr width="100%"><td port="program_studi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >program_studi (varchar)</font></td></tr>
+<tr width="100%"><td port="photo" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >photo (varchar)</font></td></tr>
+<tr width="100%"><td port="pendidikan_terakhir" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >pendidikan_terakhir (varchar)</font></td></tr>
+<tr width="100%"><td port="status_aktivitas" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status_aktivitas (varchar)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="792,6260.5",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.7431];
+	appmodelsuser	[fontname=Arial,
+		height=13.122,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">User</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="name" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >name (varchar)</font></td></tr>
+<tr width="100%"><td port="username" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >username (varchar)</font></td></tr>
+<tr width="100%"><td port="email" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >email (varchar)</font></td></tr>
+<tr width="100%"><td port="email_verified_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >email_verified_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="password" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >password (varchar)</font></td></tr>
+<tr width="100%"><td port="google_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >google_id (varchar)</font></td></tr>
+<tr width="100%"><td port="role" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >role (enum)</font></td></tr>
+<tr width="100%"><td port="status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status (varchar)</font></td></tr>
+<tr width="100%"><td port="foto" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >foto (varchar)</font></td></tr>
+<tr width="100%"><td port="remember_token" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >remember_token (varchar)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="pddikti_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >pddikti_id (varchar)</font></td></tr>
+<tr width="100%"><td port="sinta_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sinta_id (varchar)</font></td></tr>
+<tr width="100%"><td port="garuda_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >garuda_id (varchar)</font></td></tr>
+<tr width="100%"><td port="scholar_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >scholar_id (varchar)</font></td></tr>
+<tr width="100%"><td port="orcid_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >orcid_id (varchar)</font></td></tr>
+<tr width="100%"><td port="nidn" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nidn (varchar)</font></td></tr>
+<tr width="100%"><td port="nip" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nip (varchar)</font></td></tr>
+<tr width="100%"><td port="nim" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nim (varchar)</font></td></tr>
+<tr width="100%"><td port="google_access_token" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >google_access_token (text)</font></td></tr>
+<tr width="100%"><td port="google_refresh_token" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >google_refresh_token (text)</font></td></tr>
+<tr width="100%"><td port="google_token_expires_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >google_token_expires_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1210,4595.4",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=3.4618];
+	appmodelsdosen:user_id -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1211.9,5475.1",
+		penwidth=1.2,
+		pos="s,891.17,5958 e,1128.6,5067.7 901.7,5958 901.7,5958 1128.6,5958 1128.6,5958 1128.6,5958 1128.6,5072.7 1128.6,5072.7",
+		style=solid,
+		xlabel="BelongsTo
+user",
+		xlp="1097.1,5644.5"];
+	appmodelsdosenperformancemetric	[fontname=Arial,
+		height=7.8785,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">DosenPerformanceMetric</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="tahun" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tahun (year)</font></td></tr>
+<tr width="100%"><td port="sinta_score" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sinta_score (decimal)</font></td></tr>
+<tr width="100%"><td port="sinta_score_3yr" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sinta_score_3yr (decimal)</font></td></tr>
+<tr width="100%"><td port="jumlah_hibah" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jumlah_hibah (int)</font></td></tr>
+<tr width="100%"><td port="publikasi_scholar_1th" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >publikasi_scholar_1th (int)</font></td></tr>
+<tr width="100%"><td port="jumlah_penelitian" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jumlah_penelitian (int)</font></td></tr>
+<tr width="100%"><td port="jumlah_p3m" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jumlah_p3m (int)</font></td></tr>
+<tr width="100%"><td port="jumlah_publikasi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jumlah_publikasi (int)</font></td></tr>
+<tr width="100%"><td port="skor_akhir" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >skor_akhir (decimal)</font></td></tr>
+<tr width="100%"><td port="peringkat" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >peringkat (int)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="697,5475.1",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.4826];
+	appmodelsdosen:id -> appmodelsdosenperformancemetric:dosen_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="698.88,5820.6",
+		penwidth=1.2,
+		pos="e,739.81,5758.7 739.81,5882.8 739.81,5882.8 739.81,5769.3 739.81,5769.3",
+		style=solid,
+		xlabel="HasMany
+performanceMetrics",
+		xlp="679.44,5841.8"];
+	appmodelsresearchproject	[fontname=Arial,
+		height=21.51,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">ResearchProject</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="jenis" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jenis (enum)</font></td></tr>
+<tr width="100%"><td port="judul" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >judul (varchar)</font></td></tr>
+<tr width="100%"><td port="kategori_kegiatan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >kategori_kegiatan (varchar)</font></td></tr>
+<tr width="100%"><td port="bidang_ilmu" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >bidang_ilmu (varchar)</font></td></tr>
+<tr width="100%"><td port="skema" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >skema (varchar)</font></td></tr>
+<tr width="100%"><td port="abstrak" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >abstrak (text)</font></td></tr>
+<tr width="100%"><td port="surat_proposal" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >surat_proposal (varchar)</font></td></tr>
+<tr width="100%"><td port="surat_persetujuan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >surat_persetujuan (varchar)</font></td></tr>
+<tr width="100%"><td port="mulai" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >mulai (date)</font></td></tr>
+<tr width="100%"><td port="selesai" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >selesai (date)</font></td></tr>
+<tr width="100%"><td port="sumber_dana" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sumber_dana (varchar)</font></td></tr>
+<tr width="100%"><td port="biaya" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >biaya (decimal)</font></td></tr>
+<tr width="100%"><td port="ketua_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >ketua_id (bigint)</font></td></tr>
+<tr width="100%"><td port="tahun_usulan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tahun_usulan (year)</font></td></tr>
+<tr width="100%"><td port="tahun_pelaksanaan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tahun_pelaksanaan (year)</font></td></tr>
+<tr width="100%"><td port="status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status (enum)</font></td></tr>
+<tr width="100%"><td port="validation_status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validation_status (enum)</font></td></tr>
+<tr width="100%"><td port="validation_note" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validation_note (text)</font></td></tr>
+<tr width="100%"><td port="validated_by" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validated_by (bigint)</font></td></tr>
+<tr width="100%"><td port="validated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validated_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="tkt" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tkt (tinyint)</font></td></tr>
+<tr width="100%"><td port="mitra_nama" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >mitra_nama (varchar)</font></td></tr>
+<tr width="100%"><td port="lokasi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >lokasi (varchar)</font></td></tr>
+<tr width="100%"><td port="nomor_kontrak" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nomor_kontrak (varchar)</font></td></tr>
+<tr width="100%"><td port="tanggal_kontrak" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tanggal_kontrak (date)</font></td></tr>
+<tr width="100%"><td port="lama_kegiatan_bulan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >lama_kegiatan_bulan (int)</font></td></tr>
+<tr width="100%"><td port="target_luaran" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >target_luaran (longtext)</font></td></tr>
+<tr width="100%"><td port="keywords" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >keywords (varchar)</font></td></tr>
+<tr width="100%"><td port="tautan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tautan (varchar)</font></td></tr>
+<tr width="100%"><td port="is_public" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >is_public (tinyint)</font></td></tr>
+<tr width="100%"><td port="external_refs" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >external_refs (longtext)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="created_by" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_by (bigint)</font></td></tr>
+<tr width="100%"><td port="gdrive_proposal_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_proposal_id (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_proposal_name" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_proposal_name (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_proposal_mime" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_proposal_mime (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_proposal_size" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_proposal_size (bigint)</font></td></tr>
+<tr width="100%"><td port="gdrive_proposal_view_link" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_proposal_view_link (text)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="983,2496.1",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=3.0243];
+	appmodelsdosen:user_id -> appmodelsresearchproject:ketua_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="236.88,4595.4",
+		penwidth=1.2,
+		pos="e,1049.8,3270.4 890.95,5920 963.67,5920 1049.8,5920 1049.8,5920 1049.8,5920 1049.8,3280.9 1049.8,3280.9",
+		style=solid,
+		xlabel="HasMany
+kegiatanDiketuai",
+		xlp="999.97,4695.7"];
+	appmodelsprojectmember	[fontname=Arial,
+		height=3.684,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">ProjectMember</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="peran" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >peran (enum)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="448,3696.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsdosen:user_id -> appmodelsprojectmember:user_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="371.88,5129.6",
+		penwidth=1.2,
+		pos="e,448,3829.1 692.96,6034 591.34,6034 448,6034 448,6034 448,6034 448,3839.6 448,3839.6",
+		style=solid,
+		xlabel="HasMany
+anggotaProyek",
+		xlp="402.62,5075.1"];
+	appmodelspublication	[fontname=Arial,
+		height=15.219,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">Publication</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="dosen_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >dosen_id (bigint)</font></td></tr>
+<tr width="100%"><td port="owner_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >owner_id (bigint)</font></td></tr>
+<tr width="100%"><td port="validation_status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validation_status (varchar)</font></td></tr>
+<tr width="100%"><td port="validation_note" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validation_note (text)</font></td></tr>
+<tr width="100%"><td port="validated_by" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >validated_by (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="judul" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >judul (varchar)</font></td></tr>
+<tr width="100%"><td port="jenis" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jenis (varchar)</font></td></tr>
+<tr width="100%"><td port="jurnal" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jurnal (varchar)</font></td></tr>
+<tr width="100%"><td port="tahun" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tahun (int)</font></td></tr>
+<tr width="100%"><td port="volume" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >volume (varchar)</font></td></tr>
+<tr width="100%"><td port="nomor" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nomor (varchar)</font></td></tr>
+<tr width="100%"><td port="abstrak" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >abstrak (text)</font></td></tr>
+<tr width="100%"><td port="jumlah_halaman" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jumlah_halaman (int)</font></td></tr>
+<tr width="100%"><td port="doi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >doi (varchar)</font></td></tr>
+<tr width="100%"><td port="file" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >file (varchar)</font></td></tr>
+<tr width="100%"><td port="issn" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >issn (varchar)</font></td></tr>
+<tr width="100%"><td port="penulis" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >penulis (longtext)</font></td></tr>
+<tr width="100%"><td port="sumber" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sumber (longtext)</font></td></tr>
+<tr width="100%"><td port="tautan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tautan (longtext)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="gdrive_pdf_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_pdf_id (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_pdf_name" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_pdf_name (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_pdf_mime" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_pdf_mime (varchar)</font></td></tr>
+<tr width="100%"><td port="gdrive_pdf_size" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_pdf_size (bigint)</font></td></tr>
+<tr width="100%"><td port="gdrive_pdf_view_link" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_pdf_view_link (text)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="693,547.88",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.566];
+	appmodelsdosen:user_id -> appmodelspublication:owner_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="20.875,3696.8",
+		penwidth=1.2,
+		pos="e,604.12,1095.5 692.84,5958 647.67,5958 604.12,5958 604.12,5958 604.12,5958 604.12,1106 604.12,1106",
+		style=solid,
+		xlabel="HasMany
+publikasi",
+		xlp="575.25,3592.1"];
+	appmodelsuser:id -> appmodelsdosen:user_id	[arrowhead=tee,
+		arrowtail=none,
+		color="#27ae60",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="HasOne
+lecturerProfile"];
+	appmodelsuser:id -> appmodelsresearchproject:ketua_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1056.9,3696.8",
+		penwidth=1.2,
+		pos="e,1061.7,3270.2 1085.2,4595 1071.1,4595 1061.7,4595 1061.7,4595 1061.7,4595 1061.7,3280.7 1061.7,3280.7",
+		style=solid,
+		xlabel="HasMany
+projectsLed",
+		xlp="1026.8,3965.4"];
+	appmodelsuser:id -> appmodelsprojectmember:user_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="667.88,4061.1",
+		penwidth=1.2,
+		pos="e,531.45,3741 1109.6,4123.2 1109.6,3925.6 1109.6,3741 1109.6,3741 1109.6,3741 541.98,3741 541.98,3741",
+		style=solid,
+		xlabel="HasMany
+projectMembers",
+		xlp="967.76,3756.8"];
+	appmodelsmahasiswa	[fontname=Arial,
+		height=8.4028,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">Mahasiswa</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="nama" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nama (varchar)</font></td></tr>
+<tr width="100%"><td port="nim" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >nim (varchar)</font></td></tr>
+<tr width="100%"><td port="email" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >email (varchar)</font></td></tr>
+<tr width="100%"><td port="jenis_kelamin" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jenis_kelamin (enum)</font></td></tr>
+<tr width="100%"><td port="program_studi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >program_studi (varchar)</font></td></tr>
+<tr width="100%"><td port="perguruan_tinggi" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >perguruan_tinggi (varchar)</font></td></tr>
+<tr width="100%"><td port="status_terakhir" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status_terakhir (varchar)</font></td></tr>
+<tr width="100%"><td port="foto" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >foto (varchar)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="jenjang_pendidikan" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >jenjang_pendidikan (varchar)</font></td></tr>
+<tr width="100%"><td port="semester" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >semester (int)</font></td></tr>
+<tr width="100%"><td port="status_aktivitas" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status_aktivitas (varchar)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1495,3696.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.7222];
+	appmodelsuser:id -> appmodelsmahasiswa:user_id	[arrowhead=tee,
+		arrowtail=none,
+		color="#27ae60",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1306.9,4061.1",
+		penwidth=1.2,
+		pos="e,1396.6,3943 1326.8,4123.4 1326.8,4021.2 1326.8,3943 1326.8,3943 1326.8,3943 1391.6,3943 1391.6,3943",
+		style=solid,
+		xlabel="HasOne
+studentProfile",
+		xlp="1285.5,4016.5"];
+	appmodelsuser:id -> appmodelsmahasiswa:user_id	[arrowhead=tee,
+		arrowtail=none,
+		color="#27ae60",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="HasOne
+mahasiswa"];
+	appmodelsusernotification	[fontname=Arial,
+		height=5.2569,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">UserNotification</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="type" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >type (varchar)</font></td></tr>
+<tr width="100%"><td port="message" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >message (varchar)</font></td></tr>
+<tr width="100%"><td port="is_shown" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >is_shown (tinyint)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="read_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >read_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1228,3696.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsuser:id -> appmodelsusernotification:user_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1211.9,4061.1",
+		penwidth=1.2,
+		pos="e,1228,3886 1228,4123 1228,4123 1228,3896.5 1228,3896.5",
+		style=solid,
+		xlabel="HasMany
+userNotifications",
+		xlp="1178.1,4025.5"];
+	appmodelsdosenperformancemetric:user_id -> appmodelsdosen:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+dosen"];
+	appmodelsdosenperformancemetric -> appmodelsuser	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		lp="780.88,5129.6",
+		penwidth=1.2,
+		pos="e,1099.8,5067.4 786.64,5239 905.33,5239 1099.8,5239 1099.8,5239 1099.8,5239 1099.8,5079.2 1099.8,5079.2",
+		style=solid,
+		xlabel="HasOneThrough
+user",
+		xlp="972.87,5254.8"];
+	appmodelsresearchproject:ketua_id -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+ketua"];
+	appmodelsresearchproject:created_by -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+createdBy"];
+	appmodelsresearchproject:validated_by -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+validator"];
+	project_publications	[fontname=Arial,
+		height=3.1597,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">Pivot</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="publication_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >publication_id (bigint)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="731,1408.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsresearchproject:id -> project_publications:project_id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		lp="747.88,1659.9",
+		penwidth=1.2,
+		pos="e,814.42,1409 882.75,1722 882.75,1545.6 882.75,1409 882.75,1409 882.75,1409 826.24,1409 826.24,1409",
+		style=solid,
+		xlabel="BelongsToMany
+publications",
+		xlp="834.38,1553"];
+	appmodelsprojectimage	[fontname=Arial,
+		height=3.1597,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">ProjectImage</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="path" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >path (varchar)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="983,1408.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsresearchproject:id -> appmodelsprojectimage:project_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="984.88,1659.9",
+		penwidth=1.2,
+		pos="e,983,1522.3 983,1721.8 983,1721.8 983,1532.8 983,1532.8",
+		style=solid,
+		xlabel="HasMany
+images",
+		xlp="954.12,1643.1"];
+	appmodelsresearchprojectmedia	[fontname=Arial,
+		height=5.2569,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">ResearchProjectMedia</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="research_project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >research_project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="gdrive_file_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >gdrive_file_id (varchar)</font></td></tr>
+<tr width="100%"><td port="name" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >name (varchar)</font></td></tr>
+<tr width="100%"><td port="mime_type" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >mime_type (varchar)</font></td></tr>
+<tr width="100%"><td port="size" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >size (bigint)</font></td></tr>
+<tr width="100%"><td port="web_view_link" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >web_view_link (text)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1245,1408.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.5764];
+	appmodelsresearchproject:id -> appmodelsresearchprojectmedia:research_project_id	[arrowhead=crow,
+		arrowtail=none,
+		color="#2980b9",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1097.9,1659.9",
+		penwidth=1.2,
+		pos="e,1151.8,1560 1083.2,1722 1083.2,1625.6 1083.2,1560 1083.2,1560 1083.2,1560 1141.3,1560 1141.3,1560",
+		style=solid,
+		xlabel="HasMany
+media",
+		xlp="1054.4,1627.7"];
+	project_members	[fontname=Arial,
+		height=3.684,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">Pivot</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="project_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >project_id (bigint)</font></td></tr>
+<tr width="100%"><td port="user_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >user_id (bigint)</font></td></tr>
+<tr width="100%"><td port="peran" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >peran (enum)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1507,1408.8",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelsresearchproject:id -> project_members:project_id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		lp="1398.9,1659.9",
+		penwidth=1.2,
+		pos="e,1479.3,1541.4 1074.6,1722 1074.6,1670.7 1074.6,1639 1074.6,1639 1074.6,1639 1479.3,1639 1479.3,1639 1479.3,1639 1479.3,1553.2 \
+1479.3,1553.2",
+		style=solid,
+		xlabel="BelongsToMany
+members",
+		xlp="1230,1654.8"];
+	appmodelsprojectmember:project_id -> appmodelsresearchproject:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="638.88,3332.4",
+		penwidth=1.2,
+		pos="s,531.33,3653 e,956.06,3270.2 541.86,3653 541.86,3653 956.06,3653 956.06,3653 956.06,3653 956.06,3275.2 956.06,3275.2",
+		style=solid,
+		xlabel="BelongsTo
+project",
+		xlp="906.37,3668.8"];
+	appmodelspublication:validated_by -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1900.9,2496.1",
+		penwidth=1.2,
+		pos="s,785.63,365 e,1127.3,4123.2 796.16,365 796.16,365 1127.3,365 1127.3,365 1127.3,365 1127.3,4118.2 1127.3,4118.2",
+		style=solid,
+		xlabel="BelongsTo
+validator",
+		xlp="1095.8,2091.8"];
+	appmodelspublication:owner_id -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+owner"];
+	appmodelspublication:project_id -> appmodelsresearchproject:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="559.88,1408.8",
+		penwidth=1.2,
+		pos="s,785.8,731 e,891.38,1721.9 796.33,731 796.33,731 891.38,731 891.38,731 891.38,731 891.38,1716.9 891.38,1716.9",
+		style=solid,
+		xlabel="BelongsTo
+project",
+		xlp="859.88,1192.2"];
+	appmodelspublication:id -> project_publications:publication_id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		lp="694.88,1157.6",
+		penwidth=1.2,
+		pos="e,716.69,1295.2 716.69,1095.5 716.69,1095.5 716.69,1283.4 716.69,1283.4",
+		style=solid,
+		xlabel="BelongsToMany
+projects",
+		xlp="668.31,1205.2"];
+	appmodelsmahasiswa:user_id -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+user"];
+	project_publications:project_id -> appmodelsresearchproject:id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsToMany
+projects"];
+	project_publications:publication_id -> appmodelspublication:id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsToMany
+publications"];
+	appmodelsresearchprojectmedia:research_project_id -> appmodelsresearchproject:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		penwidth=1.2,
+		style=solid,
+		xlabel="BelongsTo
+project"];
+	project_members:user_id -> appmodelsuser:id	[color="#555555",
+		fontname=Arial,
+		label=" ",
+		lp="1847.9,3332.4",
+		penwidth=1.2,
+		pos="e,1318.9,4123.1 1534.7,1541.3 1534.7,1610.5 1534.7,1681 1534.7,1681 1534.7,1681 1318.9,1681 1318.9,1681 1318.9,1681 1318.9,4111.3 \
+1318.9,4111.3",
+		style=solid,
+		xlabel="BelongsToMany
+members",
+		xlp="1270.5,2734.1"];
+	appmodelssintasynclog	[fontname=Arial,
+		height=5.2569,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">SintaSyncLog</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="tahun" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >tahun (year)</font></td></tr>
+<tr width="100%"><td port="triggered_by" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >triggered_by (bigint)</font></td></tr>
+<tr width="100%"><td port="source" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >source (varchar)</font></td></tr>
+<tr width="100%"><td port="total_metrics" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >total_metrics (int)</font></td></tr>
+<tr width="100%"><td port="status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status (varchar)</font></td></tr>
+<tr width="100%"><td port="message" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >message (text)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="955,5475.1",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+	appmodelssintasynclog:triggered_by -> appmodelsuser:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="956.88,5129.6",
+		penwidth=1.2,
+		pos="s,1038.3,5475 e,1114.2,5067.7 1048.9,5475 1048.9,5475 1114.2,5475 1114.2,5475 1114.2,5475 1114.2,5072.7 1114.2,5072.7",
+		style=solid,
+		xlabel="BelongsTo
+user",
+		xlp="1082.7,5322.3"];
+	appmodelsusernotification:project_id -> appmodelsresearchproject:id	[arrowhead=tee,
+		arrowtail=crow,
+		color="#555555",
+		dir=both,
+		fontname=Arial,
+		label=" ",
+		lp="1210.9,3332.4",
+		penwidth=1.2,
+		pos="s,1144.9,3536 e,1073.5,3270.2 1134.4,3536 1134.4,3536 1073.5,3536 1073.5,3536 1073.5,3536 1073.5,3275.2 1073.5,3275.2",
+		style=solid,
+		xlabel="BelongsTo
+project",
+		xlp="1042,3451.8"];
+	appmodelsregistrationrequest	[fontname=Arial,
+		height=7.3542,
+		label=<<table width="100%" height="100%" border="0" margin="0" cellborder="1" cellspacing="0" cellpadding="10">
+<tr width="100%"><td width="100%" bgcolor="#2980b9"><font color="#ffffff">RegistrationRequest</font></td></tr>
+<tr width="100%"><td port="id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >id (bigint)</font></td></tr>
+<tr width="100%"><td port="name" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >name (varchar)</font></td></tr>
+<tr width="100%"><td port="email" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >email (varchar)</font></td></tr>
+<tr width="100%"><td port="role" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >role (varchar)</font></td></tr>
+<tr width="100%"><td port="username" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >username (varchar)</font></td></tr>
+<tr width="100%"><td port="identity" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >identity (varchar)</font></td></tr>
+<tr width="100%"><td port="sinta_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >sinta_id (varchar)</font></td></tr>
+<tr width="100%"><td port="password" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >password (varchar)</font></td></tr>
+<tr width="100%"><td port="google_id" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >google_id (varchar)</font></td></tr>
+<tr width="100%"><td port="status" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >status (varchar)</font></td></tr>
+<tr width="100%"><td port="note" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >note (text)</font></td></tr>
+<tr width="100%"><td port="created_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >created_at (timestamp)</font></td></tr>
+<tr width="100%"><td port="updated_at" align="left" width="100%"  bgcolor="#ffffff"><font color="#333333" >updated_at (timestamp)</font></td></tr>
+</table>>,
+		margin=0,
+		pos="1060,6260.5",
+		shape=Mrecord,
+		style="filled, rounded",
+		width=2.3056];
+}

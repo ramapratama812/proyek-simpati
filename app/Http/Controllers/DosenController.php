@@ -86,7 +86,12 @@ class DosenController extends Controller
             'publikasi'
         ])->findOrFail($id);
 
-        return view('dosen.show', compact('dosen'));
+        // Ambil data metrics SINTA tahun ini
+        $sintaMetrics = \App\Models\DosenPerformanceMetric::where('user_id', $dosen->id)
+            ->where('tahun', now()->year)
+            ->first();
+
+        return view('dosen.show', compact('dosen', 'sintaMetrics'));
     }
 
     public function create()
