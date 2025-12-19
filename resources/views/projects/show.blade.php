@@ -309,8 +309,8 @@
                                         <div class="col-6 col-md-4 col-lg-3">
                                             <div class="doc-img-wrapper">
                                                 <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal"
-                                                    data-bs-img-src="https://lh3.googleusercontent.com/d/{{ $media->gdrive_file_id }}=w1000">
-                                                    <img src="https://lh3.googleusercontent.com/d/{{ $media->gdrive_file_id }}=w400"
+                                                    data-bs-img-src="{{ route('projects.media.proxy', $media->id) }}">
+                                                    <img src="{{ route('projects.media.proxy', $media->id) }}"
                                                         class="doc-img" referrerpolicy="no-referrer" loading="lazy"
                                                         onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Preview'; this.parentElement.href='{{ $media->web_view_link }}'; this.parentElement.target='_blank';">
                                                 </a>
@@ -837,7 +837,7 @@
                                         <i class="bi bi-image fs-1"></i>
                                     </div>
                                     <small class="text-truncate w-100 fw-bold" title="${img.name}">${img.name}</small>
-                                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-1 lh-1" 
+                                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-1 lh-1"
                                             onclick="removeImage(${index})" style="width: 24px; height: 24px;">
                                         <i class="bi bi-x"></i>
                                     </button>

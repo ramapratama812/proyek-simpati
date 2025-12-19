@@ -29,6 +29,9 @@ Route::delete('projects/{project}/images/{image}', [ResearchProjectController::c
 Route::delete('projects/{project}/media/{media}', [ResearchProjectController::class, 'destroyMedia'])
     ->name('projects.media.destroy');
 
+Route::get('projects/media/{media}/proxy', [ResearchProjectController::class, 'proxyMedia'])
+    ->name('projects.media.proxy');
+
 Route::get('projects/{project}/publications', [ProjectPublicationController::class, 'index'])
     ->name('projects.publications.index');
 

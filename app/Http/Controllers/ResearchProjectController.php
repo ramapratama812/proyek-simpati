@@ -816,7 +816,7 @@ class ResearchProjectController extends Controller
 
                     $filename = 'approval_' . time() . '_' . Str::slug($picked['name']);
                     if (!str_ends_with($filename, '.pdf')) $filename .= '.pdf';
-                    
+
                     $path = 'surat_persetujuan/' . $filename;
                     Storage::disk('public')->put($path, $fileRes->body());
 
@@ -1018,5 +1018,51 @@ class ResearchProjectController extends Controller
                 'url' => $meta['webViewLink'] ?? null,
             ],
         ];
+    }
+
+    public function proxyMedia(\App\Models\ResearchProjectMedia $media)
+    {
+        $project = $media->project;
+        if (!$project) abort(404);
+
+        // Gunakan token dari ketua proyek atau pembuat proyek
+        $userId = $project->ketua_id ?? $project->created_by;
+        $user = User::find($userId);
+
+        if (!$user) abort(404, 'User pemilik file tidak ditemukan.');
+
+        try {
+            /** @var \App\Services\GoogleDriveTokenService $tokenService */
+            $tokenService = app(GoogleDriveTokenService::class);
+            $accessToken = $tokenService->getAccessToken($user);
+
+            if (!$accessToken) {
+                // Fallback: coba pakai token user yang sedang login jika ada
+                if (auth()->check()) {
+                    $accessToken = $tokenService->getAccessToken(auth()->user());
+                }
+            }
+
+            if (!$accessToken) {
+                return redirect($media->web_view_link ?? '#');
+            }
+
+            $response = Http::withToken($accessToken)
+                ->get("https://www.googleapis.com/drive/v3/files/{$media->gdrive_file_id}", [
+                    'alt' => 'media'
+                ]);
+
+            if (!$response->successful()) {
+                return redirect($media->web_view_link ?? '#');
+            }
+
+            return response($response->body())
+                ->header('Content-Type', $media->mime_type ?? 'application/octet-stream')
+                ->header('Cache-Control', 'public, max-age=86400'); // Cache 1 hari
+
+        } catch (\Throwable $e) {
+            \Log::error("Proxy Media Error: " . $e->getMessage());
+            return redirect($media->web_view_link ?? '#');
+        }
     }
 }
